@@ -26,15 +26,15 @@ Word embedding is a **Natural Language Processing (NLP)** technique that represe
 Each word/phrase is converted into a **vector of numbers** in a multidimensional space:
 
 ```
-"rei"    -> [0.2, 0.8, 0.1, 0.9, ...]
-"rainha" -> [0.2, 0.7, 0.9, 0.8, ...]
-"gato"   -> [0.9, 0.1, 0.3, 0.2, ...]
+"king"   -> [0.2, 0.8, 0.1, 0.9, ...]
+"queen"  -> [0.2, 0.7, 0.9, 0.8, ...]
+"cat"    -> [0.9, 0.1, 0.3, 0.2, ...]
 ```
 
 Words with similar meanings are **close** in the vector space:
 
 ```
-"rei" - "homem" + "mulher" ≈ "rainha"
+"king" - "man" + "woman" ≈ "queen"
 ```
 
 ### Practical use
@@ -47,14 +47,14 @@ Words with similar meanings are **close** in the vector space:
 ### In C# with Semantic Kernel
 
 ```csharp
-// Exemplo conceitual com Semantic Kernel
+// Conceptual example with Semantic Kernel
 var kernel = Kernel.CreateBuilder()
     .AddOpenAITextEmbeddingGeneration("text-embedding-3-small", apiKey)
     .Build();
 
 var embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
 var embedding = await embeddingService.GenerateEmbeddingAsync("texto para converter");
-// embedding = float[] com centenas de dimensoes
+// embedding = float[] with hundreds of dimensions
 ```
 
 ---

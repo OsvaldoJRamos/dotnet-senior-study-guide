@@ -163,6 +163,8 @@ app.Use(async (context, next) =>
 });
 ```
 
+> See also: [Middleware Pipeline](../06-aspnet-core/05-middleware.md) for implementation details.
+
 ## Secrets Management
 
 | Approach | When to use |
