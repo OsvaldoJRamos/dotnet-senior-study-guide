@@ -1,8 +1,8 @@
-# 14 - Interviews
+# 14 - Self-Assessment
 
-## Content
+## Contents
 
-1. [Common Questions](01-common-questions.md) - Top 10 .NET interview questions
+1. [Common Questions](01-common-questions.md) - Test your knowledge with hidden answers
 
 ---
 

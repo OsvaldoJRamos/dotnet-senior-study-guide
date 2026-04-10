@@ -55,8 +55,8 @@ Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, 
 ### [13 - Cloud](13-cloud/README.md)
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
-### [14 - Interviews](14-interviews/README.md)
-Common .NET interview questions.
+### [14 - Self-Assessment](14-interviews/README.md)
+Test your knowledge — questions with hidden answers.
 
 ## How to use
 
