@@ -158,7 +158,7 @@ app.UseStatusCodePages();
 }
 ```
 
-> In practice, few projects implement full HATEOAS. But it is good to know for interviews.
+> In practice, few projects implement full HATEOAS. But it is good to know.
 
 ## Best practices
 

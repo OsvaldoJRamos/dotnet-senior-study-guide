@@ -136,4 +136,4 @@ Lists all sections with a one-line description. Update it whenever adding a new 
 | 11 | Angular | `11-angular/` |
 | 12 | AI | `12-ai/` |
 | 13 | Cloud | `13-cloud/` |
-| 14 | Interviews | `14-interviews/` |
+| 14 | Self-Assessment | `14-self-assessment/` |

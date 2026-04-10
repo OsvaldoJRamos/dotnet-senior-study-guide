@@ -4,13 +4,13 @@ A comprehensive, open-source study guide covering the core topics a **senior .NE
 
 ## Who is this for?
 
-- Developers preparing for **.NET senior/lead interviews**
+- Developers preparing for **.NET senior/lead positions**
 - Mid-level developers looking to **level up** their knowledge
 - Anyone who wants a structured, no-fluff reference on the .NET ecosystem
 
 ## What's inside?
 
-Every topic includes **concise explanations**, **code examples**, and **practical tips** — written the way you'd explain it in an interview, not like a textbook.
+Every topic includes **concise explanations**, **code examples**, and **practical tips** — written the way you'd explain it to a colleague, not like a textbook.
 
 > All content is written in **English** with code examples in C#/.NET.
 
@@ -55,7 +55,7 @@ Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, 
 ### [13 - Cloud](13-cloud/README.md)
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
-### [14 - Self-Assessment](14-interviews/README.md)
+### [14 - Self-Assessment](14-self-assessment/README.md)
 Test your knowledge — questions with hidden answers.
 
 ## How to use
