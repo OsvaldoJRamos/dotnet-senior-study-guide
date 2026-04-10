@@ -28,38 +28,38 @@ Stack/Heap, Garbage Collector, memory optimization, memory leaks, structs vs cla
 ### [04 - Concurrency and Parallelism](04-concurrency-and-parallelism/README.md)
 Parallel, Task, async/await, race conditions, deadlocks, SemaphoreSlim.
 
-### [05 - Architecture and Patterns](05-architecture-and-patterns/README.md)
+### [05 - Algorithms and Data Structures](05-algorithms-and-data-structures/README.md)
+Big O, sorting, searching, recursion, trees, graphs, dynamic programming, greedy — all with C# examples and complexity analysis.
+
+### [06 - Architecture and Patterns](06-architecture-and-patterns/README.md)
 SOLID, Design Patterns, Clean Architecture, CQRS, Microservices, Messaging.
 
-### [06 - ASP.NET Core](06-aspnet-core/README.md)
+### [07 - HTTP and Web](07-http-and-web/README.md)
+HTTP semantics, MIME types, REST API design, web security.
+
+### [08 - ASP.NET Core](08-aspnet-core/README.md)
 DI, lifetimes, OAuth, resilience, middleware, caching, Minimal APIs, SignalR.
 
-### [07 - Data Access](07-data-access/README.md)
+### [09 - Data Access](09-data-access/README.md)
 ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization.
-
-### [08 - DevOps](08-devops/README.md)
-CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
-
-### [09 - HTTP and Web](09-http-and-web/README.md)
-HTTP semantics, MIME types, REST API design, web security.
 
 ### [10 - Testing](10-testing/README.md)
 Testing pyramid, mocking (Moq), best practices, stress/load testing (k6, NBomber).
 
-### [11 - Angular](11-angular/README.md)
-Promises vs Observables, SignalR integration, performance optimization.
+### [11 - DevOps](11-devops/README.md)
+CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
 
-### [12 - AI](12-ai/README.md)
-Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.
-
-### [13 - Cloud](13-cloud/README.md)
+### [12 - Cloud](12-cloud/README.md)
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
-### [14 - Self-Assessment](14-self-assessment/README.md)
-Test your knowledge — questions with hidden answers.
+### [13 - Angular](13-angular/README.md)
+Promises vs Observables, SignalR integration, performance optimization.
 
-### [15 - Algorithms and Data Structures](15-algorithms-and-data-structures/README.md)
-Big O, sorting, searching, recursion, trees, graphs, dynamic programming, greedy — all with C# examples and complexity analysis.
+### [14 - AI](14-ai/README.md)
+Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.
+
+### [15 - Self-Assessment](15-self-assessment/README.md)
+Test your knowledge — questions with hidden answers.
 
 ## How to use
 
