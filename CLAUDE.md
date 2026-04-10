@@ -101,7 +101,7 @@ Lists all sections with a one-line description. Update it whenever adding a new 
 5. **Update navigation links** — add "Next" to the previous file, "Previous" to the new file
 6. **Update root README** — if the section description should change
 7. **Cross-reference** — if the topic is mentioned in other files, link to it
-8. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `14-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
+8. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `15-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
 
 ## When Modifying Content
 
@@ -111,7 +111,7 @@ Lists all sections with a one-line description. Update it whenever adding a new 
 - Use tables for comparisons (X vs Y)
 - Use blockquotes (`>`) for tips and warnings
 - Keep files focused — one topic per file, not everything in one giant file
-- **Always add/update self-assessment questions** in `14-self-assessment/` when modifying topic content
+- **Always add/update self-assessment questions** in `15-self-assessment/` when modifying topic content
 
 ## Content Style
 
@@ -129,13 +129,14 @@ Lists all sections with a one-line description. Update it whenever adding a new 
 | 02 | Collections and LINQ | `02-collections-and-linq/` |
 | 03 | Memory and Performance | `03-memory-and-performance/` |
 | 04 | Concurrency and Parallelism | `04-concurrency-and-parallelism/` |
-| 05 | Architecture and Patterns | `05-architecture-and-patterns/` |
-| 06 | ASP.NET Core | `06-aspnet-core/` |
-| 07 | Data Access | `07-data-access/` |
-| 08 | DevOps | `08-devops/` |
-| 09 | HTTP and Web | `09-http-and-web/` |
+| 05 | Algorithms and Data Structures | `05-algorithms-and-data-structures/` |
+| 06 | Architecture and Patterns | `06-architecture-and-patterns/` |
+| 07 | HTTP and Web | `07-http-and-web/` |
+| 08 | ASP.NET Core | `08-aspnet-core/` |
+| 09 | Data Access | `09-data-access/` |
 | 10 | Testing | `10-testing/` |
-| 11 | Angular | `11-angular/` |
-| 12 | AI | `12-ai/` |
-| 13 | Cloud | `13-cloud/` |
-| 14 | Self-Assessment | `14-self-assessment/` |
+| 11 | DevOps | `11-devops/` |
+| 12 | Cloud | `12-cloud/` |
+| 13 | Angular | `13-angular/` |
+| 14 | AI | `14-ai/` |
+| 15 | Self-Assessment | `15-self-assessment/` |
