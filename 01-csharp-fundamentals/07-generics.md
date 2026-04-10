@@ -119,7 +119,7 @@ public interface IConverter<in TInput, out TOutput>
 | IntelliSense | Yes | No | No |
 | When to use | Whenever possible | Interop, reflection | COM interop, ExpandoObject |
 
-## Interview tips
+## Key takeaways
 
 1. Generics avoid **boxing/unboxing** with value types (performance)
 2. Constraints guarantee **type safety at compile-time**

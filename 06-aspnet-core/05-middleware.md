@@ -130,7 +130,7 @@ app.Use(async (context, next) =>
 | Order | Defined by registration | Defined by order + type (Authorization, Resource, Action, etc.) |
 | Ideal use | Cross-cutting (logging, CORS, auth) | MVC-specific logic (validation, action caching) |
 
-## Key points for interviews
+## Key takeaways
 
 1. **Registration order = execution order** — getting the order wrong is a common bug
 2. **RequestDelegate** is the delegate that represents the next middleware
