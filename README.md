@@ -44,10 +44,10 @@ CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
 HTTP semantics, MIME types, REST API design, web security.
 
 ### [10 - Testing](10-testing/README.md)
-Testing pyramid, mocking (Moq), best practices, WebApplicationFactory.
+Testing pyramid, mocking (Moq), best practices, stress/load testing (k6, NBomber).
 
 ### [11 - Angular](11-angular/README.md)
-Promises vs Observables, RxJS.
+Promises vs Observables, SignalR integration, performance optimization.
 
 ### [12 - AI](12-ai/README.md)
 Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.

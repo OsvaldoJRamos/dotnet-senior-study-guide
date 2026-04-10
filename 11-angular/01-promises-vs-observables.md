@@ -66,4 +66,4 @@ Angular's HTTP services return Observables because of the advantages:
 
 ---
 
-[Back to index](README.md)
+[Next: SignalR with Angular →](02-signalr-with-angular.md) | [Back to index](README.md)

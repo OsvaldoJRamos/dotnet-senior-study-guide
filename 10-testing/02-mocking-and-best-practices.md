@@ -177,4 +177,4 @@ public class PedidoApiTests
 
 ---
 
-[← Previous: Testing Pyramid](01-testing-pyramid.md) | [Back to index](README.md)
+[← Previous: Testing Pyramid](01-testing-pyramid.md) | [Next: Stress and Load Testing →](03-stress-and-load-testing.md) | [Back to index](README.md)
