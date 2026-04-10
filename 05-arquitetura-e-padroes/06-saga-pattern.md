@@ -44,4 +44,4 @@ Serviço A ← Evento compensatório ←────────────┘ 
 
 ---
 
-[← Anterior: Tell, Don't Ask](05-tell-dont-ask.md) | [Voltar ao índice](README.md)
+[← Anterior: Tell, Don't Ask](05-tell-dont-ask.md) | [Próximo: Clean Architecture →](07-clean-architecture.md) | [Voltar ao índice](README.md)

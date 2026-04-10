@@ -68,4 +68,4 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 ---
 
-[← Anterior: Service Lifetimes](02-service-lifetimes.md) | [Voltar ao índice](README.md)
+[← Anterior: Service Lifetimes](02-service-lifetimes.md) | [Próximo: Resiliência de APIs →](04-resiliencia-de-apis.md) | [Voltar ao índice](README.md)

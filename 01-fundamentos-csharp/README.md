@@ -7,6 +7,9 @@
 3. [CLR e IL](03-clr-e-il.md) - Common Language Runtime e Intermediate Language
 4. [Tipos Numéricos](04-tipos-numericos.md) - Float vs Double vs Decimal
 5. [Modificadores](05-modificadores.md) - Modificadores de acesso, classes e atributos
+6. [Equals vs ==](06-equals-vs-operador.md) - Comparação por valor vs referência, records
+7. [Generics](07-generics.md) - Constraints, covariância/contravariância
+8. [Delegates e Eventos](08-delegates-e-eventos.md) - Func, Action, events, observer pattern
 
 ---
 

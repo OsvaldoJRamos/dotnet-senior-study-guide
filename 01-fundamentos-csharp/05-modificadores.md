@@ -144,4 +144,4 @@ Console.WriteLine(a.Equals(b)); // True (agora compara por valor)
 
 ---
 
-[← Anterior: Tipos Numéricos](04-tipos-numericos.md) | [Voltar ao índice](README.md)
+[← Anterior: Tipos Numéricos](04-tipos-numericos.md) | [Próximo: Equals vs == →](06-equals-vs-operador.md) | [Voltar ao índice](README.md)

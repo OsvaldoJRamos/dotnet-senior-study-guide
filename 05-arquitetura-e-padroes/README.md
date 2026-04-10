@@ -8,6 +8,10 @@
 4. [Object Calisthenics](04-object-calisthenics.md) - 9 regras para código limpo
 5. [Tell, Don't Ask](05-tell-dont-ask.md) - Princípio de encapsulamento
 6. [SAGA Pattern](06-saga-pattern.md) - Consistência em microserviços
+7. [Clean Architecture](07-clean-architecture.md) - Camadas, regra de dependência, estrutura de solution
+8. [CQRS](08-cqrs.md) - Command Query Responsibility Segregation, Event Sourcing
+9. [Microservices](09-microservices.md) - Microservices vs Monolito vs Modular Monolith
+10. [Mensageria](10-mensageria.md) - RabbitMQ, Kafka, Azure Service Bus
 
 ---
 

@@ -54,4 +54,4 @@ Portanto o Redis pode ser reconstruído do zero mesmo se der pane e precisar der
 
 ---
 
-[← Anterior: Entity Framework](02-entity-framework.md) | [Voltar ao índice](README.md)
+[← Anterior: Entity Framework](02-entity-framework.md) | [Próximo: Otimização de Queries →](04-otimizacao-de-queries.md) | [Voltar ao índice](README.md)
