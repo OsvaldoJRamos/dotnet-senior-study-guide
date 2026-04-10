@@ -265,4 +265,4 @@ module "api_staging" {
 
 ---
 
-[← Previous: Docker and Kubernetes](03-docker-e-kubernetes.md) | [Next: Azure Pipelines →](05-azure-pipelines.md) | [Back to index](README.md)
+[← Previous: Docker and Kubernetes](03-docker-and-kubernetes.md) | [Next: Azure Pipelines →](05-azure-pipelines.md) | [Back to index](README.md)

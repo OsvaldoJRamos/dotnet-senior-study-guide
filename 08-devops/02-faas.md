@@ -67,4 +67,4 @@ The implementation varies between providers (AWS, Azure, GCP). The framework and
 
 ---
 
-[← Previous: CI/CD](01-ci-cd.md) | [Next: Docker and Kubernetes →](03-docker-e-kubernetes.md) | [Back to index](README.md)
+[← Previous: CI/CD](01-ci-cd.md) | [Next: Docker and Kubernetes →](03-docker-and-kubernetes.md) | [Back to index](README.md)

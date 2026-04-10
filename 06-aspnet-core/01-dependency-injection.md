@@ -4,7 +4,7 @@
 
 A SOLID principle that states we should **depend on abstractions, not on implementations**. In simple terms, this means depending on the interface rather than the class. This reduces **coupling** between classes, making testing, maintenance, and reuse easier.
 
-> See more in [SOLID](../05-arquitetura-e-padroes/01-solid.md)
+> See more in [SOLID](../05-architecture-and-patterns/01-solid.md)
 
 ## IoC (Inversion of Control)
 

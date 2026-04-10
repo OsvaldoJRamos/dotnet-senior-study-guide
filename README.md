@@ -16,46 +16,46 @@ Every topic includes **concise explanations**, **code examples**, and **practica
 
 ## Topics
 
-### [01 - C# Fundamentals](01-fundamentos-csharp/README.md)
+### [01 - C# Fundamentals](01-csharp-fundamentals/README.md)
 .NET ecosystem, namespaces, CLR/IL, numeric types, modifiers, generics, delegates, and events.
 
-### [02 - Collections and LINQ](02-colecoes-e-linq/README.md)
+### [02 - Collections and LINQ](02-collections-and-linq/README.md)
 IEnumerable, IQueryable, ICollection, IList, yield return.
 
-### [03 - Memory and Performance](03-memoria-e-performance/README.md)
+### [03 - Memory and Performance](03-memory-and-performance/README.md)
 Stack/Heap, Garbage Collector, memory optimization, memory leaks, structs vs classes.
 
-### [04 - Concurrency and Parallelism](04-concorrencia-e-paralelismo/README.md)
+### [04 - Concurrency and Parallelism](04-concurrency-and-parallelism/README.md)
 Parallel, Task, async/await, race conditions, deadlocks, SemaphoreSlim.
 
-### [05 - Architecture and Patterns](05-arquitetura-e-padroes/README.md)
+### [05 - Architecture and Patterns](05-architecture-and-patterns/README.md)
 SOLID, Design Patterns, Clean Architecture, CQRS, Microservices, Messaging.
 
 ### [06 - ASP.NET Core](06-aspnet-core/README.md)
 DI, lifetimes, OAuth, resilience, middleware, caching, Minimal APIs, SignalR.
 
-### [07 - Data Access](07-acesso-a-dados/README.md)
+### [07 - Data Access](07-data-access/README.md)
 ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization.
 
 ### [08 - DevOps](08-devops/README.md)
 CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
 
-### [09 - HTTP and Web](09-http-e-web/README.md)
+### [09 - HTTP and Web](09-http-and-web/README.md)
 HTTP semantics, MIME types, REST API design, web security.
 
-### [10 - Testing](10-testes/README.md)
+### [10 - Testing](10-testing/README.md)
 Testing pyramid, mocking (Moq), best practices, WebApplicationFactory.
 
 ### [11 - Angular](11-angular/README.md)
 Promises vs Observables, RxJS.
 
-### [12 - AI](12-ia/README.md)
+### [12 - AI](12-ai/README.md)
 Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.
 
 ### [13 - Cloud](13-cloud/README.md)
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
-### [14 - Interviews](14-entrevistas/README.md)
+### [14 - Interviews](14-interviews/README.md)
 Common .NET interview questions.
 
 ## How to use

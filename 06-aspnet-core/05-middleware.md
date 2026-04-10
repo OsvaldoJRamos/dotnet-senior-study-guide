@@ -140,4 +140,4 @@ app.Use(async (context, next) =>
 
 ---
 
-[← Previous: API Resilience](04-resiliencia-de-apis.md) | [Next: Background Services →](06-background-services.md) | [Back to index](README.md)
+[← Previous: API Resilience](04-api-resilience.md) | [Next: Background Services →](06-background-services.md) | [Back to index](README.md)
