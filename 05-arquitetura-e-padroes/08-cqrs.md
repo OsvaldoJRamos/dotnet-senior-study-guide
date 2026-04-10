@@ -1,11 +1,11 @@
 # CQRS - Command Query Responsibility Segregation
 
-## O que e
+## What it is
 
-Separar as operacoes de **leitura** (Query) e **escrita** (Command) em modelos diferentes. Em vez de um unico modelo que faz tudo, voce tem:
+Separating **read** (Query) and **write** (Command) operations into different models. Instead of a single model that does everything, you have:
 
-- **Command Model**: otimizado para escrita (normalizado, com validacoes)
-- **Query Model**: otimizado para leitura (desnormalizado, rapido)
+- **Command Model**: optimized for writing (normalized, with validations)
+- **Query Model**: optimized for reading (denormalized, fast)
 
 ```
 ┌─────────┐    Command    ┌──────────────┐    ┌──────────────┐
@@ -19,16 +19,16 @@ Separar as operacoes de **leitura** (Query) e **escrita** (Command) em modelos d
                                               └──────────────┘
 ```
 
-## Por que usar
+## Why use it
 
-1. **Performance**: leituras e escritas tem necessidades diferentes
-2. **Escalabilidade**: escalar leitura e escrita independentemente
-3. **Simplicidade**: cada lado tem um modelo simples em vez de um modelo complexo que tenta fazer tudo
-4. **Seguranca**: separar quem pode ler de quem pode escrever
+1. **Performance**: reads and writes have different needs
+2. **Scalability**: scale read and write independently
+3. **Simplicity**: each side has a simple model instead of a complex model that tries to do everything
+4. **Security**: separate who can read from who can write
 
-## Implementacao simples (mesmo banco)
+## Simple implementation (same database)
 
-Nao precisa de dois bancos. O nivel mais basico e separar **handlers**:
+You don't need two databases. The most basic level is to separate **handlers**:
 
 ```csharp
 // Command
@@ -62,7 +62,7 @@ public class ObterPedidoHandler
 }
 ```
 
-## Com MediatR
+## With MediatR
 
 ```csharp
 // Command
@@ -96,9 +96,9 @@ public async Task<IActionResult> Criar(CriarPedidoDto dto)
 }
 ```
 
-## Event Sourcing (frequentemente combinado com CQRS)
+## Event Sourcing (frequently combined with CQRS)
 
-Em vez de salvar o **estado atual**, salva todos os **eventos** que levaram ao estado:
+Instead of saving the **current state**, it saves all the **events** that led to the state:
 
 ```csharp
 // Eventos
@@ -111,42 +111,42 @@ public record PedidoAprovado(Guid PedidoId, DateTime Data);
 // Resultado: Pedido com 2 itens, status Aprovado
 ```
 
-### Vantagens do Event Sourcing
+### Event Sourcing Advantages
 
-- **Auditoria completa** — historico de tudo que aconteceu
-- **Debug** — pode reconstruir o estado em qualquer ponto no tempo
-- **Event-driven** — eventos podem alimentar outros sistemas
+- **Complete audit trail** -- history of everything that happened
+- **Debug** -- can reconstruct state at any point in time
+- **Event-driven** -- events can feed other systems
 
-### Desvantagens
+### Disadvantages
 
-- Complexidade alta
-- Queries no banco de eventos sao lentas (precisa de projecoes/read models)
-- Versionamento de eventos e complicado
+- High complexity
+- Queries on the event store are slow (requires projections/read models)
+- Event versioning is complicated
 
-## Niveis de CQRS
+## CQRS Levels
 
-| Nivel | Descricao | Complexidade |
+| Level | Description | Complexity |
 |-------|-----------|-------------|
-| 1 | Separar handlers de leitura e escrita | Baixa |
-| 2 | Modelos diferentes para leitura e escrita | Media |
-| 3 | Bancos diferentes (write DB + read DB) | Alta |
-| 4 | Event Sourcing + projecoes | Muito alta |
+| 1 | Separate read and write handlers | Low |
+| 2 | Different models for read and write | Medium |
+| 3 | Different databases (write DB + read DB) | High |
+| 4 | Event Sourcing + projections | Very high |
 
-> Comece pelo nivel 1. So suba se tiver necessidade real.
+> Start at level 1. Only move up if there is a real need.
 
-## Quando usar
+## When to use
 
-- Dominio complexo com muitas regras de escrita
-- Leitura e escrita com volumes muito diferentes
-- Necessidade de escalar leitura independente
-- Requisitos de auditoria (event sourcing)
+- Complex domain with many write rules
+- Read and write with very different volumes
+- Need to scale reads independently
+- Audit requirements (event sourcing)
 
-## Quando NAO usar
+## When NOT to use
 
-- CRUDs simples
-- Dominio com pouca logica de negocio
-- Time pequeno sem experiencia com o padrao
+- Simple CRUDs
+- Domain with little business logic
+- Small team without experience with the pattern
 
 ---
 
-[← Anterior: Clean Architecture](07-clean-architecture.md) | [Próximo: Microservices →](09-microservices.md) | [Voltar ao índice](README.md)
+[← Previous: Clean Architecture](07-clean-architecture.md) | [Next: Microservices →](09-microservices.md) | [Back to index](README.md)

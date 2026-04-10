@@ -1,8 +1,8 @@
-# Task, async/await e PLINQ
+# Task, async/await and PLINQ
 
-## 3. Task com async/await
+## 3. Task with async/await
 
-Ideal para **concorrência assíncrona**, mas também pode ser usado para paralelismo com `Task.WhenAll`:
+Ideal for **asynchronous concurrency**, but can also be used for parallelism with `Task.WhenAll`:
 
 ```csharp
 var tarefas = new[]
@@ -15,7 +15,7 @@ var tarefas = new[]
 await Task.WhenAll(tarefas);
 ```
 
-### Exemplo prático com I/O:
+### Practical example with I/O:
 
 ```csharp
 var cepTaskList = ceps.Select(cep => new ViaCepService().GetCepAsync(cep));
@@ -24,7 +24,7 @@ var cepList = await Task.WhenAll(cepTaskList);
 
 ## 4. PLINQ (Parallel LINQ)
 
-Permite paralelizar queries LINQ:
+Allows parallelizing LINQ queries:
 
 ```csharp
 var resultado = lista
@@ -33,39 +33,39 @@ var resultado = lista
     .ToList();
 ```
 
-## Task.Run vs async/await — quando usar cada um
+## Task.Run vs async/await — when to use each one
 
-| Cenário | Usar |
+| Scenario | Use |
 |---|---|
-| Trabalho CPU-bound pesado | `Task.Run` |
-| Chamadas I/O (API, banco, arquivo) | `async/await` direto (sem `Task.Run`) |
-| Múltiplas operações I/O simultâneas | `Task.WhenAll` |
-| Query pesada em coleção grande | `PLINQ` |
+| Heavy CPU-bound work | `Task.Run` |
+| I/O calls (API, database, file) | `async/await` directly (without `Task.Run`) |
+| Multiple simultaneous I/O operations | `Task.WhenAll` |
+| Heavy query on a large collection | `PLINQ` |
 
-## Erros comuns
+## Common mistakes
 
-### Não use .Result ou .Wait()
+### Do not use .Result or .Wait()
 
 ```csharp
-// ERRADO - pode causar deadlock
+// WRONG - can cause deadlock
 var result = MinhaOperacaoAsync().Result;
 
-// CORRETO - use await
+// CORRECT - use await
 var result = await MinhaOperacaoAsync();
 ```
 
-### async void — evite
+### async void — avoid it
 
 ```csharp
-// ERRADO - exceções não são capturáveis
+// WRONG - exceptions cannot be caught
 async void ProcessarDados() { ... }
 
-// CORRETO - use async Task
+// CORRECT - use async Task
 async Task ProcessarDados() { ... }
 ```
 
-A única exceção para `async void` são event handlers de UI.
+The only exception for `async void` is UI event handlers.
 
 ---
 
-[← Anterior: Parallel.ForEach e Invoke](02-parallel-foreach-invoke.md) | [Voltar ao índice](README.md) | [Próximo: Race Conditions →](04-race-conditions.md)
+[← Previous: Parallel.ForEach and Invoke](02-parallel-foreach-invoke.md) | [Back to index](README.md) | [Next: Race Conditions →](04-race-conditions.md)

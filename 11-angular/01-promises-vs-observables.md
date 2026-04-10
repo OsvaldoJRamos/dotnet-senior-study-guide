@@ -1,18 +1,18 @@
 # Promises vs Observables (Angular)
 
-## Comparacao
+## Comparison
 
-| Aspecto | Promise | Observable |
-|---------|---------|-----------|
-| Valores | **Um** valor unico | **Multiplos** valores ao longo do tempo |
-| Execucao | **Eager** (executa ao criar) | **Lazy** (executa ao se inscrever) |
-| Cancelamento | Nao pode cancelar | Pode cancelar via `unsubscribe()` |
-| Operadores | `.then()`, `.catch()` | `map`, `filter`, `switchMap`, `retry`, etc. |
-| Uso ideal | Valor unico e simples | Streams, eventos, websockets |
+| Aspect | Promise | Observable |
+|--------|---------|-----------|
+| Values | **One** single value | **Multiple** values over time |
+| Execution | **Eager** (executes on creation) | **Lazy** (executes on subscription) |
+| Cancellation | Cannot cancel | Can cancel via `unsubscribe()` |
+| Operators | `.then()`, `.catch()` | `map`, `filter`, `switchMap`, `retry`, etc. |
+| Ideal use | Single simple value | Streams, events, websockets |
 
-## Promise - Exemplo
+## Promise - Example
 
-Buscar um dado unico ao abrir uma tela:
+Fetch a single piece of data when opening a screen:
 
 ```typescript
 async loadPerfil(): Promise<void> {
@@ -21,13 +21,13 @@ async loadPerfil(): Promise<void> {
 }
 ```
 
-- Comeca a executar **imediatamente**
-- Retorna **apenas um valor**
-- Nao pode ser cancelada
+- Starts executing **immediately**
+- Returns **only one value**
+- Cannot be cancelled
 
-## Observable - Exemplo
+## Observable - Example
 
-Busca em tempo real enquanto o usuario digita:
+Real-time search as the user types:
 
 ```typescript
 this.searchControl.valueChanges.pipe(
@@ -41,29 +41,29 @@ this.searchControl.valueChanges.pipe(
 });
 ```
 
-- **Lazy**: so executa quando alguem se inscreve (`.subscribe()`)
-- Emite **multiplos valores** ao longo do tempo
-- `switchMap` **cancela** a requisicao anterior automaticamente
+- **Lazy**: only executes when someone subscribes (`.subscribe()`)
+- Emits **multiple values** over time
+- `switchMap` **cancels** the previous request automatically
 
-## Por que Angular usa Observables
+## Why Angular uses Observables
 
-Os servicos HTTP do Angular retornam Observables por causa das vantagens:
+Angular's HTTP services return Observables because of the advantages:
 
-- Cancelamento nativo
-- Multiplas emissoes
-- Operadores poderosos de composicao
-- Integração com RxJS
+- Native cancellation
+- Multiple emissions
+- Powerful composition operators
+- Integration with RxJS
 
-## Quando usar cada um
+## When to use each
 
-| Cenario | Recomendacao |
-|---------|-------------|
-| Buscar dado uma unica vez | Promise ou Observable (ambos OK) |
-| Busca em tempo real | Observable |
+| Scenario | Recommendation |
+|----------|----------------|
+| Fetch data a single time | Promise or Observable (both OK) |
+| Real-time search | Observable |
 | WebSockets | Observable |
-| Eventos do usuario | Observable |
-| Requisicao simples e pontual | Promise |
+| User events | Observable |
+| Simple one-off request | Promise |
 
 ---
 
-[Voltar ao índice](README.md)
+[Back to index](README.md)

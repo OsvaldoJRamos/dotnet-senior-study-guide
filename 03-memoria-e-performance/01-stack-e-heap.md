@@ -1,10 +1,10 @@
-# Stack e Heap
+# Stack and Heap
 
-Em C# a memória é dividida em duas áreas principais: **Stack** e **Heap**.
+In C#, memory is divided into two main areas: **Stack** and **Heap**.
 
 ## Stack
 
-Usada para armazenar **value types** (ex: `int`, `float`, `struct`) e **referências** a objetos. É rápida e gerenciada automaticamente. Sempre que um método é chamado, um novo bloco de memória é alocado na stack, e quando o método termina, a memória é liberada.
+Used to store **value types** (e.g., `int`, `float`, `struct`) and **references** to objects. It is fast and automatically managed. Whenever a method is called, a new block of memory is allocated on the stack, and when the method finishes, the memory is freed.
 
 ```
 int a = 10; // local variable
@@ -17,7 +17,7 @@ int a = 10; // local variable
 
 ## Heap
 
-Usada para armazenar **reference types** (ex: objetos, arrays, strings). Quando objetos são criados usando `new`, eles são armazenados na heap. Essa memória permanece alocada até que o Garbage Collector (GC) decida que não está mais em uso.
+Used to store **reference types** (e.g., objects, arrays, strings). When objects are created using `new`, they are stored on the heap. This memory remains allocated until the Garbage Collector (GC) determines it is no longer in use.
 
 ```
 Test a = new Test();
@@ -28,7 +28,7 @@ Test a = new Test();
  Stack          Heap
 ```
 
-## Exemplo em código
+## Code example
 
 ```csharp
 class Program
@@ -47,22 +47,22 @@ class Person
 }
 ```
 
-Nesse exemplo, o inteiro `number` é armazenado na stack, mas o objeto `Person` e a string `"Alice"` são armazenados na heap.
+In this example, the integer `number` is stored on the stack, but the `Person` object and the string `"Alice"` are stored on the heap.
 
-## SOH e LOH
+## SOH and LOH
 
-Objetos são alocados em duas áreas do heap:
+Objects are allocated in two areas of the heap:
 
-1. **Small Object Heap (SOH):** Objetos menores que 85.000 bytes (cerca de 83 KB)
-2. **Large Object Heap (LOH):** Objetos maiores que 85.000 bytes
+1. **Small Object Heap (SOH):** Objects smaller than 85,000 bytes (approximately 83 KB)
+2. **Large Object Heap (LOH):** Objects larger than 85,000 bytes
 
-O LOH é diferente do SOH porque objetos grandes são caros de alocar e desalocar. Alocações no LOH **não são compactadas** pelo GC, ou seja, pode ocorrer fragmentação de memória, levando a uso ineficiente de memória ao longo do tempo.
+The LOH differs from the SOH because large objects are expensive to allocate and deallocate. Allocations on the LOH **are not compacted** by the GC, meaning memory fragmentation can occur, leading to inefficient memory usage over time.
 
-### Dicas para o LOH:
-- Minimize o número de objetos grandes que você aloca
-- Em vez de alocar arrays grandes, quebre-os em arrays menores que caibam no SOH
-- Strings são imutáveis em C#, então concatenar strings grandes pode causar alocações no LOH. Use `StringBuilder` para reduzir o uso de memória
+### Tips for the LOH:
+- Minimize the number of large objects you allocate
+- Instead of allocating large arrays, break them into smaller arrays that fit in the SOH
+- Strings are immutable in C#, so concatenating large strings can cause allocations on the LOH. Use `StringBuilder` to reduce memory usage
 
 ---
 
-[Voltar ao índice](README.md) | [Próximo: Garbage Collector →](02-garbage-collector.md)
+[Back to index](README.md) | [Next: Garbage Collector →](02-garbage-collector.md)

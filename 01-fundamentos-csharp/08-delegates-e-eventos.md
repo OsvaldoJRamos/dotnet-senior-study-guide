@@ -1,8 +1,8 @@
-# Delegates, Events, Func e Action
+# Delegates, Events, Func and Action
 
 ## Delegates
 
-Um delegate e um **ponteiro type-safe para um metodo**. Define a assinatura (parametros e retorno) que o metodo deve ter.
+A delegate is a **type-safe pointer to a method**. It defines the signature (parameters and return type) that the method must have.
 
 ```csharp
 // Declaracao do delegate
@@ -20,15 +20,15 @@ op = Multiplicar;
 Console.WriteLine(op(3, 4)); // 12
 ```
 
-## Func, Action e Predicate
+## Func, Action and Predicate
 
-Delegates genericos prontos do .NET — **evitam criar delegates customizados**:
+Ready-made generic delegates from .NET -- **avoid creating custom delegates**:
 
-| Delegate | Descricao | Assinatura |
-|----------|-----------|------------|
-| `Func<T, TResult>` | Tem retorno | `TResult metodo(T param)` |
-| `Action<T>` | Sem retorno (void) | `void metodo(T param)` |
-| `Predicate<T>` | Retorna bool | `bool metodo(T param)` |
+| Delegate | Description | Signature |
+|----------|-------------|-----------|
+| `Func<T, TResult>` | Has a return value | `TResult method(T param)` |
+| `Action<T>` | No return value (void) | `void method(T param)` |
+| `Predicate<T>` | Returns bool | `bool method(T param)` |
 
 ```csharp
 // Func: recebe int, retorna string
@@ -47,7 +47,7 @@ Console.WriteLine(ehPar(4)); // True
 Func<int, int, int> somar = (a, b) => a + b;
 ```
 
-### Uso pratico com LINQ
+### Practical usage with LINQ
 
 ```csharp
 var numeros = new List<int> { 1, 2, 3, 4, 5 };
@@ -64,7 +64,7 @@ numeros.ForEach(n => Console.WriteLine(n));
 
 ## Events
 
-Events sao uma camada de **encapsulamento** sobre delegates. Implementam o padrao **Observer** — permitem que objetos sejam notificados quando algo acontece.
+Events are an **encapsulation layer** over delegates. They implement the **Observer** pattern -- they allow objects to be notified when something happens.
 
 ```csharp
 public class PedidoService
@@ -95,7 +95,7 @@ service.CriarPedido(new Pedido(1));
 // "Log registrado para pedido 1"
 ```
 
-### Event vs Delegate — por que usar event?
+### Event vs Delegate -- why use event?
 
 ```csharp
 // COM delegate publico: qualquer um pode invocar ou sobrescrever
@@ -117,7 +117,7 @@ obj.OnMensagem += meuHandler;        // OK, so pode += e -=
 
 ## EventHandler pattern
 
-O padrao recomendado pela Microsoft:
+The pattern recommended by Microsoft:
 
 ```csharp
 // Argumentos customizados
@@ -145,7 +145,7 @@ public class PedidoService
 }
 ```
 
-## Delegates como Strategy Pattern
+## Delegates as Strategy Pattern
 
 ```csharp
 public class Validador
@@ -166,15 +166,15 @@ Console.WriteLine(validador.Validar("abc123")); // True
 Console.WriteLine(validador.Validar("ab"));      // False
 ```
 
-## Resumo
+## Summary
 
-| Conceito | Quando usar |
-|----------|-------------|
-| `Func<T>` | Callback com retorno (LINQ, strategies) |
-| `Action<T>` | Callback sem retorno (logging, side effects) |
-| `event` | Notificacoes (Observer pattern) |
-| Delegate custom | Raramente — prefira Func/Action |
+| Concept | When to use |
+|---------|-------------|
+| `Func<T>` | Callback with return value (LINQ, strategies) |
+| `Action<T>` | Callback without return value (logging, side effects) |
+| `event` | Notifications (Observer pattern) |
+| Custom delegate | Rarely -- prefer Func/Action |
 
 ---
 
-[← Anterior: Generics](07-generics.md) | [Voltar ao índice](README.md)
+[← Previous: Generics](07-generics.md) | [Back to index](README.md)

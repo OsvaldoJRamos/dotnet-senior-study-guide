@@ -1,56 +1,56 @@
-# SignalR (Comunicacao em Tempo Real)
+# SignalR (Real-Time Communication)
 
-## O que e
+## What it is
 
-SignalR e uma biblioteca do ASP.NET Core para **comunicacao bidirecional em tempo real** entre servidor e cliente. Abstrai WebSockets, Server-Sent Events e Long Polling.
+SignalR is an ASP.NET Core library for **bidirectional real-time communication** between server and client. It abstracts WebSockets, Server-Sent Events, and Long Polling.
 
-## Quando usar
+## When to use
 
-- **Chat** em tempo real
-- **Dashboards** com atualizacao ao vivo
-- **Notificacoes** push
-- **Colaboracao** (tipo Google Docs)
-- **Gaming** multiplayer
+- Real-time **chat**
+- **Dashboards** with live updates
+- Push **notifications**
+- **Collaboration** (like Google Docs)
+- Multiplayer **gaming**
 
-## Como funciona
+## How it works
 
 ```
-Cliente  ←──WebSocket──→  Hub (servidor)  ←──→  Outros clientes
+Client  ←──WebSocket──→  Hub (server)  ←──→  Other clients
 ```
 
-1. Cliente se conecta ao **Hub**
-2. Hub pode enviar mensagens para:
-   - **Um cliente** especifico
-   - **Todos** os clientes
-   - **Um grupo** de clientes
+1. Client connects to the **Hub**
+2. Hub can send messages to:
+   - A **specific** client
+   - **All** clients
+   - A **group** of clients
 
-## Implementacao
+## Implementation
 
 ### Server (Hub)
 
 ```csharp
 public class ChatHub : Hub
 {
-    // Cliente chama este metodo
+    // Client calls this method
     public async Task EnviarMensagem(string usuario, string mensagem)
     {
-        // Envia para TODOS os clientes conectados
+        // Sends to ALL connected clients
         await Clients.All.SendAsync("ReceberMensagem", usuario, mensagem);
     }
 
-    // Enviar para grupo especifico
+    // Send to a specific group
     public async Task EnviarParaSala(string sala, string mensagem)
     {
         await Clients.Group(sala).SendAsync("ReceberMensagem", mensagem);
     }
 
-    // Entrar em uma sala
+    // Join a room
     public async Task EntrarNaSala(string sala)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, sala);
     }
 
-    // Eventos de conexao
+    // Connection events
     public override async Task OnConnectedAsync()
     {
         await base.OnConnectedAsync();
@@ -77,12 +77,12 @@ const connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .build();
 
-// Receber mensagens
+// Receive messages
 connection.on("ReceberMensagem", (usuario, mensagem) => {
     console.log(`${usuario}: ${mensagem}`);
 });
 
-// Enviar mensagem
+// Send message
 await connection.invoke("EnviarMensagem", "Osvaldo", "Olá!");
 
 await connection.start();
@@ -105,9 +105,9 @@ await connection.StartAsync();
 await connection.InvokeAsync("EnviarMensagem", "Bot", "Conectado!");
 ```
 
-## Enviar de fora do Hub
+## Sending from outside the Hub
 
-Util em controllers ou background services:
+Useful in controllers or background services:
 
 ```csharp
 public class PedidoController : ControllerBase
@@ -119,7 +119,7 @@ public class PedidoController : ControllerBase
     {
         var pedido = await _service.CriarAsync(dto);
 
-        // Notifica clientes conectados
+        // Notify connected clients
         await _hub.Clients.All.SendAsync("PedidoCriado", pedido.Id);
 
         return CreatedAtAction(nameof(Obter), new { id = pedido.Id }, pedido);
@@ -127,9 +127,9 @@ public class PedidoController : ControllerBase
 }
 ```
 
-## Escala com Redis Backplane
+## Scaling with Redis Backplane
 
-Com multiplas instancias, clientes em instancias diferentes nao se enxergam. Solucao: **Redis backplane**.
+With multiple instances, clients on different instances can't see each other. Solution: **Redis backplane**.
 
 ```csharp
 builder.Services.AddSignalR()
@@ -139,16 +139,16 @@ builder.Services.AddSignalR()
     });
 ```
 
-## Transportes
+## Transports
 
-| Transporte | Descricao |
+| Transport | Description |
 |-----------|-----------|
-| **WebSockets** | Bidirecional, mais eficiente (preferido) |
-| **Server-Sent Events** | Servidor → cliente apenas |
-| **Long Polling** | Fallback compativel com tudo |
+| **WebSockets** | Bidirectional, most efficient (preferred) |
+| **Server-Sent Events** | Server to client only |
+| **Long Polling** | Fallback compatible with everything |
 
-SignalR negocia automaticamente o melhor transporte disponivel.
+SignalR automatically negotiates the best available transport.
 
 ---
 
-[← Anterior: Minimal APIs](08-minimal-apis.md) | [Voltar ao índice](README.md)
+[← Previous: Minimal APIs](08-minimal-apis.md) | [Back to index](README.md)

@@ -1,9 +1,9 @@
-# 14 - Entrevistas
+# 14 - Interviews
 
-## Conteúdo
+## Content
 
-1. [Perguntas Comuns](01-perguntas-comuns.md) - Top 10 perguntas de entrevistas .NET
+1. [Common Questions](01-perguntas-comuns.md) - Top 10 .NET interview questions
 
 ---
 
-[Voltar ao índice](../README.md)
+[Back to index](../README.md)

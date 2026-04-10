@@ -1,17 +1,17 @@
 # IEnumerable vs IQueryable
 
-## Diferença fundamental
+## Fundamental difference
 
-O **IEnumerable** trabalha com todos os dados da memória, já o **IQueryable** cria uma consulta que será executada posteriormente. Geralmente a consulta é executada quando usamos `.ToList()`.
+**IEnumerable** works with all data in memory, while **IQueryable** creates a query that will be executed later. Generally, the query is executed when we use `.ToList()`.
 
-- **IEnumerable** é mais adequado para consultar dados que já estão na memória (uma lista, por exemplo).
-- **IQueryable** é mais adequado para usar junto ao Entity Framework para consulta em bancos de dados, por exemplo.
+- **IEnumerable** is more suitable for querying data that is already in memory (a list, for example).
+- **IQueryable** is more suitable for use with Entity Framework for database queries, for example.
 
-## IEnumerable x List
+## IEnumerable vs List
 
-O uso do **IEnumerable** é preferível pois está se usando uma interface ao invés de uma classe concreta. Além disso, o IEnumerable posterga as operações até o momento final (execução diferida / deferred execution).
+Using **IEnumerable** is preferable because you are using an interface instead of a concrete class. Additionally, IEnumerable defers operations until the final moment (deferred execution).
 
-### Exemplo com IEnumerable (execução diferida):
+### Example with IEnumerable (deferred execution):
 
 ```csharp
 private void TesteIEnumerable()
@@ -27,16 +27,16 @@ private void TesteIEnumerable()
 }
 ```
 
-**Saída:**
+**Output:**
 ```
 Marcos
 João
 Ricardo
 ```
 
-Note que mesmo mudando o nome de "Luis" para "Marcos" **após** ter criado o objeto IEnumerable, ele mostrou no console o nome "Marcos". Isso porque o IEnumerable somente foi executado dentro do loop do foreach, e mudamos o nome antes.
+Note that even though we changed the name from "Luis" to "Marcos" **after** creating the IEnumerable object, the console displayed "Marcos". This is because the IEnumerable was only executed inside the foreach loop, and we changed the name before that.
 
-### Exemplo com List (execução imediata):
+### Example with List (immediate execution):
 
 ```csharp
 private void TesteList()
@@ -52,38 +52,38 @@ private void TesteList()
 }
 ```
 
-**Saída:**
+**Output:**
 ```
 João
 Ricardo
 ```
 
-Neste segundo exemplo o objeto List já havia sido criado e armazenado em memória com o nome "Luis". A mudança para "Marcos" não afetou o resultado porque a query já tinha sido materializada pelo `.ToList()`.
+In this second example, the List object had already been created and stored in memory with the name "Luis". The change to "Marcos" did not affect the result because the query had already been materialized by `.ToList()`.
 
-## IQueryable — quando usar
+## IQueryable — when to use
 
 ```csharp
-// IQueryable traduz a expressão LINQ para SQL no banco
+// IQueryable translates the LINQ expression to SQL in the database
 IQueryable<Produto> query = context.Produtos
     .Where(p => p.Preco > 100)
     .OrderBy(p => p.Nome);
 
-// A query SQL só é executada aqui:
+// The SQL query is only executed here:
 var resultado = query.ToList();
 ```
 
-A vantagem é que o **filtro é feito no banco**, não na aplicação. Com IEnumerable, todos os registros seriam trazidos para a memória e filtrados lá — muito menos eficiente.
+The advantage is that the **filter is applied in the database**, not in the application. With IEnumerable, all records would be brought into memory and filtered there — much less efficient.
 
-## Resumo
+## Summary
 
-| Característica | IEnumerable | IQueryable |
+| Feature | IEnumerable | IQueryable |
 |---|---|---|
-| Onde executa o filtro | Na memória (C#) | No servidor (SQL) |
-| Melhor para | Coleções em memória | Consultas a banco de dados |
-| Execução | Diferida (lazy) | Diferida (lazy) |
+| Where the filter executes | In memory (C#) | On the server (SQL) |
+| Best for | In-memory collections | Database queries |
+| Execution | Deferred (lazy) | Deferred (lazy) |
 | Provider | LINQ to Objects | LINQ to SQL/Entities |
 | Namespace | `System.Collections.Generic` | `System.Linq` |
 
 ---
 
-[Voltar ao índice](README.md) | [Próximo: ICollection e IList →](02-icollection-ilist.md)
+[Back to index](README.md) | [Next: ICollection and IList →](02-icollection-ilist.md)

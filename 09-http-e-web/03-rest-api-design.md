@@ -1,72 +1,72 @@
 # REST API Design
 
-## Principios REST
+## REST Principles
 
-REST (Representational State Transfer) e um estilo arquitetural para APIs HTTP. Nao e um protocolo — e um conjunto de **constraints**:
+REST (Representational State Transfer) is an architectural style for HTTP APIs. It is not a protocol -- it is a set of **constraints**:
 
-1. **Client-Server** — separacao de responsabilidades
-2. **Stateless** — cada requisicao contem tudo necessario
-3. **Cacheable** — respostas podem ser cacheadas
-4. **Uniform Interface** — interface padronizada (URLs, metodos, status codes)
-5. **Layered System** — intermediarios (proxy, gateway) sao transparentes
+1. **Client-Server** -- separation of concerns
+2. **Stateless** -- each request contains everything needed
+3. **Cacheable** -- responses can be cached
+4. **Uniform Interface** -- standardized interface (URLs, methods, status codes)
+5. **Layered System** -- intermediaries (proxy, gateway) are transparent
 
-## URLs (recursos, nao acoes)
+## URLs (resources, not actions)
 
 ```
-# BOM — substantivos no plural
-GET    /api/pedidos          # listar
-GET    /api/pedidos/42       # obter por ID
-POST   /api/pedidos          # criar
-PUT    /api/pedidos/42       # atualizar inteiro
-PATCH  /api/pedidos/42       # atualizar parcial
-DELETE /api/pedidos/42       # remover
+# GOOD — plural nouns
+GET    /api/pedidos          # list
+GET    /api/pedidos/42       # get by ID
+POST   /api/pedidos          # create
+PUT    /api/pedidos/42       # full update
+PATCH  /api/pedidos/42       # partial update
+DELETE /api/pedidos/42       # remove
 
-# RUIM — verbos na URL
+# BAD — verbs in the URL
 POST   /api/criarPedido
 GET    /api/obterPedido/42
 POST   /api/deletarPedido/42
 ```
 
-### Recursos aninhados
+### Nested resources
 
 ```
-GET /api/clientes/5/pedidos         # pedidos do cliente 5
-GET /api/clientes/5/pedidos/42      # pedido 42 do cliente 5
+GET /api/clientes/5/pedidos         # orders for customer 5
+GET /api/clientes/5/pedidos/42      # order 42 for customer 5
 ```
 
-> Nao anide mais de 2 niveis — fica confuso. Prefira query parameters.
+> Do not nest more than 2 levels -- it gets confusing. Prefer query parameters.
 
 ## Status Codes
 
-### Sucesso
+### Success
 
-| Code | Significado | Quando usar |
-|------|-------------|-------------|
-| **200** | OK | GET, PUT, PATCH com sucesso |
-| **201** | Created | POST que criou recurso |
-| **204** | No Content | DELETE ou PUT sem body de resposta |
+| Code | Meaning | When to use |
+|------|---------|-------------|
+| **200** | OK | Successful GET, PUT, PATCH |
+| **201** | Created | POST that created a resource |
+| **204** | No Content | DELETE or PUT with no response body |
 
-### Erro do cliente
+### Client error
 
-| Code | Significado | Quando usar |
-|------|-------------|-------------|
-| **400** | Bad Request | Validacao falhou, body invalido |
-| **401** | Unauthorized | Nao autenticado |
-| **403** | Forbidden | Autenticado mas sem permissao |
-| **404** | Not Found | Recurso nao existe |
-| **409** | Conflict | Conflito (ex: duplicata, concorrencia) |
-| **422** | Unprocessable Entity | Semanticamente invalido |
+| Code | Meaning | When to use |
+|------|---------|-------------|
+| **400** | Bad Request | Validation failed, invalid body |
+| **401** | Unauthorized | Not authenticated |
+| **403** | Forbidden | Authenticated but without permission |
+| **404** | Not Found | Resource does not exist |
+| **409** | Conflict | Conflict (e.g., duplicate, concurrency) |
+| **422** | Unprocessable Entity | Semantically invalid |
 
-### Erro do servidor
+### Server error
 
-| Code | Significado |
-|------|-------------|
+| Code | Meaning |
+|------|---------|
 | **500** | Internal Server Error |
 | **502** | Bad Gateway |
 | **503** | Service Unavailable |
 | **504** | Gateway Timeout |
 
-## Paginacao
+## Pagination
 
 ```
 GET /api/pedidos?page=2&pageSize=20
@@ -81,26 +81,26 @@ Response:
 }
 ```
 
-### Keyset pagination (melhor performance)
+### Keyset pagination (better performance)
 
 ```
 GET /api/pedidos?after=pedido_xyz&limit=20
 ```
 
-Mais performatico que OFFSET para datasets grandes.
+More performant than OFFSET for large datasets.
 
-## Filtros, ordenacao e busca
-
-```
-GET /api/pedidos?status=aprovado&clienteId=5     # filtro
-GET /api/pedidos?sort=dataCriacao:desc            # ordenacao
-GET /api/pedidos?search=notebook                  # busca textual
-```
-
-## Versionamento
+## Filters, sorting, and search
 
 ```
-# Via URL (mais comum)
+GET /api/pedidos?status=aprovado&clienteId=5     # filter
+GET /api/pedidos?sort=dataCriacao:desc            # sorting
+GET /api/pedidos?search=notebook                  # text search
+```
+
+## Versioning
+
+```
+# Via URL (most common)
 GET /api/v1/pedidos
 GET /api/v2/pedidos
 
@@ -112,11 +112,11 @@ Accept: application/vnd.minhaapi.v2+json
 GET /api/pedidos?api-version=2.0
 ```
 
-> URL prefix (`/v1/`) e o mais pragmatico e facil de rotear.
+> URL prefix (`/v1/`) is the most pragmatic and easiest to route.
 
-## Respostas de erro padronizadas
+## Standardized error responses
 
-Use o padrao **RFC 7807 (Problem Details)**:
+Use the **RFC 7807 (Problem Details)** standard:
 
 ```json
 {
@@ -132,7 +132,7 @@ Use o padrao **RFC 7807 (Problem Details)**:
 }
 ```
 
-Em ASP.NET Core:
+In ASP.NET Core:
 
 ```csharp
 builder.Services.AddProblemDetails();
@@ -142,7 +142,7 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 ```
 
-## HATEOAS (hyperlinks na resposta)
+## HATEOAS (hyperlinks in the response)
 
 ```json
 {
@@ -158,21 +158,21 @@ app.UseStatusCodePages();
 }
 ```
 
-> Na pratica, poucos projetos implementam HATEOAS completo. Mas e bom saber para entrevistas.
+> In practice, few projects implement full HATEOAS. But it is good to know for interviews.
 
-## Boas praticas
+## Best practices
 
-1. **Substantivos** na URL, **verbos** nos metodos HTTP
-2. **Plural** para colecoes (`/pedidos`, nao `/pedido`)
-3. **Status codes corretos** — nao retorne 200 para tudo
-4. **Paginacao** em listagens — nunca retorne todos os registros
-5. **Versionamento** desde o inicio
-6. **Problem Details** para erros
-7. **Idempotencia** — PUT e DELETE devem ser idempotentes
-8. **HTTPS** sempre
-9. **Rate limiting** em APIs publicas
-10. **Documentacao** — OpenAPI/Swagger
+1. **Nouns** in the URL, **verbs** in HTTP methods
+2. **Plural** for collections (`/pedidos`, not `/pedido`)
+3. **Correct status codes** -- do not return 200 for everything
+4. **Pagination** on listings -- never return all records
+5. **Versioning** from the start
+6. **Problem Details** for errors
+7. **Idempotency** -- PUT and DELETE must be idempotent
+8. **HTTPS** always
+9. **Rate limiting** on public APIs
+10. **Documentation** -- OpenAPI/Swagger
 
 ---
 
-[← Anterior: MIME Types](02-mime-types.md) | [Próximo: Segurança Web →](04-seguranca-web.md) | [Voltar ao índice](README.md)
+[← Previous: MIME Types](02-mime-types.md) | [Next: Web Security →](04-seguranca-web.md) | [Back to index](README.md)

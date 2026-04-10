@@ -2,30 +2,30 @@
 
 ## Continuous Integration (CI)
 
-É a prática de **integrar (merge) regularmente** código com o restante da organização. Antigamente era comum indivíduos ou times manterem seu código isolado em branches por muitos meses e fazer merge raramente.
+It is the practice of **regularly integrating (merging)** code with the rest of the organization. In the past, it was common for individuals or teams to keep their code isolated in branches for many months and merge rarely.
 
-### Práticas de CI:
-- Commits frequentes na branch principal
-- Build automatizado a cada commit
-- Testes automatizados executados a cada build
-- Feedback rápido em caso de falha
+### CI Practices:
+- Frequent commits to the main branch
+- Automated build on every commit
+- Automated tests run on every build
+- Fast feedback in case of failure
 
 ## Continuous Delivery (CD)
 
-É uma filosofia e conjunto de práticas em torno de **manter sua aplicação sempre em um estado deployável**. Para alcançar isso, construímos um **deployment pipeline** que serve para validar a corretude das mudanças e entregá-las através de uma série de ambientes de teste, culminando em um deploy em produção.
+It is a philosophy and set of practices around **keeping your application always in a deployable state**. To achieve this, we build a **deployment pipeline** that serves to validate the correctness of changes and deliver them through a series of test environments, culminating in a production deploy.
 
-## CI/CD juntos
+## CI/CD together
 
-É a prática de fazer merge de mudanças frequentemente enquanto os devs trabalham e ter essas mudanças passando por uma série de **testes automatizados**. Ao completar, essas mudanças são empacotadas em um release candidate que pode então ser deployed automaticamente em produção. Times praticando CI/CD tipicamente produzem muitos release candidates em um único dia.
+It is the practice of merging changes frequently while developers work and having those changes go through a series of **automated tests**. Upon completion, these changes are packaged into a release candidate that can then be automatically deployed to production. Teams practicing CI/CD typically produce many release candidates in a single day.
 
-## Ferramentas
+## Tools
 
-- **GitHub Actions** — CI/CD integrado ao GitHub
-- **Azure DevOps** — pipelines YAML, integração com Azure
-- **Jenkins** — open source, altamente customizável
-- **GitLab CI** — integrado ao GitLab
+- **GitHub Actions** — CI/CD integrated with GitHub
+- **Azure DevOps** — YAML pipelines, Azure integration
+- **Jenkins** — open source, highly customizable
+- **GitLab CI** — integrated with GitLab
 
-## Exemplo: GitHub Actions para .NET
+## Example: GitHub Actions for .NET
 
 ```yaml
 name: .NET CI
@@ -57,7 +57,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 ```
 
-## Exemplo: Azure DevOps Pipeline
+## Example: Azure DevOps Pipeline
 
 ```yaml
 trigger:
@@ -90,15 +90,15 @@ steps:
       ArtifactName: 'app'
 ```
 
-## Boas práticas
+## Best practices
 
-1. **Testes automatizados** — sem testes, CI/CD não tem valor
-2. **Build rápido** — idealmente menos de 10 minutos
-3. **Ambientes iguais** — dev, staging e produção devem ser o mais parecidos possível
-4. **Rollback fácil** — sempre tenha como voltar à versão anterior
-5. **Feature flags** — permitem deploy de código sem ativar funcionalidades
-6. **Semantic versioning** — versione seus releases (MAJOR.MINOR.PATCH)
+1. **Automated tests** — without tests, CI/CD has no value
+2. **Fast build** — ideally less than 10 minutes
+3. **Identical environments** — dev, staging, and production should be as similar as possible
+4. **Easy rollback** — always have a way to revert to the previous version
+5. **Feature flags** — allow deploying code without activating features
+6. **Semantic versioning** — version your releases (MAJOR.MINOR.PATCH)
 
 ---
 
-[Próximo: FaaS →](02-faas.md) | [Voltar ao índice](README.md)
+[Next: FaaS →](02-faas.md) | [Back to index](README.md)

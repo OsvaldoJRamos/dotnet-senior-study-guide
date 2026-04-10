@@ -1,8 +1,8 @@
-# Parallel.ForEach e Parallel.Invoke
+# Parallel.ForEach and Parallel.Invoke
 
 ## 1. Parallel.ForEach
 
-Executa iterações de um loop em paralelo.
+Executes loop iterations in parallel.
 
 ```csharp
 var parallelOptions = new ParallelOptions();
@@ -25,11 +25,11 @@ cepList.ToList().ForEach(cep => Console.WriteLine(cep));
 Console.ReadKey();
 ```
 
-> **Atenção:** o `List<T>` não é thread-safe. No exemplo acima, usar `ConcurrentBag<T>` seria mais seguro.
+> **Warning:** `List<T>` is not thread-safe. In the example above, using `ConcurrentBag<T>` would be safer.
 
 ## 2. Parallel.Invoke
 
-Executa múltiplos métodos simultaneamente:
+Executes multiple methods simultaneously:
 
 ```csharp
 Parallel.Invoke(
@@ -39,16 +39,16 @@ Parallel.Invoke(
 );
 ```
 
-Útil quando você tem um número fixo de operações independentes para executar em paralelo.
+Useful when you have a fixed number of independent operations to execute in parallel.
 
-## Quando usar cada um
+## When to use each one
 
-| Cenário | Usar |
+| Scenario | Use |
 |---|---|
-| Processar uma coleção em paralelo | `Parallel.ForEach` |
-| Executar N métodos independentes | `Parallel.Invoke` |
-| Operações I/O-bound (API, banco) | `Task` com `async/await` (não `Parallel`) |
+| Process a collection in parallel | `Parallel.ForEach` |
+| Execute N independent methods | `Parallel.Invoke` |
+| I/O-bound operations (API, database) | `Task` with `async/await` (not `Parallel`) |
 
 ---
 
-[← Anterior: Paralelismo vs Concorrência](01-paralelismo-vs-concorrencia.md) | [Voltar ao índice](README.md) | [Próximo: Task, async/await →](03-task-async-await.md)
+[← Previous: Parallelism vs Concurrency](01-paralelismo-vs-concorrencia.md) | [Back to index](README.md) | [Next: Task, async/await →](03-task-async-await.md)

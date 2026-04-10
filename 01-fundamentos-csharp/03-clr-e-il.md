@@ -1,15 +1,15 @@
-# CLR e IL
+# CLR and IL
 
 ## Common Language Runtime (CLR)
 
-O **CLR (Common Language Runtime)** é um componente do .NET que gerencia a execução de aplicações. Ele é responsável por carregar e executar código escrito em várias linguagens .NET, incluindo C#, VB.NET, F# e outras.
+The **CLR (Common Language Runtime)** is a .NET component that manages application execution. It is responsible for loading and executing code written in various .NET languages, including C#, VB.NET, F#, and others.
 
-## Como funciona
+## How it works
 
-### 1. Compilação e Execução
+### 1. Compilation and Execution
 
-- Quando escrevemos um programa em C#, ele é compilado em **Intermediate Language (IL)**, também chamado de **CIL (Common Intermediate Language)** ou **MSIL (Microsoft Intermediate Language)**. Esse código é independente de plataforma.
-- O CLR usa um compilador **Just-In-Time (JIT)** para converter o código IL em código de máquina específico enquanto o programa roda.
+- When we write a program in C#, it is compiled into **Intermediate Language (IL)**, also called **CIL (Common Intermediate Language)** or **MSIL (Microsoft Intermediate Language)**. This code is platform-independent.
+- The CLR uses a **Just-In-Time (JIT)** compiler to convert IL code into platform-specific machine code while the program runs.
 
 ```
 Source Code → Language Compiler → MSIL Code + Metadata
@@ -17,24 +17,24 @@ Source Code → Language Compiler → MSIL Code + Metadata
                                Just-In-Time Compiler → Native Code
 ```
 
-### 2. Serviços fornecidos pelo CLR
+### 2. Services provided by the CLR
 
-- **Gerenciamento automático de memória** através do Garbage Collection, prevenindo memory leaks
-- **Type safety** — garante que os tipos de dados são usados corretamente e com segurança
-- **Verificação de segurança** — o CLR verifica o código IL buscando riscos de segurança antes de executá-lo
+- **Automatic memory management** through Garbage Collection, preventing memory leaks
+- **Type safety** — ensures that data types are used correctly and safely
+- **Security verification** — the CLR verifies IL code for security risks before executing it
 
-### 3. Integração entre linguagens (Cross-Language Integration)
+### 3. Cross-Language Integration
 
-O CLR permite que código de diferentes linguagens .NET (C#, VB.NET, F#) trabalhe junto de forma transparente através do **Common Type System (CTS)**.
+The CLR allows code from different .NET languages (C#, VB.NET, F#) to work together seamlessly through the **Common Type System (CTS)**.
 
 ## AOT (Ahead-of-Time Compilation)
 
-A partir do .NET 7/8, existe a opção de **Native AOT**, que compila o código diretamente para código nativo no momento do build, eliminando a necessidade do JIT em runtime. Isso resulta em:
+Starting with .NET 7/8, there is the **Native AOT** option, which compiles code directly to native code at build time, eliminating the need for JIT at runtime. This results in:
 
-- Startup mais rápido
-- Menor consumo de memória
-- Porém com algumas limitações (reflexão limitada, por exemplo)
+- Faster startup
+- Lower memory consumption
+- However, with some limitations (limited reflection, for example)
 
 ---
 
-[← Anterior: Namespace](02-namespace.md) | [Voltar ao índice](README.md) | [Próximo: Tipos Numéricos →](04-tipos-numericos.md)
+[← Previous: Namespace](02-namespace.md) | [Back to index](README.md) | [Next: Numeric Types →](04-tipos-numericos.md)

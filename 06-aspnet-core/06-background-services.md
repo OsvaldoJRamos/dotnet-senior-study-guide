@@ -1,18 +1,18 @@
 # Background Services
 
-## O que sao
+## What they are
 
-Servicos que rodam em **background** no ASP.NET Core, sem depender de requisicoes HTTP. Uteis para:
+Services that run in the **background** in ASP.NET Core, without depending on HTTP requests. Useful for:
 
-- Jobs agendados
-- Processamento de filas
-- Health checks periodicos
-- Sincronizacao de dados
+- Scheduled jobs
+- Queue processing
+- Periodic health checks
+- Data synchronization
 - Cache warming
 
 ## IHostedService
 
-Interface base com dois metodos:
+Base interface with two methods:
 
 ```csharp
 public class MeuServico : IHostedService
@@ -31,9 +31,9 @@ public class MeuServico : IHostedService
 }
 ```
 
-## BackgroundService (mais comum)
+## BackgroundService (most common)
 
-Classe abstrata que simplifica a criacao de servicos de longa duracao:
+Abstract class that simplifies the creation of long-running services:
 
 ```csharp
 public class FilaProcessorService : BackgroundService
@@ -68,22 +68,22 @@ public class FilaProcessorService : BackgroundService
     }
 }
 
-// Registro
+// Registration
 builder.Services.AddHostedService<FilaProcessorService>();
 ```
 
-## Cuidado com Scoped services
+## Be careful with Scoped services
 
-BackgroundService e **singleton**. Para usar servicos **scoped** (como DbContext), crie um scope manualmente:
+BackgroundService is a **singleton**. To use **scoped** services (like DbContext), create a scope manually:
 
 ```csharp
-// ERRADO: injetar DbContext direto no construtor
+// WRONG: injecting DbContext directly in the constructor
 public class MeuServico : BackgroundService
 {
     private readonly AppDbContext _context; // ERRO em runtime!
 }
 
-// CORRETO: criar scope
+// CORRECT: create a scope
 protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 {
     using var scope = _provider.CreateScope();
@@ -92,7 +92,7 @@ protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 }
 ```
 
-## Job agendado (Timer-based)
+## Scheduled job (Timer-based)
 
 ```csharp
 public class RelatorioService : BackgroundService
@@ -103,16 +103,16 @@ public class RelatorioService : BackgroundService
         {
             await GerarRelatorioAsync();
             
-            // Executa a cada 1 hora
+            // Runs every 1 hour
             await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
         }
     }
 }
 ```
 
-## Com PeriodicTimer (.NET 6+)
+## With PeriodicTimer (.NET 6+)
 
-Mais preciso que `Task.Delay` para intervalos regulares:
+More precise than `Task.Delay` for regular intervals:
 
 ```csharp
 protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -126,12 +126,12 @@ protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 }
 ```
 
-## Para jobs mais complexos
+## For more complex jobs
 
-Para cenarios que precisam de **agendamento avancado** (cron expressions, persistencia, retentativas), considere:
+For scenarios that need **advanced scheduling** (cron expressions, persistence, retries), consider:
 
-- **Hangfire** — dashboard, cron jobs, retentativas, persistencia em banco
-- **Quartz.NET** — port do Quartz Java, scheduler completo
+- **Hangfire** — dashboard, cron jobs, retries, database persistence
+- **Quartz.NET** — port of Quartz Java, full scheduler
 
 ```csharp
 // Hangfire
@@ -143,4 +143,4 @@ RecurringJob.AddOrUpdate<RelatorioService>(
 
 ---
 
-[← Anterior: Middleware](05-middleware.md) | [Próximo: Caching →](07-caching.md) | [Voltar ao índice](README.md)
+[← Previous: Middleware](05-middleware.md) | [Next: Caching →](07-caching.md) | [Back to index](README.md)

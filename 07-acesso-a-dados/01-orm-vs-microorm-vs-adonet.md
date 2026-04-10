@@ -1,106 +1,106 @@
-# ORM, Micro ORM ou ADO.NET Puro
+# ORM, Micro ORM or Pure ADO.NET
 
-## Resumo: quando usar cada um
+## Summary: when to use each one
 
-| Critério | ORM (EF Core) | Micro ORM (Dapper) | ADO.NET Puro |
+| Criterion | ORM (EF Core) | Micro ORM (Dapper) | Pure ADO.NET |
 |---|---|---|---|
-| Produtividade | Alta | Média | Baixa |
-| Performance | Média | Alta | Máxima |
-| Controle do SQL | Baixo | Alto | Total |
-| Migrations | Sim | Não | Não |
-| Facilidade de testes | Boa | Boa | Difícil |
-| Manutenção a longo prazo | Alta | Média | Baixa |
-| Curva de aprendizado | Média | Baixa | Alta |
+| Productivity | High | Medium | Low |
+| Performance | Medium | High | Maximum |
+| SQL Control | Low | High | Total |
+| Migrations | Yes | No | No |
+| Testability | Good | Good | Difficult |
+| Long-term maintenance | High | Medium | Low |
+| Learning curve | Medium | Low | High |
 
-### Conclusão prática:
-- **EF Core (ORM):** ideal para 80% dos sistemas comerciais, CRUDs, APIs REST, aplicações corporativas
-- **Dapper (Micro ORM):** ideal para sistemas de performance crítica, relatórios pesados, microservices, controle total
-- **ADO.NET Puro:** último recurso; use somente quando você realmente precisar de controle de baixo nível
+### Practical conclusion:
+- **EF Core (ORM):** ideal for 80% of commercial systems, CRUDs, REST APIs, enterprise applications
+- **Dapper (Micro ORM):** ideal for performance-critical systems, heavy reporting, microservices, total control
+- **Pure ADO.NET:** last resort; use only when you truly need low-level control
 
 ---
 
 ## ORM (Entity Framework Core)
 
-### O que é?
-Ferramenta que mapeia objetos C# para tabelas do banco de dados, escondendo os detalhes do SQL. Permite trabalhar com banco como se fosse com objetos.
+### What is it?
+A tool that maps C# objects to database tables, hiding SQL details. It allows you to work with the database as if you were working with objects.
 
-### Quando usar?
-- Projetos médios a grandes com muitas entidades
-- Você precisa de produtividade e pouca repetição de código SQL
-- Regras de negócio complexas, mas sem extrema necessidade de performance
+### When to use?
+- Medium to large projects with many entities
+- You need productivity and minimal SQL code repetition
+- Complex business rules, but without extreme performance requirements
 
-### Vantagens:
-- Alta produtividade (CRUD quase automático)
-- Migrations integradas
+### Advantages:
+- High productivity (almost automatic CRUD)
+- Built-in migrations
 - Lazy/eager loading, tracking, LINQ
-- Boa integração com ASP.NET Core e DI
+- Good integration with ASP.NET Core and DI
 
-### Desvantagens:
-- Overhead de performance
-- Pouco controle sobre queries geradas
-- Complexidade em otimizações avançadas
+### Disadvantages:
+- Performance overhead
+- Little control over generated queries
+- Complexity in advanced optimizations
 
-### Usos reais:
-- Sistemas administrativos
-- APIs RESTful
-- Aplicações com modelo rico e regras de negócio
+### Real-world uses:
+- Administrative systems
+- RESTful APIs
+- Applications with rich models and business rules
 
 ---
 
 ## Micro ORM (Dapper, RepoDb)
 
-### O que é?
-Uma ferramenta leve que mapeia objetos rapidamente, mas exige que você escreva as queries SQL.
+### What is it?
+A lightweight tool that maps objects quickly, but requires you to write the SQL queries.
 
-### Quando usar?
-- Projetos onde performance é crítica
-- Você prefere escrever SQL manualmente
-- Precisa de mais controle e agilidade
-- Sistemas com grande volume de dados ou integrações com bancos legados
+### When to use?
+- Projects where performance is critical
+- You prefer writing SQL manually
+- You need more control and agility
+- Systems with large data volumes or integrations with legacy databases
 
-### Vantagens:
-- Super rápido
-- Simples de usar
-- Muito controlado
-- Pode ser usado junto com ADO.NET puro
+### Advantages:
+- Super fast
+- Simple to use
+- Highly controlled
+- Can be used alongside pure ADO.NET
 
-### Desvantagens:
-- Sem migrations
-- Sem tracking de objetos
-- Menos produtividade em projetos grandes
+### Disadvantages:
+- No migrations
+- No object tracking
+- Less productivity in large projects
 
-### Usos reais:
-- APIs de alta performance
-- Relatórios complexos
-- Serviços que fazem acesso massivo ao banco
-- Microservices com banco específico
+### Real-world uses:
+- High-performance APIs
+- Complex reports
+- Services that perform massive database access
+- Microservices with a specific database
 
 ---
 
-## ADO.NET Puro
+## Pure ADO.NET
 
-### O que é?
-É a base de tudo: classes como `SqlConnection`, `SqlCommand`, `SqlDataReader`, etc. Permite controle total sobre o acesso ao banco.
+### What is it?
+It is the foundation of everything: classes like `SqlConnection`, `SqlCommand`, `SqlDataReader`, etc. It allows total control over database access.
 
-### Quando usar?
-- Você precisa de máxima performance
-- Queries extremamente complexas, tuning manual
-- Integração com bancos não relacionais
-- Projetos legados que já usam ADO.NET
-- Cenários com baixo nível de abstração (ex: jogos, dispositivos embarcados)
+### When to use?
+- You need maximum performance
+- Extremely complex queries, manual tuning
+- Integration with non-relational databases
+- Legacy projects that already use ADO.NET
+- Scenarios with low-level abstraction (e.g.: games, embedded devices)
 
-### Vantagens:
-- Máximo controle
-- Zero abstração
-- Nenhuma mágica por trás
+### Advantages:
+- Maximum control
+- Zero abstraction
+- No magic behind the scenes
 
-### Desvantagens:
-- Muito verboso
-- Baixa produtividade
-- Fácil cometer erros
-- Requer manutenção manual de SQL e mapeamento
+### Disadvantages:
+- Very verbose
+- Low productivity
+- Easy to make mistakes
+- Requires manual SQL and mapping maintenance
 
-### Exemplo:
+### Example:
 ```csharp
 var clientes = new List<Cliente>();
 
@@ -120,11 +120,11 @@ while (reader.Read())
 }
 ```
 
-### Usos reais:
-- Sistemas embarcados
-- Ferramentas internas com foco em performance
-- Aplicações com tuning avançado (caching, indexes, locks)
+### Real-world uses:
+- Embedded systems
+- Internal tools focused on performance
+- Applications with advanced tuning (caching, indexes, locks)
 
 ---
 
-[Voltar ao índice](README.md) | [Próximo: Entity Framework →](02-entity-framework.md)
+[Back to index](README.md) | [Next: Entity Framework →](02-entity-framework.md)

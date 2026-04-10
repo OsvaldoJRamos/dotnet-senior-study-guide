@@ -1,19 +1,19 @@
-# KISS, DRY e YAGNI
+# KISS, DRY and YAGNI
 
 ## YAGNI (You Aren't Gonna Need It)
 
-Recursos só devem ser desenvolvidos quando estritamente necessários, evitando assim desperdício de tempo.
+Features should only be developed when strictly necessary, thus avoiding wasted time.
 
-Evita a elaboração de implementações complexas, pensando que no futuro pode haver outras necessidades. E essas necessidades podem nunca chegar. Deixe para desenvolver soluções complexas quando houver a necessidade. Se não houver, opte pelo simples.
+Avoid building complex implementations thinking that in the future there may be other needs. Those needs may never come. Save complex solutions for when the need actually arises. If there is no need, go with the simple approach.
 
-**Exemplo:** foi solicitada a implementação de uma forma de pagamento por cartão de crédito. O desenvolvedor resolveu implementar uma solução que pode no futuro tratar diversos outros tipos (como boleto e pix), porém passa-se os anos e o sistema nunca precisou disso.
+**Example:** a credit card payment method was requested. The developer decided to implement a solution that could handle various other payment types in the future (such as bank slip and pix), but years went by and the system never needed any of that.
 
 ## KISS (Keep It Simple, Stupid)
 
-Faça tudo da forma mais simples possível, para que todos consigam entender rapidamente. Evite ao máximo complexidade desnecessária.
+Do everything in the simplest way possible, so that everyone can understand it quickly. Avoid unnecessary complexity as much as possible.
 
 ```csharp
-// KISS violado - complexidade desnecessária
+// KISS violated - unnecessary complexity
 public bool IsAdult(int age)
 {
     if (age >= 18)
@@ -26,16 +26,16 @@ public bool IsAdult(int age)
     }
 }
 
-// KISS aplicado
+// KISS applied
 public bool IsAdult(int age) => age >= 18;
 ```
 
 ## DRY (Don't Repeat Yourself)
 
-Evite sempre código duplicado. Escreva códigos reutilizáveis, modulares e abstratos o suficiente para que possam ser usados em várias partes do código.
+Always avoid duplicated code. Write reusable, modular, and abstract enough code so it can be used in multiple parts of the codebase.
 
 ```csharp
-// DRY violado - validação duplicada
+// DRY violated - duplicated validation
 public void CriarUsuario(string email)
 {
     if (!email.Contains("@")) throw new Exception("Email inválido");
@@ -48,7 +48,7 @@ public void AtualizarEmail(string email)
     // ...
 }
 
-// DRY aplicado - validação centralizada
+// DRY applied - centralized validation
 public static class EmailValidator
 {
     public static void Validar(string email)
@@ -58,8 +58,8 @@ public static class EmailValidator
 }
 ```
 
-**Cuidado:** DRY não significa que qualquer código parecido deve ser abstraído. Se duas coisas são parecidas **por coincidência** mas mudam por motivos diferentes, mantê-las separadas pode ser o correto.
+**Caution:** DRY does not mean that any similar-looking code should be abstracted. If two things look similar **by coincidence** but change for different reasons, keeping them separate may be the right choice.
 
 ---
 
-[← Anterior: Design Patterns](02-design-patterns.md) | [Voltar ao índice](README.md) | [Próximo: Object Calisthenics →](04-object-calisthenics.md)
+[← Previous: Design Patterns](02-design-patterns.md) | [Back to index](README.md) | [Next: Object Calisthenics →](04-object-calisthenics.md)

@@ -1,22 +1,22 @@
-# Seguranca Web
+# Web Security
 
-## Autenticacao vs Autorizacao
+## Authentication vs Authorization
 
-| Conceito | Pergunta | Exemplo |
-|----------|----------|---------|
-| **Autenticacao** | Quem e voce? | Login com email/senha, JWT |
-| **Autorizacao** | Voce pode fazer isso? | Role admin, policy, claim |
+| Concept | Question | Example |
+|---------|----------|---------|
+| **Authentication** | Who are you? | Login with email/password, JWT |
+| **Authorization** | Can you do this? | Admin role, policy, claim |
 
 ## JWT (JSON Web Token)
 
-Token composto de 3 partes (separadas por `.`):
+Token composed of 3 parts (separated by `.`):
 
 ```
 header.payload.signature
 eyJhbGci...eyJzdWIi...SflKxwRJ...
 ```
 
-### Estrutura
+### Structure
 
 ```json
 // Header
@@ -36,7 +36,7 @@ eyJhbGci...eyJzdWIi...SflKxwRJ...
 HMACSHA256(base64(header) + "." + base64(payload), secret)
 ```
 
-### Validacao no ASP.NET Core
+### Validation in ASP.NET Core
 
 ```csharp
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -59,24 +59,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 ### Access Token + Refresh Token
 
 ```
-1. Login → API retorna Access Token (curto, ~15min) + Refresh Token (longo, ~7dias)
-2. Requisicoes usam Access Token no header Authorization
-3. Access Token expira → client usa Refresh Token para obter novo par
-4. Refresh Token expira → usuario precisa logar novamente
+1. Login → API returns Access Token (short-lived, ~15min) + Refresh Token (long-lived, ~7days)
+2. Requests use Access Token in the Authorization header
+3. Access Token expires → client uses Refresh Token to obtain a new pair
+4. Refresh Token expires → user needs to log in again
 ```
 
-> Access Token **curto** limita a janela de ataque se for vazado.
+> A **short-lived** Access Token limits the attack window if it is leaked.
 
 ## CORS (Cross-Origin Resource Sharing)
 
-Mecanismo do browser que **bloqueia** requisicoes de origens diferentes por padrao.
+Browser mechanism that **blocks** requests from different origins by default.
 
 ```
 https://meu-site.com (frontend)  →  https://api.meu-site.com (API)
-                                      ↑ Origem diferente = CORS
+                                      ↑ Different origin = CORS
 ```
 
-### Configuracao no ASP.NET Core
+### Configuration in ASP.NET Core
 
 ```csharp
 builder.Services.AddCors(options =>
@@ -93,9 +93,9 @@ builder.Services.AddCors(options =>
 app.UseCors("MeuFrontend");
 ```
 
-> **Nunca** use `AllowAnyOrigin()` com `AllowCredentials()` em producao.
+> **Never** use `AllowAnyOrigin()` with `AllowCredentials()` in production.
 
-## OWASP Top 10 (principais vulnerabilidades)
+## OWASP Top 10 (main vulnerabilities)
 
 ### 1. Injection (SQL, Command)
 
@@ -113,10 +113,10 @@ var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == input);
 
 ### 2. Broken Authentication
 
-- Senhas fracas sem requisitos
-- Sem rate limiting no login (brute force)
-- Tokens sem expiracao
-- Sem MFA
+- Weak passwords without requirements
+- No rate limiting on login (brute force)
+- Tokens without expiration
+- No MFA
 
 ### 3. XSS (Cross-Site Scripting)
 
@@ -130,7 +130,7 @@ var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == input);
 
 ### 4. CSRF (Cross-Site Request Forgery)
 
-Alguem forca o browser do usuario a fazer requisicao indesejada:
+Someone forces the user's browser to make an unwanted request:
 
 ```csharp
 // Protecao em ASP.NET Core (automatico com forms)
@@ -139,18 +139,18 @@ Alguem forca o browser do usuario a fazer requisicao indesejada:
 public IActionResult Transferir(TransferenciaDto dto) { ... }
 ```
 
-> APIs REST com JWT no header **nao precisam** de anti-CSRF (o token nao e enviado automaticamente).
+> REST APIs with JWT in the header **do not need** anti-CSRF (the token is not sent automatically).
 
 ## HTTPS
 
-**Sempre** force HTTPS:
+**Always** enforce HTTPS:
 
 ```csharp
 app.UseHttpsRedirection();
 app.UseHsts(); // HTTP Strict Transport Security
 ```
 
-## Headers de seguranca
+## Security headers
 
 ```csharp
 app.Use(async (context, next) =>
@@ -165,13 +165,13 @@ app.Use(async (context, next) =>
 
 ## Secrets Management
 
-| Abordagem | Quando usar |
-|-----------|-------------|
-| **Azure Key Vault** | Producao (Azure) |
-| **AWS Secrets Manager** | Producao (AWS) |
-| **User Secrets** (.NET) | Desenvolvimento local |
+| Approach | When to use |
+|----------|-------------|
+| **Azure Key Vault** | Production (Azure) |
+| **AWS Secrets Manager** | Production (AWS) |
+| **User Secrets** (.NET) | Local development |
 | **Environment variables** | CI/CD, containers |
-| **appsettings.json** | Configuracoes **nao sensiveis** apenas |
+| **appsettings.json** | **Non-sensitive** configurations only |
 
 ```csharp
 // User Secrets (dev)
@@ -183,21 +183,21 @@ builder.Configuration.AddAzureKeyVault(
     new DefaultAzureCredential());
 ```
 
-> **Nunca** commite secrets no Git. Use `.gitignore` para `appsettings.Development.json`.
+> **Never** commit secrets to Git. Use `.gitignore` for `appsettings.Development.json`.
 
-## Checklist de seguranca
+## Security checklist
 
-- [ ] HTTPS forcado
-- [ ] JWT com expiracao curta + refresh token
-- [ ] CORS configurado (nao `AllowAnyOrigin`)
-- [ ] Input validation em todas as entradas
-- [ ] Parametrizacao de queries (nunca concatenar SQL)
-- [ ] Rate limiting no login e APIs publicas
-- [ ] Secrets em vault, nao no codigo
-- [ ] Headers de seguranca configurados
-- [ ] Logging de tentativas de autenticacao
-- [ ] Dependencias atualizadas (vulnerabilidades conhecidas)
+- [ ] HTTPS enforced
+- [ ] JWT with short expiration + refresh token
+- [ ] CORS configured (not `AllowAnyOrigin`)
+- [ ] Input validation on all inputs
+- [ ] Parameterized queries (never concatenate SQL)
+- [ ] Rate limiting on login and public APIs
+- [ ] Secrets in vault, not in code
+- [ ] Security headers configured
+- [ ] Logging of authentication attempts
+- [ ] Dependencies updated (known vulnerabilities)
 
 ---
 
-[← Anterior: REST API Design](03-rest-api-design.md) | [Voltar ao índice](README.md)
+[← Previous: REST API Design](03-rest-api-design.md) | [Back to index](README.md)

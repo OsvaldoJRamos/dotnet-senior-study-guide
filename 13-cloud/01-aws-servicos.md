@@ -1,41 +1,41 @@
-# AWS - Servicos Principais
+# AWS - Main Services
 
-## Servicos mencionados no estudo
+## Services mentioned in the study
 
-| Servico | Categoria | Descricao |
-|---------|-----------|-----------|
-| **S3** | Storage | Armazenamento de objetos (arquivos, imagens, backups) |
-| **EC2** | Compute | Servidores virtuais (VMs) |
-| **ECS** | Containers | Orquestracao de containers Docker |
-| **Fargate** | Containers | ECS **serverless** (sem gerenciar servidores) |
-| **Lambda** | Serverless | FaaS - funcoes executadas por eventos |
-| **RDS** | Database | Bancos relacionais gerenciados (SQL Server, PostgreSQL, MySQL) |
-| **DynamoDB** | Database | Banco NoSQL (key-value + document) |
-| **ALB** | Networking | Application Load Balancer - distribui trafego HTTP |
+| Service | Category | Description |
+|---------|----------|-------------|
+| **S3** | Storage | Object storage (files, images, backups) |
+| **EC2** | Compute | Virtual servers (VMs) |
+| **ECS** | Containers | Docker container orchestration |
+| **Fargate** | Containers | **Serverless** ECS (no server management) |
+| **Lambda** | Serverless | FaaS - event-driven functions |
+| **RDS** | Database | Managed relational databases (SQL Server, PostgreSQL, MySQL) |
+| **DynamoDB** | Database | NoSQL database (key-value + document) |
+| **ALB** | Networking | Application Load Balancer - distributes HTTP traffic |
 
-## Equivalentes no Azure
+## Azure Equivalents
 
-| AWS | Azure | Descricao |
-|-----|-------|-----------|
-| S3 | Blob Storage | Storage de objetos |
+| AWS | Azure | Description |
+|-----|-------|-------------|
+| S3 | Blob Storage | Object storage |
 | EC2 | Virtual Machines | VMs |
-| ECS/Fargate | Container Apps | Containers gerenciados |
+| ECS/Fargate | Container Apps | Managed containers |
 | Lambda | Azure Functions | Serverless functions |
-| RDS | Azure SQL / Cosmos DB | Bancos gerenciados |
-| DynamoDB | Cosmos DB | NoSQL gerenciado |
-| ALB | Application Gateway | Load balancer L7 |
-| SQS | Azure Service Bus | Fila de mensagens |
+| RDS | Azure SQL / Cosmos DB | Managed databases |
+| DynamoDB | Cosmos DB | Managed NoSQL |
+| ALB | Application Gateway | L7 load balancer |
+| SQS | Azure Service Bus | Message queue |
 
-## Quando usar cada servico
+## When to use each service
 
-- **S3**: arquivos estaticos, backups, data lake
-- **EC2**: quando precisa de controle total da VM
-- **ECS/Fargate**: aplicacoes containerizadas (preferir Fargate para menos gerenciamento)
-- **Lambda**: processamento de eventos, cron jobs, APIs leves
-- **RDS**: banco relacional sem gerenciar infra
-- **DynamoDB**: alta escala, acesso por chave, baixa latencia
-- **ALB**: distribuir trafego entre multiplas instancias
+- **S3**: static files, backups, data lake
+- **EC2**: when you need full control over the VM
+- **ECS/Fargate**: containerized applications (prefer Fargate for less management overhead)
+- **Lambda**: event processing, cron jobs, lightweight APIs
+- **RDS**: relational database without managing infrastructure
+- **DynamoDB**: high scale, key-based access, low latency
+- **ALB**: distribute traffic across multiple instances
 
 ---
 
-[Próximo: AWS Aprofundado →](02-aws-aprofundado.md) | [Voltar ao índice](README.md)
+[Next: AWS In Depth →](02-aws-aprofundado.md) | [Back to index](README.md)

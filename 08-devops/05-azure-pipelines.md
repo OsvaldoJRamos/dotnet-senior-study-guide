@@ -1,21 +1,21 @@
 # Azure Pipelines
 
-## O que e
+## What it is
 
-Servico de CI/CD do Azure DevOps. Define pipelines em **YAML** que automatizam build, testes e deploy.
+CI/CD service from Azure DevOps. Defines pipelines in **YAML** that automate build, tests, and deployment.
 
-## Estrutura de um Pipeline
+## Pipeline Structure
 
 ```yaml
-trigger:           # Quando executar
-stages:            # Etapas (Build, Test, Deploy)
+trigger:           # When to execute
+stages:            # Stages (Build, Test, Deploy)
   - stage:
-    jobs:          # Trabalhos dentro de cada etapa
+    jobs:          # Jobs within each stage
       - job:
-        steps:     # Passos dentro de cada job
+        steps:     # Steps within each job
 ```
 
-## Pipeline basico (.NET)
+## Basic pipeline (.NET)
 
 ```yaml
 trigger:
@@ -33,12 +33,12 @@ variables:
 
 steps:
   - task: UseDotNet@2
-    displayName: 'Instalar .NET SDK'
+    displayName: 'Install .NET SDK'
     inputs:
       version: $(dotnetVersion)
 
   - task: DotNetCoreCLI@2
-    displayName: 'Restaurar pacotes'
+    displayName: 'Restore packages'
     inputs:
       command: 'restore'
       projects: '**/*.csproj'
@@ -51,21 +51,21 @@ steps:
       arguments: '--configuration $(buildConfiguration) --no-restore'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Rodar testes'
+    displayName: 'Run tests'
     inputs:
       command: 'test'
       projects: '**/*Tests.csproj'
       arguments: '--configuration $(buildConfiguration) --no-build --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Publicar'
+    displayName: 'Publish'
     inputs:
       command: 'publish'
       publishWebProjects: true
       arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
   - task: PublishBuildArtifacts@1
-    displayName: 'Publicar artefato'
+    displayName: 'Publish artifact'
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
       ArtifactName: 'drop'
@@ -83,7 +83,7 @@ variables:
 stages:
   # ========== CI ==========
   - stage: Build
-    displayName: 'Build e Testes'
+    displayName: 'Build and Tests'
     jobs:
       - job: BuildJob
         pool:
@@ -97,10 +97,10 @@ stages:
             displayName: 'Build'
 
           - script: dotnet test --configuration $(buildConfiguration) --no-build
-            displayName: 'Testes'
+            displayName: 'Tests'
 
           - task: DotNetCoreCLI@2
-            displayName: 'Publicar'
+            displayName: 'Publish'
             inputs:
               command: publish
               publishWebProjects: true
@@ -130,14 +130,14 @@ stages:
                     appName: 'app-api-staging'
                     package: '$(Pipeline.Workspace)/drop/**/*.zip'
 
-  # ========== CD - Producao ==========
+  # ========== CD - Production ==========
   - stage: DeployProd
-    displayName: 'Deploy Producao'
+    displayName: 'Deploy Production'
     dependsOn: DeployStaging
     condition: succeeded()
     jobs:
       - deployment: DeployToProd
-        environment: 'production'   # pode ter approval gate
+        environment: 'production'   # can have approval gate
         pool:
           vmImage: 'ubuntu-latest'
         strategy:
@@ -152,7 +152,7 @@ stages:
                     package: '$(Pipeline.Workspace)/drop/**/*.zip'
 ```
 
-## Pipeline com Docker
+## Pipeline with Docker
 
 ```yaml
 stages:
@@ -163,7 +163,7 @@ stages:
           vmImage: 'ubuntu-latest'
         steps:
           - task: Docker@2
-            displayName: 'Build e Push'
+            displayName: 'Build and Push'
             inputs:
               containerRegistry: 'meu-acr'
               repository: 'minha-api'
@@ -174,7 +174,7 @@ stages:
                 latest
 ```
 
-## Templates (reutilizacao)
+## Templates (reuse)
 
 ```yaml
 # templates/dotnet-build.yml
@@ -193,59 +193,59 @@ steps:
       projects: '${{ parameters.project }}'
       arguments: '-c ${{ parameters.configuration }}'
 
-# Pipeline principal
+# Main pipeline
 steps:
   - template: templates/dotnet-build.yml
     parameters:
       project: 'src/MinhaApi/MinhaApi.csproj'
 ```
 
-## Variaveis e Secrets
+## Variables and Secrets
 
 ```yaml
-# Variaveis inline
+# Inline variables
 variables:
   buildConfig: 'Release'
 
-# Grupo de variaveis (definido no Azure DevOps)
+# Variable group (defined in Azure DevOps)
 variables:
   - group: 'production-secrets'
 
-# Variaveis de ambiente
+# Environment variables
 steps:
   - script: echo $(DB_PASSWORD)
     env:
       DB_PASSWORD: $(dbPassword)  # secret nao aparece nos logs
 ```
 
-## Environments e Approval Gates
+## Environments and Approval Gates
 
-No Azure DevOps:
-1. Criar **Environment** (ex: "production")
-2. Adicionar **Approval check** — alguem precisa aprovar antes do deploy
-3. Adicionar **Branch control** — so deploy de `main`
+In Azure DevOps:
+1. Create an **Environment** (e.g.: "production")
+2. Add an **Approval check** — someone must approve before the deploy
+3. Add **Branch control** — only deploy from `main`
 
-## Conceitos importantes
+## Important concepts
 
-| Conceito | Descricao |
+| Concept | Description |
 |----------|-----------|
-| **Trigger** | O que dispara o pipeline (push, PR, schedule) |
-| **Pool/Agent** | Maquina que executa (hosted ou self-hosted) |
-| **Artifact** | Resultado do build (ZIP, Docker image) |
-| **Environment** | Destino do deploy (staging, prod) |
-| **Condition** | Quando uma stage/job deve executar |
-| **Service Connection** | Credenciais para conectar em servicos (Azure, Docker Hub) |
+| **Trigger** | What starts the pipeline (push, PR, schedule) |
+| **Pool/Agent** | Machine that executes (hosted or self-hosted) |
+| **Artifact** | Build result (ZIP, Docker image) |
+| **Environment** | Deploy destination (staging, prod) |
+| **Condition** | When a stage/job should execute |
+| **Service Connection** | Credentials to connect to services (Azure, Docker Hub) |
 
-## Boas praticas
+## Best practices
 
-1. **Testes antes do deploy** — nunca pule testes no pipeline
-2. **Approval gates** em producao — humano aprova antes de deployar
-3. **Secrets em variable groups** — nunca hardcode no YAML
-4. **Templates** — reutilize steps entre pipelines
-5. **Branch policies** — exija PR + build verde antes de merge
-6. **Semantic versioning** — versione artefatos (GitVersion, MinVer)
-7. **Cache de NuGet** — acelera builds usando cache de pacotes
+1. **Tests before deploy** — never skip tests in the pipeline
+2. **Approval gates** in production — a human approves before deploying
+3. **Secrets in variable groups** — never hardcode in YAML
+4. **Templates** — reuse steps across pipelines
+5. **Branch policies** — require PR + green build before merge
+6. **Semantic versioning** — version artifacts (GitVersion, MinVer)
+7. **NuGet cache** — speeds up builds using package cache
 
 ---
 
-[← Anterior: Terraform](04-terraform.md) | [Voltar ao índice](README.md)
+[← Previous: Terraform](04-terraform.md) | [Back to index](README.md)

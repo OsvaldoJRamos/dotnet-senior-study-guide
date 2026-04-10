@@ -1,43 +1,43 @@
-# Design Patterns (Padrões de Projeto)
+# Design Patterns
 
-Os padrões de projeto do GoF (Gang of Four) são soluções reutilizáveis para problemas comuns em design de software.
+Design patterns from the GoF (Gang of Four) are reusable solutions to common problems in software design.
 
-**Referência completa:** [Refactoring Guru - Design Patterns](https://refactoring.guru/pt-br/design-patterns/what-is-pattern)
+**Full reference:** [Refactoring Guru - Design Patterns](https://refactoring.guru/pt-br/design-patterns/what-is-pattern)
 
-## Categorias
+## Categories
 
-### Criacionais (como criar objetos)
+### Creational (how to create objects)
 
-| Padrão | Propósito | Exemplo de uso |
+| Pattern | Purpose | Usage example |
 |---|---|---|
-| **Singleton** | Garante uma única instância de uma classe | Logger, configuração |
-| **Factory Method** | Delega a criação de objetos para subclasses | Criar notificações (email, SMS, push) |
-| **Abstract Factory** | Cria famílias de objetos relacionados | UI cross-platform |
-| **Builder** | Constrói objetos complexos passo a passo | Construir queries, DTOs complexos |
-| **Prototype** | Clona objetos existentes | Cópia de configurações |
+| **Singleton** | Ensures a single instance of a class | Logger, configuration |
+| **Factory Method** | Delegates object creation to subclasses | Creating notifications (email, SMS, push) |
+| **Abstract Factory** | Creates families of related objects | Cross-platform UI |
+| **Builder** | Builds complex objects step by step | Building queries, complex DTOs |
+| **Prototype** | Clones existing objects | Copying configurations |
 
-### Estruturais (como compor objetos)
+### Structural (how to compose objects)
 
-| Padrão | Propósito | Exemplo de uso |
+| Pattern | Purpose | Usage example |
 |---|---|---|
-| **Adapter** | Converte a interface de uma classe em outra | Integrar bibliotecas de terceiros |
-| **Decorator** | Adiciona responsabilidades dinamicamente | Adicionar logging, caching a serviços |
-| **Facade** | Interface simplificada para um subsistema complexo | API gateway, serviço de fachada |
-| **Proxy** | Controlador de acesso a um objeto | Lazy loading, caching, controle de acesso |
-| **Composite** | Trata objetos individuais e composições uniformemente | Menus, estruturas de árvore |
+| **Adapter** | Converts the interface of one class into another | Integrating third-party libraries |
+| **Decorator** | Adds responsibilities dynamically | Adding logging, caching to services |
+| **Facade** | Simplified interface for a complex subsystem | API gateway, facade service |
+| **Proxy** | Access controller for an object | Lazy loading, caching, access control |
+| **Composite** | Treats individual objects and compositions uniformly | Menus, tree structures |
 
-### Comportamentais (como objetos se comunicam)
+### Behavioral (how objects communicate)
 
-| Padrão | Propósito | Exemplo de uso |
+| Pattern | Purpose | Usage example |
 |---|---|---|
-| **Strategy** | Define família de algoritmos intercambiáveis | Cálculo de frete, validações |
-| **Observer** | Notifica objetos sobre mudanças de estado | Eventos, pub/sub |
-| **Command** | Encapsula uma ação como objeto | Undo/redo, filas de comandos |
-| **Template Method** | Define esqueleto de algoritmo, subclasses definem passos | Processamento de dados |
-| **Chain of Responsibility** | Passa pedido por uma cadeia de handlers | Middleware, pipeline de validação |
-| **Mediator** | Centraliza comunicação entre objetos | MediatR, event bus |
+| **Strategy** | Defines a family of interchangeable algorithms | Shipping calculation, validations |
+| **Observer** | Notifies objects about state changes | Events, pub/sub |
+| **Command** | Encapsulates an action as an object | Undo/redo, command queues |
+| **Template Method** | Defines algorithm skeleton, subclasses define steps | Data processing |
+| **Chain of Responsibility** | Passes request through a chain of handlers | Middleware, validation pipeline |
+| **Mediator** | Centralizes communication between objects | MediatR, event bus |
 
-## Padrões mais usados no dia a dia .NET
+## Most used patterns in day-to-day .NET
 
 ### Singleton
 ```csharp
@@ -77,4 +77,4 @@ public interface IRepository<T> where T : class
 
 ---
 
-[← Anterior: SOLID](01-solid.md) | [Voltar ao índice](README.md) | [Próximo: KISS, DRY e YAGNI →](03-kiss-dry-yagni.md)
+[← Previous: SOLID](01-solid.md) | [Back to index](README.md) | [Next: KISS, DRY and YAGNI →](03-kiss-dry-yagni.md)

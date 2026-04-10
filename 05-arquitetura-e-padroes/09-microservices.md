@@ -1,8 +1,8 @@
-# Microservices vs Monolito
+# Microservices vs Monolith
 
-## Monolito
+## Monolith
 
-Uma unica aplicacao com todo o codigo junto:
+A single application with all the code together:
 
 ```
 ┌─────────────────────────┐
@@ -14,23 +14,23 @@ Uma unica aplicacao com todo o codigo junto:
 └─────────────────────────┘
 ```
 
-### Vantagens
+### Advantages
 
-- Simples de desenvolver, testar, deployar
-- Uma unica base de codigo
-- Transacoes ACID simples
-- Sem latencia de rede entre modulos
+- Simple to develop, test, deploy
+- A single codebase
+- Simple ACID transactions
+- No network latency between modules
 
-### Desvantagens
+### Disadvantages
 
-- Escala tudo junto (nao pode escalar so o modulo de pagamento)
-- Deploy tudo junto (mudanca pequena redeploya tudo)
-- Times grandes pisam no pe um do outro
-- Tecnologia unica
+- Scales everything together (cannot scale just the payment module)
+- Deploys everything together (a small change redeploys everything)
+- Large teams step on each other's toes
+- Single technology stack
 
 ## Microservices
 
-Cada modulo e um servico independente com seu proprio banco:
+Each module is an independent service with its own database:
 
 ```
 ┌────────┐  ┌────────┐  ┌────────┐
@@ -42,23 +42,23 @@ Cada modulo e um servico independente com seu proprio banco:
 ────┴───────────┴────────────┴──── Message Bus / API Gateway
 ```
 
-### Vantagens
+### Advantages
 
-- Escala independente por servico
-- Deploy independente
-- Cada time "dona" do seu servico
-- Tecnologia pode variar por servico
+- Independent scaling per service
+- Independent deployment
+- Each team "owns" its service
+- Technology can vary per service
 
-### Desvantagens
+### Disadvantages
 
-- Complexidade operacional alta (monitoramento, tracing, deploy)
-- Transacoes distribuidas (sem ACID simples — precisa de SAGA)
-- Latencia de rede
-- Debugging mais dificil
+- High operational complexity (monitoring, tracing, deployment)
+- Distributed transactions (no simple ACID -- requires SAGA)
+- Network latency
+- Harder debugging
 
-## Modular Monolith (meio-termo)
+## Modular Monolith (middle ground)
 
-Monolito com **modulos bem isolados**. Cada modulo tem suas proprias entidades e regras, mas roda no mesmo processo:
+A monolith with **well-isolated modules**. Each module has its own entities and rules, but runs in the same process:
 
 ```
 ┌─────────────────────────────────┐
@@ -72,35 +72,35 @@ Monolito com **modulos bem isolados**. Cada modulo tem suas proprias entidades e
 └─────────────────────────────────┘
 ```
 
-- Comunicacao entre modulos via **interfaces internas** ou **eventos in-process**
-- Se precisar no futuro, extrair um modulo para microservice e mais facil
-- **Melhor opcao para a maioria dos projetos**
+- Communication between modules via **internal interfaces** or **in-process events**
+- If needed in the future, extracting a module into a microservice is easier
+- **Best option for the majority of projects**
 
-## Comunicacao entre servicos
+## Communication between services
 
-### Sincrona (request/response)
+### Synchronous (request/response)
 
 ```
 Service A  ──HTTP/gRPC──→  Service B
            ←──response───
 ```
 
-- REST APIs ou gRPC
-- Simples, mas cria **acoplamento temporal** (A depende de B estar de pe)
+- REST APIs or gRPC
+- Simple, but creates **temporal coupling** (A depends on B being up)
 
-### Assincrona (eventos/mensagens)
+### Asynchronous (events/messages)
 
 ```
 Service A  ──publica evento──→  Message Broker  ──entrega──→  Service B
 ```
 
 - RabbitMQ, Kafka, Azure Service Bus, SQS
-- Desacopla servicos no tempo
-- Mais resiliente, mas mais complexo
+- Decouples services in time
+- More resilient, but more complex
 
 ## API Gateway
 
-Ponto unico de entrada que roteia para os microservices:
+Single entry point that routes to microservices:
 
 ```
 Cliente → [API Gateway] → Users Service
@@ -108,27 +108,27 @@ Cliente → [API Gateway] → Users Service
                         → Payment Service
 ```
 
-Responsabilidades:
-- Roteamento
-- Autenticacao centralizada
+Responsibilities:
+- Routing
+- Centralized authentication
 - Rate limiting
-- Agregacao de respostas
+- Response aggregation
 - SSL termination
 
-Ferramentas: YARP (.NET), Kong, Ocelot, Azure API Management
+Tools: YARP (.NET), Kong, Ocelot, Azure API Management
 
-## Quando escolher o que
+## When to choose what
 
-| Cenario | Recomendacao |
+| Scenario | Recommendation |
 |---------|-------------|
-| Projeto novo, time pequeno | Monolito ou Modular Monolith |
-| Dominio simples, CRUD | Monolito |
-| Dominio complexo, time medio | Modular Monolith |
-| Multiplos times, alta escala | Microservices |
-| Partes com volumes muito diferentes | Microservices para essas partes |
+| New project, small team | Monolith or Modular Monolith |
+| Simple domain, CRUD | Monolith |
+| Complex domain, medium team | Modular Monolith |
+| Multiple teams, high scale | Microservices |
+| Parts with very different volumes | Microservices for those parts |
 
-> "Se voce nao consegue fazer um monolito bem feito, nao vai conseguir fazer microservices." — Simon Brown
+> "If you can't build a well-made monolith, you won't be able to build microservices." -- Simon Brown
 
 ---
 
-[← Anterior: CQRS](08-cqrs.md) | [Próximo: Mensageria →](10-mensageria.md) | [Voltar ao índice](README.md)
+[← Previous: CQRS](08-cqrs.md) | [Next: Messaging →](10-mensageria.md) | [Back to index](README.md)

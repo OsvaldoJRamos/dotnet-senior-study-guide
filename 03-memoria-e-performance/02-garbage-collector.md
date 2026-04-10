@@ -1,38 +1,38 @@
 # Garbage Collector (GC)
 
-## O que é
+## What it is
 
-O **Garbage Collector (GC)** em .NET recupera automaticamente memória que não está mais em uso, liberando os desenvolvedores do gerenciamento manual de memória.
+The **Garbage Collector (GC)** in .NET automatically reclaims memory that is no longer in use, freeing developers from manual memory management.
 
-### O que o GC faz:
-1. **Rastreia referências de objetos** — monitora todos os objetos na heap e rastreia quais ainda estão em uso
-2. **Recupera memória não utilizada** — quando detecta que um objeto não é mais referenciado, marca como "lixo" e recupera sua memória
-3. **Melhora a performance** — roda periodicamente para manter o uso de memória otimizado. Também reduz fragmentação compactando a heap
+### What the GC does:
+1. **Tracks object references** — monitors all objects on the heap and tracks which ones are still in use
+2. **Reclaims unused memory** — when it detects that an object is no longer referenced, it marks it as "garbage" and reclaims its memory
+3. **Improves performance** — runs periodically to keep memory usage optimized. It also reduces fragmentation by compacting the heap
 
-## Gerações (Generations)
+## Generations
 
-O GC usa um conceito de **gerações** para tornar o processo mais eficiente.
+The GC uses a concept of **generations** to make the process more efficient.
 
 ### Generation 0 (Gen 0)
-- É onde novos objetos são colocados inicialmente
-- Objetos na Gen 0 são de vida curta (ex: variáveis temporárias)
-- O GC verifica a Gen 0 frequentemente porque a maioria dos objetos tende a se tornar desnecessária rapidamente
+- This is where new objects are initially placed
+- Objects in Gen 0 are short-lived (e.g., temporary variables)
+- The GC checks Gen 0 frequently because most objects tend to become unnecessary quickly
 
 ### Generation 1 (Gen 1)
-- Se um objeto sobrevive a uma coleta da Gen 0 (ou seja, ainda está em uso), ele é promovido para a Gen 1
-- Objetos na Gen 1 são considerados de tempo de vida médio
-- O GC verifica a Gen 1 com menos frequência que a Gen 0
+- If an object survives a Gen 0 collection (i.e., it is still in use), it is promoted to Gen 1
+- Objects in Gen 1 are considered to have a medium lifetime
+- The GC checks Gen 1 less frequently than Gen 0
 
 ### Generation 2 (Gen 2)
-- Objetos que sobrevivem a uma coleta da Gen 1 vão para a Gen 2
-- Esses objetos são de vida longa (ex: dados estáticos, objetos grandes usados durante toda a vida da aplicação)
-- A Gen 2 é coletada com menos frequência porque assume-se que esses objetos ficarão por muito tempo
+- Objects that survive a Gen 1 collection move to Gen 2
+- These are long-lived objects (e.g., static data, large objects used throughout the application's lifetime)
+- Gen 2 is collected less frequently because it is assumed these objects will remain for a long time
 
-### Por que gerações?
+### Why generations?
 
-A razão para dividir a memória em gerações é **otimizar o processo de coleta**. Objetos de vida curta (Gen 0) são coletados frequentemente, enquanto objetos de vida longa (Gen 2) são deixados em paz a menos que seja absolutamente necessário.
+The reason for dividing memory into generations is to **optimize the collection process**. Short-lived objects (Gen 0) are collected frequently, while long-lived objects (Gen 2) are left alone unless absolutely necessary.
 
-## Exemplo
+## Example
 
 ```csharp
 class Program
@@ -71,14 +71,14 @@ class MyObject
 }
 ```
 
-## Boas práticas
+## Best practices
 
-1. **Evite Memory Leaks** — sempre libere recursos não gerenciados (como conexões com banco de dados) usando o método `Dispose` ou blocos `using`
-2. **Use IDisposable** — implemente `IDisposable` para qualquer classe que lide com recursos não gerenciados
-3. **Cuidado com objetos grandes** — objetos grandes (arrays, buffers, etc.) podem acabar na Generation 2 e ficar lá por muito tempo. Use-os com cuidado
+1. **Avoid Memory Leaks** — always release unmanaged resources (such as database connections) using the `Dispose` method or `using` blocks
+2. **Use IDisposable** — implement `IDisposable` for any class that handles unmanaged resources
+3. **Be careful with large objects** — large objects (arrays, buffers, etc.) can end up in Generation 2 and stay there for a long time. Use them carefully
 
-> A gestão de memória em aplicações C# geralmente é automatizada graças ao **Garbage Collector (GC)**, mas isso **não significa que o desenvolvedor está livre de preocupações**. Há práticas fundamentais para garantir eficiência e **evitar vazamento de memória (memory leaks)**.
+> Memory management in C# applications is generally automated thanks to the **Garbage Collector (GC)**, but this **does not mean developers are free from concerns**. There are fundamental practices to ensure efficiency and **avoid memory leaks**.
 
 ---
 
-[← Anterior: Stack e Heap](01-stack-e-heap.md) | [Voltar ao índice](README.md) | [Próximo: Otimização de Memória →](03-otimizacao-de-memoria.md)
+[← Previous: Stack and Heap](01-stack-e-heap.md) | [Back to index](README.md) | [Next: Memory Optimization →](03-otimizacao-de-memoria.md)

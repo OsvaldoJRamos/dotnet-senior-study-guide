@@ -1,37 +1,37 @@
-# ICollection e IList
+# ICollection and IList
 
-## Hierarquia de interfaces
+## Interface hierarchy
 
 ```
-IEnumerable<T>          → Permite iterar (foreach)
-    └── ICollection<T>  → Adiciona Count, Add, Remove, Contains
-            └── IList<T> → Adiciona acesso por índice (this[int])
+IEnumerable<T>          → Allows iteration (foreach)
+    └── ICollection<T>  → Adds Count, Add, Remove, Contains
+            └── IList<T> → Adds index-based access (this[int])
 ```
 
-## Comparação
+## Comparison
 
-| Interface | O que oferece | Quando usar |
+| Interface | What it offers | When to use |
 |---|---|---|
-| `IEnumerable<T>` | Apenas iteração (`foreach`) | Quando só precisa percorrer os dados |
-| `ICollection<T>` | Iteração + `Count`, `Add`, `Remove`, `Contains` | Quando precisa saber o tamanho ou modificar a coleção |
-| `IList<T>` | Tudo de ICollection + acesso por índice `[i]` | Quando precisa acessar elementos por posição |
+| `IEnumerable<T>` | Iteration only (`foreach`) | When you only need to traverse the data |
+| `ICollection<T>` | Iteration + `Count`, `Add`, `Remove`, `Contains` | When you need to know the size or modify the collection |
+| `IList<T>` | Everything from ICollection + index-based access `[i]` | When you need to access elements by position |
 
-## Exemplos de uso
+## Usage examples
 
 ```csharp
-// Use IEnumerable quando o consumidor só vai iterar
+// Use IEnumerable when the consumer will only iterate
 public IEnumerable<Produto> BuscarAtivos()
 {
     return _context.Produtos.Where(p => p.Ativo);
 }
 
-// Use ICollection quando precisa expor Add/Remove
+// Use ICollection when you need to expose Add/Remove
 public class Pedido
 {
     public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
 }
 
-// Use IList quando precisa de acesso por índice
+// Use IList when you need index-based access
 public void ProcessarPorOrdem(IList<Tarefa> tarefas)
 {
     for (int i = 0; i < tarefas.Count; i++)
@@ -41,18 +41,18 @@ public void ProcessarPorOrdem(IList<Tarefa> tarefas)
 }
 ```
 
-## Regra prática
+## Practical rule
 
-**Use a interface mais restrita possível:**
-- Retorno de métodos? → `IEnumerable<T>` na maioria dos casos
-- Propriedade de navegação no EF? → `ICollection<T>`
-- Precisa de índice? → `IList<T>` ou `IReadOnlyList<T>`
+**Use the most restrictive interface possible:**
+- Method return type? → `IEnumerable<T>` in most cases
+- Navigation property in EF? → `ICollection<T>`
+- Need index access? → `IList<T>` or `IReadOnlyList<T>`
 
-Evite expor `List<T>` diretamente — expor a implementação concreta acopla o código.
+Avoid exposing `List<T>` directly — exposing the concrete implementation couples the code.
 
-## IReadOnlyCollection e IReadOnlyList
+## IReadOnlyCollection and IReadOnlyList
 
-Para coleções que não devem ser modificadas pelo consumidor:
+For collections that should not be modified by the consumer:
 
 ```csharp
 public IReadOnlyCollection<Produto> Produtos => _produtos.AsReadOnly();
@@ -61,4 +61,4 @@ public IReadOnlyList<Produto> ProdutosOrdenados => _produtos.OrderBy(p => p.Nome
 
 ---
 
-[← Anterior: IEnumerable vs IQueryable](01-ienumerable-vs-iqueryable.md) | [Voltar ao índice](README.md) | [Próximo: Yield Return →](03-yield-return.md)
+[← Previous: IEnumerable vs IQueryable](01-ienumerable-vs-iqueryable.md) | [Back to index](README.md) | [Next: Yield Return →](03-yield-return.md)

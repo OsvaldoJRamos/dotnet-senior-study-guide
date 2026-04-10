@@ -1,41 +1,41 @@
 # Function as a Service (FaaS)
 
-## O que e
+## What it is
 
-FaaS (AWS Lambda, Azure Functions, Google Cloud Functions) sao basicamente **containers pequenos** que executam funcoes isoladas.
+FaaS (AWS Lambda, Azure Functions, Google Cloud Functions) are basically **small containers** that execute isolated functions.
 
-## Como funciona
+## How it works
 
-1. Voce configura um **evento/trigger** (chamada HTTP, mensagem de fila, pub/sub)
-2. Quando o evento chega, um **container sobe** e executa a funcao
-3. Apos processar, o container pode ser **desligado** para economizar recursos
+1. You configure an **event/trigger** (HTTP call, queue message, pub/sub)
+2. When the event arrives, a **container spins up** and executes the function
+3. After processing, the container can be **shut down** to save resources
 
 ```
-Evento (HTTP, SQS, etc.) --> Container sobe --> Funcao executa --> Container pode desligar
+Event (HTTP, SQS, etc.) --> Container spins up --> Function executes --> Container may shut down
 ```
 
-## Caracteristicas
+## Characteristics
 
-- Containers pre-configurados com runtimes (Node.js, Python, Go, C#, Java, etc.)
-- Permite instalar dependencias externas
-- Container tende a ser **pequeno** e ficar de pe por periodos **curtos** (horas, no maximo dias)
-- A plataforma mantém o container ativo por mais algum tempo caso outros eventos estejam esperando
+- Pre-configured containers with runtimes (Node.js, Python, Go, C#, Java, etc.)
+- Allows installing external dependencies
+- Container tends to be **small** and stay up for **short** periods (hours, at most days)
+- The platform keeps the container active for a while longer in case other events are waiting
 
-## Para que e indicado
+## What it is suited for
 
-- **Processamento de eventos**: mensagens de fila, webhooks
-- **Tarefas agendadas**: cron jobs leves
-- **APIs leves**: endpoints simples e independentes
-- **Processamento de arquivos**: resize de imagens, ETL
+- **Event processing**: queue messages, webhooks
+- **Scheduled tasks**: lightweight cron jobs
+- **Lightweight APIs**: simple and independent endpoints
+- **File processing**: image resizing, ETL
 
-## Para que NAO e indicado
+## What it is NOT suited for
 
-- **Frameworks web monoliticos** (ASP.NET MVC, Rails, etc.) - tecnicamente possivel, mas nao e o proposito
-- **Aplicacoes com estado**: FaaS e stateless por natureza
-- **Processamento longo**: tem limite de tempo (ex: Lambda = 15min max)
-- **Cold start**: primeira execucao pode ser lenta (container subindo)
+- **Monolithic web frameworks** (ASP.NET MVC, Rails, etc.) - technically possible, but not the intended purpose
+- **Stateful applications**: FaaS is stateless by nature
+- **Long-running processing**: has time limits (e.g.: Lambda = 15min max)
+- **Cold start**: first execution can be slow (container spinning up)
 
-## Exemplo com Azure Functions (C#)
+## Example with Azure Functions (C#)
 
 ```csharp
 public class ProcessarPedidoFunction
@@ -55,16 +55,16 @@ public class ProcessarPedidoFunction
 
 ## Cold Start
 
-Quando um container e criado do zero, ha um delay (**cold start**). Estrategias para mitigar:
+When a container is created from scratch, there is a delay (**cold start**). Strategies to mitigate:
 
-- **Provisioned concurrency** (AWS) / **Always Ready** (Azure) - manter containers quentes
-- Usar runtimes leves (Node.js, Go) vs pesados (Java, .NET)
-- **AOT compilation** (.NET 8+) - reduz drasticamente o cold start
+- **Provisioned concurrency** (AWS) / **Always Ready** (Azure) - keep containers warm
+- Use lightweight runtimes (Node.js, Go) vs heavy ones (Java, .NET)
+- **AOT compilation** (.NET 8+) - drastically reduces cold start
 
-## Cuidado com vendor lock-in
+## Beware of vendor lock-in
 
-A implementacao varia entre fornecedores (AWS, Azure, GCP). O framework e os triggers sao especificos da plataforma.
+The implementation varies between providers (AWS, Azure, GCP). The framework and triggers are platform-specific.
 
 ---
 
-[← Anterior: CI/CD](01-ci-cd.md) | [Próximo: Docker e Kubernetes →](03-docker-e-kubernetes.md) | [Voltar ao índice](README.md)
+[← Previous: CI/CD](01-ci-cd.md) | [Next: Docker and Kubernetes →](03-docker-e-kubernetes.md) | [Back to index](README.md)

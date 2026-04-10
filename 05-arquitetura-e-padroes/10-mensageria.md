@@ -1,70 +1,70 @@
-# Mensageria (Message Brokers)
+# Messaging (Message Brokers)
 
-## O que e
+## What it is
 
-Mensageria e o padrao de comunicacao **assincrona** entre servicos usando um intermediario (broker). O produtor envia a mensagem e **nao espera** a resposta.
+Messaging is the **asynchronous** communication pattern between services using an intermediary (broker). The producer sends the message and **does not wait** for a response.
 
 ```
 [Produtor] ──publica──→ [Broker] ──entrega──→ [Consumidor]
 ```
 
-## Por que usar
+## Why use it
 
-- **Desacoplamento**: produtor nao precisa saber quem consome
-- **Resiliencia**: se o consumidor estiver fora, a mensagem fica na fila
-- **Escala**: multiplos consumidores processam em paralelo
-- **Picos de carga**: fila absorve o pico, consumidores processam no ritmo deles
+- **Decoupling**: the producer does not need to know who consumes
+- **Resilience**: if the consumer is down, the message stays in the queue
+- **Scale**: multiple consumers process in parallel
+- **Load spikes**: the queue absorbs the spike, consumers process at their own pace
 
-## Padroes de mensageria
+## Messaging patterns
 
-### 1. Queue (ponto a ponto)
+### 1. Queue (point-to-point)
 
-Uma mensagem e processada por **um unico consumidor**:
+A message is processed by **a single consumer**:
 
 ```
 [Producer] → [Queue] → [Consumer 1]
-                      → [Consumer 2]  (so um recebe cada mensagem)
+                      → [Consumer 2]  (only one receives each message)
 ```
 
-Uso: processamento de pedidos, envio de emails, jobs assincronos.
+Use cases: order processing, email sending, asynchronous jobs.
 
 ### 2. Pub/Sub (publish/subscribe)
 
-Uma mensagem e entregue a **todos os assinantes**:
+A message is delivered to **all subscribers**:
 
 ```
-[Publisher] → [Topic] → [Subscriber 1] (recebe)
-                      → [Subscriber 2] (recebe)
-                      → [Subscriber 3] (recebe)
+[Publisher] → [Topic] → [Subscriber 1] (receives)
+                      → [Subscriber 2] (receives)
+                      → [Subscriber 3] (receives)
 ```
 
-Uso: notificacoes, sincronizacao entre servicos, event-driven architecture.
+Use cases: notifications, synchronization between services, event-driven architecture.
 
 ## RabbitMQ
 
-Broker de mensagens mais popular para aplicacoes .NET. Baseado no protocolo **AMQP**.
+The most popular message broker for .NET applications. Based on the **AMQP** protocol.
 
-### Conceitos
+### Concepts
 
-- **Exchange**: recebe mensagens do produtor e roteia para filas
-- **Queue**: armazena mensagens ate serem consumidas
-- **Binding**: regra que conecta exchange a queue
-- **Routing Key**: chave usada para roteamento
+- **Exchange**: receives messages from the producer and routes them to queues
+- **Queue**: stores messages until they are consumed
+- **Binding**: rule that connects an exchange to a queue
+- **Routing Key**: key used for routing
 
 ```
 [Producer] → [Exchange] ──routing key──→ [Queue] → [Consumer]
 ```
 
-### Tipos de Exchange
+### Exchange Types
 
-| Tipo | Roteamento |
+| Type | Routing |
 |------|------------|
-| **Direct** | Routing key exata |
-| **Fanout** | Todas as filas (broadcast) |
-| **Topic** | Routing key com wildcards (`pedido.*`, `#.erro`) |
-| **Headers** | Headers da mensagem |
+| **Direct** | Exact routing key |
+| **Fanout** | All queues (broadcast) |
+| **Topic** | Routing key with wildcards (`pedido.*`, `#.erro`) |
+| **Headers** | Message headers |
 
-### Exemplo com MassTransit (.NET)
+### Example with MassTransit (.NET)
 
 ```csharp
 // Configuracao
@@ -104,34 +104,34 @@ public class PedidoCriadoConsumer : IConsumer<PedidoCriadoEvent>
 
 ## Apache Kafka
 
-Plataforma de **streaming de eventos**. Diferente de filas tradicionais:
+An **event streaming** platform. Different from traditional queues:
 
-- Mensagens sao **persistidas** (log distribuido)
-- Consumidores controlam seu **offset** (podem reler mensagens)
-- Altissimo throughput (milhoes de mensagens/segundo)
+- Messages are **persisted** (distributed log)
+- Consumers control their **offset** (can re-read messages)
+- Very high throughput (millions of messages per second)
 
-### Conceitos
+### Concepts
 
-- **Topic**: categoria de mensagens
-- **Partition**: subdivisao de um topic (paralelismo)
-- **Consumer Group**: grupo de consumidores que dividem as partitions
-- **Offset**: posicao do consumidor no log
+- **Topic**: message category
+- **Partition**: subdivision of a topic (parallelism)
+- **Consumer Group**: group of consumers that share partitions
+- **Offset**: consumer's position in the log
 
 ### Kafka vs RabbitMQ
 
-| Aspecto | RabbitMQ | Kafka |
+| Aspect | RabbitMQ | Kafka |
 |---------|----------|-------|
-| Modelo | Message broker (filas) | Event streaming (log) |
-| Mensagem consumida | Removida da fila | Permanece no log |
-| Reler mensagens | Nao | Sim (por offset) |
-| Throughput | Medio-alto | Muito alto |
-| Latencia | Mais baixa | Mais alta |
-| Uso ideal | Tarefas assincronas, RPC | Event sourcing, analytics, alta escala |
-| Complexidade | Menor | Maior |
+| Model | Message broker (queues) | Event streaming (log) |
+| Consumed message | Removed from queue | Stays in the log |
+| Re-read messages | No | Yes (by offset) |
+| Throughput | Medium-high | Very high |
+| Latency | Lower | Higher |
+| Ideal use | Async tasks, RPC | Event sourcing, analytics, high scale |
+| Complexity | Lower | Higher |
 
 ## Azure Service Bus
 
-Servico gerenciado da Microsoft. Suporta **queues** e **topics/subscriptions**:
+Microsoft's managed service. Supports **queues** and **topics/subscriptions**:
 
 ```csharp
 // Enviar mensagem
@@ -151,16 +151,16 @@ processor.ProcessMessageAsync += async args =>
 await processor.StartProcessingAsync();
 ```
 
-## Garantias de entrega
+## Delivery guarantees
 
-| Garantia | Descricao | Quando usar |
+| Guarantee | Description | When to use |
 |----------|-----------|-------------|
-| **At-most-once** | Pode perder, nunca duplica | Logs, metricas |
-| **At-least-once** | Nunca perde, pode duplicar | Maioria dos casos (com idempotencia) |
-| **Exactly-once** | Nunca perde, nunca duplica | Transacoes financeiras (caro/complexo) |
+| **At-most-once** | May lose, never duplicates | Logs, metrics |
+| **At-least-once** | Never loses, may duplicate | Most cases (with idempotency) |
+| **Exactly-once** | Never loses, never duplicates | Financial transactions (expensive/complex) |
 
-> Na pratica, use **at-least-once** com **consumidores idempotentes**.
+> In practice, use **at-least-once** with **idempotent consumers**.
 
 ---
 
-[← Anterior: Microservices](09-microservices.md) | [Voltar ao índice](README.md)
+[← Previous: Microservices](09-microservices.md) | [Back to index](README.md)

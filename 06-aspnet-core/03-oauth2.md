@@ -1,22 +1,22 @@
 # OAuth 2.0
 
-## O que é
+## What it is
 
-**OAuth (Open Authorization)** permite que sites ou apps de terceiros acessem dados do usuário **sem que ele precise compartilhar suas credenciais**.
+**OAuth (Open Authorization)** allows third-party websites or apps to access user data **without the user needing to share their credentials**.
 
-OAuth 2.0 é sobre **AUTORIZAÇÃO**, não AUTENTICAÇÃO. É um framework de autorização que pode ser usado para autenticar usuários e dar acesso a eles a recursos protegidos.
+OAuth 2.0 is about **AUTHORIZATION**, not AUTHENTICATION. It is an authorization framework that can be used to authenticate users and grant them access to protected resources.
 
-## Conceitos chave
+## Key concepts
 
-- **Access Token** — token que concede acesso a recursos protegidos. Geralmente expiram rápido.
-- **Refresh Token** — serve para renovar o access token. Nem todos os fluxos usam refresh token.
-- **Authorization Server** — responsável por emitir access tokens.
-- **Identity Provider** — responsável por autenticar usuários.
-- **Resource Server** — servidor que possui os recursos protegidos.
+- **Access Token** — token that grants access to protected resources. They usually expire quickly.
+- **Refresh Token** — used to renew the access token. Not all flows use refresh tokens.
+- **Authorization Server** — responsible for issuing access tokens.
+- **Identity Provider** — responsible for authenticating users.
+- **Resource Server** — server that holds the protected resources.
 
-> Diferente do Google, em alguns casos o Authorization Server e o Identity Provider podem ser diferentes. No OAuth 2.0, apesar de que em alguns casos podem ser a mesma coisa (como no Google), o AUTHORIZATION é responsável por emitir ACCESS TOKENS e o IDENTITY PROVIDER é responsável por AUTENTICAR usuários.
+> Unlike Google, in some cases the Authorization Server and the Identity Provider can be different. In OAuth 2.0, although in some cases they can be the same thing (as with Google), the AUTHORIZATION server is responsible for issuing ACCESS TOKENS and the IDENTITY PROVIDER is responsible for AUTHENTICATING users.
 
-## Fluxo OAuth 2.0
+## OAuth 2.0 Flow
 
 ```
 1. Client ──── Authorization request ────→ Resource Owner
@@ -29,27 +29,27 @@ OAuth 2.0 é sobre **AUTORIZAÇÃO**, não AUTENTICAÇÃO. É um framework de au
 6. Client ←─── Protected resource ── Resource Server
 ```
 
-## Exemplo prático
+## Practical example
 
-Vamos supor que você queira fazer uma aplicação de calendário que usa o Google Calendário:
+Let's say you want to build a calendar application that uses Google Calendar:
 
-1. A aplicação terceira obtém um access token do Google, usando o OAuth 2.0 para autenticar no Google
-2. O Google emite um access token para a aplicação
-3. A aplicação pega esse access token e gera um JWT próprio dela
-4. A aplicação manda o JWT para o Google, dessa forma o Google consegue validar o JWT e concede acesso para a aplicação
+1. The third-party application obtains an access token from Google, using OAuth 2.0 to authenticate with Google
+2. Google issues an access token to the application
+3. The application takes that access token and generates its own JWT
+4. The application sends the JWT to Google, allowing Google to validate the JWT and grant access to the application
 
-Quando logamos com o Google em um site terceiro, quando um site terceiro consegue manipular o calendário do Google, tudo isso é feito através de um access token. Dessa forma não é preciso usar a senha e login do usuário.
+When we log in with Google on a third-party site, when a third-party site can manipulate Google Calendar, all of this is done through an access token. This way, the user's password and login are not needed.
 
 ## JWT (JSON Web Token)
 
-JWT pode ser usado para representar o access token. É um padrão aberto (RFC 7519) que define uma forma compacta e auto-contida de transmitir informações entre partes como um objeto JSON.
+JWT can be used to represent the access token. It is an open standard (RFC 7519) that defines a compact and self-contained way of transmitting information between parties as a JSON object.
 
 ```
 Header.Payload.Signature
 ```
 
 ```csharp
-// Em ASP.NET Core, configurar autenticação JWT:
+// En ASP.NET Core, configurar autenticação JWT:
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -68,4 +68,4 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 ---
 
-[← Anterior: Service Lifetimes](02-service-lifetimes.md) | [Próximo: Resiliência de APIs →](04-resiliencia-de-apis.md) | [Voltar ao índice](README.md)
+[← Previous: Service Lifetimes](02-service-lifetimes.md) | [Next: API Resilience →](04-resiliencia-de-apis.md) | [Back to index](README.md)

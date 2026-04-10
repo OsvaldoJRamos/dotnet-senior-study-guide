@@ -1,28 +1,28 @@
 # MIME Types
 
-## O que sao
+## What they are
 
-MIME type (ou media type) e um identificador que informa o **tipo e formato do conteudo** transmitido em HTTP. Permite que cliente e servidor saibam como **interpretar** os dados.
+MIME type (or media type) is an identifier that informs the **type and format of the content** transmitted over HTTP. It allows client and server to know how to **interpret** the data.
 
-## Tipos comuns
+## Common types
 
-| MIME Type | Conteudo |
-|-----------|----------|
+| MIME Type | Content |
+|-----------|---------|
 | `application/json` | JSON |
 | `application/xml` | XML |
 | `application/pdf` | PDF |
-| `application/octet-stream` | Binario generico |
-| `text/plain` | Texto simples |
+| `application/octet-stream` | Generic binary |
+| `text/plain` | Plain text |
 | `text/html` | HTML |
-| `image/png` | Imagem PNG |
-| `image/jpeg` | Imagem JPEG |
-| `multipart/form-data` | Formularios com arquivos |
+| `image/png` | PNG image |
+| `image/jpeg` | JPEG image |
+| `multipart/form-data` | Forms with file uploads |
 
-## Onde sao usados
+## Where they are used
 
-### 1. Em requisicoes HTTP
+### 1. In HTTP requests
 
-**Content-Type**: indica o tipo do corpo da requisicao.
+**Content-Type**: indicates the type of the request body.
 
 ```http
 POST /api/clientes HTTP/1.1
@@ -31,14 +31,14 @@ Content-Type: application/json
 {"nome": "Osvaldo"}
 ```
 
-**Accept**: indica quais tipos o cliente aceita como resposta.
+**Accept**: indicates which types the client accepts as a response.
 
 ```http
 GET /api/clientes/1 HTTP/1.1
 Accept: application/json
 ```
 
-### 2. Em uploads de arquivos
+### 2. In file uploads
 
 ```http
 POST /api/upload HTTP/1.1
@@ -48,31 +48,31 @@ Content-Type: multipart/form-data; boundary=---boundary
 Content-Disposition: form-data; name="arquivo"; filename="relatorio.pdf"
 Content-Type: application/pdf
 
-(conteudo binario do PDF)
+(binary PDF content)
 ---boundary--
 ```
 
-### 3. Em downloads/responses
+### 3. In downloads/responses
 
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/pdf
 Content-Disposition: attachment; filename="relatorio.pdf"
 
-(conteudo do PDF)
+(PDF content)
 ```
 
-O browser sabe abrir como PDF, baixar como arquivo, etc.
+The browser knows whether to open it as a PDF, download it as a file, etc.
 
-## Por que MIME type e importante
+## Why MIME type is important
 
-- Permite **content negotiation** entre cliente e servidor
-- Garante que os dados sejam **interpretados corretamente**
-- Evita erros de parsing
-- Ajuda na **seguranca** (ex: impedir execucao de conteudo malicioso)
-- Essencial para **APIs REST** bem definidas
+- Enables **content negotiation** between client and server
+- Ensures that data is **interpreted correctly**
+- Prevents parsing errors
+- Helps with **security** (e.g., preventing execution of malicious content)
+- Essential for well-defined **REST APIs**
 
-## Em ASP.NET Core
+## In ASP.NET Core
 
 ```csharp
 // Retornando diferentes tipos de conteudo
@@ -92,4 +92,4 @@ public IActionResult ObterDados()
 
 ---
 
-[← Anterior: HTTP Semantics](01-http-semantics.md) | [Próximo: REST API Design →](03-rest-api-design.md) | [Voltar ao índice](README.md)
+[← Previous: HTTP Semantics](01-http-semantics.md) | [Next: REST API Design →](03-rest-api-design.md) | [Back to index](README.md)

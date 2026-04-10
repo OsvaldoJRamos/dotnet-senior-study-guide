@@ -1,10 +1,10 @@
 # Minimal APIs
 
-## O que sao
+## What they are
 
-Forma simplificada de criar APIs no ASP.NET Core (.NET 6+) **sem controllers**, com menos boilerplate. Todo o setup fica no `Program.cs`.
+A simplified way to create APIs in ASP.NET Core (.NET 6+) **without controllers**, with less boilerplate. All setup goes in `Program.cs`.
 
-## Exemplo basico
+## Basic example
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -41,9 +41,9 @@ app.MapDelete("/produtos/{id:int}", async (int id, IProdutoService service) =>
 app.Run();
 ```
 
-## Organizacao com Route Groups
+## Organization with Route Groups
 
-Para nao poluir o Program.cs:
+To avoid polluting Program.cs:
 
 ```csharp
 // Program.cs
@@ -76,7 +76,7 @@ public static class ProdutoEndpoints
 }
 ```
 
-## Validacao com Filters
+## Validation with Filters
 
 ```csharp
 app.MapPost("/produtos", async (CriarProdutoDto dto, IProdutoService service) =>
@@ -93,7 +93,7 @@ app.MapPost("/produtos", async (CriarProdutoDto dto, IProdutoService service) =>
 });
 ```
 
-## Auth, OpenAPI e Rate Limiting
+## Auth, OpenAPI and Rate Limiting
 
 ```csharp
 app.MapGet("/admin/config", () => Results.Ok(config))
@@ -105,21 +105,21 @@ app.MapGet("/admin/config", () => Results.Ok(config))
 
 ## Minimal APIs vs Controllers
 
-| Aspecto | Minimal APIs | Controllers |
+| Aspect | Minimal APIs | Controllers |
 |---------|-------------|-------------|
-| Boilerplate | Minimo | Mais verbose |
-| Performance | Ligeiramente melhor | Ligeiramente pior |
-| Organizacao | Route groups, extension methods | Herança de ControllerBase |
-| Filters | Endpoint filters | Action filters (mais tipos) |
-| Model binding | Parametros do metodo | `[FromBody]`, `[FromQuery]`, etc. |
-| Melhor para | APIs simples, microservices | APIs complexas, projetos grandes |
+| Boilerplate | Minimal | More verbose |
+| Performance | Slightly better | Slightly worse |
+| Organization | Route groups, extension methods | ControllerBase inheritance |
+| Filters | Endpoint filters | Action filters (more types) |
+| Model binding | Method parameters | `[FromBody]`, `[FromQuery]`, etc. |
+| Best for | Simple APIs, microservices | Complex APIs, large projects |
 
-## Quando usar
+## When to use
 
-- **Minimal APIs**: microservices, APIs simples, quando quer menos boilerplate
-- **Controllers**: APIs complexas com muitas features MVC (model validation, formatters, etc.)
-- **Ambos**: podem coexistir no mesmo projeto
+- **Minimal APIs**: microservices, simple APIs, when you want less boilerplate
+- **Controllers**: complex APIs with many MVC features (model validation, formatters, etc.)
+- **Both**: they can coexist in the same project
 
 ---
 
-[← Anterior: Caching](07-caching.md) | [Próximo: SignalR →](09-signalr.md) | [Voltar ao índice](README.md)
+[← Previous: Caching](07-caching.md) | [Next: SignalR →](09-signalr.md) | [Back to index](README.md)

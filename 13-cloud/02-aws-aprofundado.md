@@ -1,21 +1,21 @@
-# AWS - Conceitos Aprofundados
+# AWS - In-Depth Concepts
 
 ## IAM (Identity and Access Management)
 
-Controle de **quem pode fazer o que** na AWS.
+Controls **who can do what** in AWS.
 
-### Conceitos
+### Concepts
 
-| Conceito | Descricao |
-|----------|-----------|
-| **User** | Pessoa ou aplicacao com credenciais |
-| **Group** | Conjunto de users com mesmas permissoes |
-| **Role** | Identidade temporaria assumida por servicos (EC2, Lambda) |
-| **Policy** | Documento JSON que define permissoes |
+| Concept | Description |
+|---------|-------------|
+| **User** | Person or application with credentials |
+| **Group** | Set of users with the same permissions |
+| **Role** | Temporary identity assumed by services (EC2, Lambda) |
+| **Policy** | JSON document that defines permissions |
 
-### Principio do menor privilegio
+### Principle of Least Privilege
 
-Sempre conceder **apenas** as permissoes necessarias:
+Always grant **only** the necessary permissions:
 
 ```json
 {
@@ -33,19 +33,19 @@ Sempre conceder **apenas** as permissoes necessarias:
 }
 ```
 
-### Roles para servicos
+### Roles for Services
 
-Em vez de colocar access keys no codigo, atribua uma **role** ao servico:
+Instead of putting access keys in code, assign a **role** to the service:
 
 ```
-EC2 Instance ──assume──→ Role "api-role" ──permite──→ S3, SQS, DynamoDB
+EC2 Instance ──assumes──→ Role "api-role" ──allows──→ S3, SQS, DynamoDB
 ```
 
-> **Nunca** coloque access keys no codigo ou em variaveis de ambiente em producao. Use IAM Roles.
+> **Never** put access keys in code or in environment variables in production. Use IAM Roles.
 
 ## VPC (Virtual Private Cloud)
 
-Rede virtual isolada na AWS:
+Isolated virtual network in AWS:
 
 ```
 ┌─────────────────────── VPC (10.0.0.0/16) ───────────────────────┐
@@ -64,33 +64,33 @@ Rede virtual isolada na AWS:
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### Conceitos
+### Concepts
 
-| Conceito | Descricao |
-|----------|-----------|
-| **Subnet publica** | Tem acesso direto a internet (via Internet Gateway) |
-| **Subnet privada** | Sem acesso direto — usa NAT Gateway para sair |
-| **Security Group** | Firewall stateful no nivel da instancia |
-| **NACL** | Firewall stateless no nivel da subnet |
-| **Internet Gateway** | Porta de entrada/saida para internet |
-| **NAT Gateway** | Permite subnet privada acessar internet (saida only) |
+| Concept | Description |
+|---------|-------------|
+| **Public Subnet** | Has direct internet access (via Internet Gateway) |
+| **Private Subnet** | No direct access — uses NAT Gateway to reach the internet |
+| **Security Group** | Stateful firewall at the instance level |
+| **NACL** | Stateless firewall at the subnet level |
+| **Internet Gateway** | Entry/exit point for internet traffic |
+| **NAT Gateway** | Allows private subnet to access the internet (outbound only) |
 
-### Regra pratica
+### Practical Rule
 
-- **ALB** na subnet publica (recebe trafego externo)
-- **Aplicacao** na subnet privada (nao exposta diretamente)
-- **Banco de dados** na subnet privada (isolado)
+- **ALB** in the public subnet (receives external traffic)
+- **Application** in the private subnet (not directly exposed)
+- **Database** in the private subnet (isolated)
 
 ## S3 (Simple Storage Service)
 
-### Classes de armazenamento
+### Storage Classes
 
-| Classe | Uso | Custo |
-|--------|-----|-------|
-| **S3 Standard** | Acesso frequente | $$ |
-| **S3 Infrequent Access** | Acesso raro, mas rapido | $ |
-| **S3 Glacier** | Arquivo, recuperacao em horas | ¢ |
-| **S3 Glacier Deep Archive** | Arquivo longo prazo | ¢¢ |
+| Class | Use | Cost |
+|-------|-----|------|
+| **S3 Standard** | Frequent access | $$ |
+| **S3 Infrequent Access** | Rare access, but fast retrieval | $ |
+| **S3 Glacier** | Archive, retrieval in hours | ¢ |
+| **S3 Glacier Deep Archive** | Long-term archive | ¢¢ |
 
 ### Bucket Policies
 
@@ -110,7 +110,7 @@ Rede virtual isolada na AWS:
 
 ### Pre-signed URLs
 
-URLs temporarias para upload/download sem expor o bucket:
+Temporary URLs for upload/download without exposing the bucket:
 
 ```csharp
 var request = new GetPreSignedUrlRequest
@@ -120,15 +120,15 @@ var request = new GetPreSignedUrlRequest
     Expires = DateTime.UtcNow.AddMinutes(15)
 };
 string url = s3Client.GetPreSignedURL(request);
-// URL valida por 15 minutos
+// URL valid for 15 minutes
 ```
 
 ## SQS (Simple Queue Service)
 
-Fila de mensagens gerenciada:
+Managed message queue:
 
 ```csharp
-// Enviar
+// Send
 var sendRequest = new SendMessageRequest
 {
     QueueUrl = "https://sqs.us-east-1.amazonaws.com/123/minha-fila",
@@ -136,7 +136,7 @@ var sendRequest = new SendMessageRequest
 };
 await sqsClient.SendMessageAsync(sendRequest);
 
-// Receber
+// Receive
 var receiveRequest = new ReceiveMessageRequest
 {
     QueueUrl = queueUrl,
@@ -148,38 +148,38 @@ var response = await sqsClient.ReceiveMessageAsync(receiveRequest);
 
 ### SQS Standard vs FIFO
 
-| Aspecto | Standard | FIFO |
-|---------|----------|------|
-| Ordem | Melhor esforco | Garantida |
-| Duplicatas | Pode haver | Exactly-once |
-| Throughput | Ilimitado | 300 msgs/s (3000 com batching) |
-| Uso | Maioria dos casos | Quando ordem importa |
+| Aspect | Standard | FIFO |
+|--------|----------|------|
+| Order | Best effort | Guaranteed |
+| Duplicates | May occur | Exactly-once |
+| Throughput | Unlimited | 300 msgs/s (3000 with batching) |
+| Use case | Most cases | When order matters |
 
 ## SNS (Simple Notification Service)
 
-Pub/Sub gerenciado — uma mensagem para **multiplos destinos**:
+Managed Pub/Sub — one message to **multiple destinations**:
 
 ```
-[Publisher] → [SNS Topic] → [SQS Queue 1] (processamento)
+[Publisher] → [SNS Topic] → [SQS Queue 1] (processing)
                            → [SQS Queue 2] (analytics)
-                           → [Lambda] (notificacao)
+                           → [Lambda] (notification)
                            → [Email]
 ```
 
 ## CloudWatch
 
-Monitoramento e observabilidade:
+Monitoring and observability:
 
-- **Metrics**: CPU, memoria, latencia, erros
-- **Logs**: logs centralizados de todos os servicos
-- **Alarms**: notificacao quando metrica ultrapassa threshold
-- **Dashboards**: visualizacao em tempo real
+- **Metrics**: CPU, memory, latency, errors
+- **Logs**: centralized logs from all services
+- **Alarms**: notification when a metric exceeds a threshold
+- **Dashboards**: real-time visualization
 
 ```
 CloudWatch Alarm (CPU > 80%) → SNS Topic → Email/Slack/PagerDuty
 ```
 
-## Arquitetura tipica na AWS
+## Typical AWS Architecture
 
 ```
 [Route 53 (DNS)]
@@ -188,14 +188,14 @@ CloudWatch Alarm (CPU > 80%) → SNS Topic → Email/Slack/PagerDuty
        ↓
 [ALB (Load Balancer)]
     ↓          ↓
-[ECS/Fargate] [ECS/Fargate]   (subnet privada)
+[ECS/Fargate] [ECS/Fargate]   (private subnet)
     ↓
-[RDS] [ElastiCache/Redis]      (subnet privada)
-[SQS] → [Lambda]               (processamento async)
-[S3]                            (arquivos)
-[CloudWatch]                    (monitoramento)
+[RDS] [ElastiCache/Redis]      (private subnet)
+[SQS] → [Lambda]               (async processing)
+[S3]                            (files)
+[CloudWatch]                    (monitoring)
 ```
 
 ---
 
-[← Anterior: AWS - Serviços Principais](01-aws-servicos.md) | [Próximo: Azure - Serviços →](03-azure-servicos.md) | [Voltar ao índice](README.md)
+[← Previous: AWS - Main Services](01-aws-servicos.md) | [Next: Azure - Services →](03-azure-servicos.md) | [Back to index](README.md)

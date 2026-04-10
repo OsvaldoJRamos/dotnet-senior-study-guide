@@ -1,22 +1,22 @@
 # HTTP Semantics
 
-## Metodos HTTP e Idempotencia
+## HTTP Methods and Idempotency
 
-**Idempotencia**: aplicar a mesma operacao multiplas vezes produz o mesmo resultado da primeira aplicacao.
+**Idempotency**: applying the same operation multiple times produces the same result as the first application.
 
-| Metodo | Safe | Idempotente | Descricao |
-|--------|------|-------------|-----------|
-| `GET` | Sim | Sim | Buscar recurso. **Nunca** deve alterar estado do servidor |
-| `POST` | Nao | Nao | Criar recurso ou executar procedimento |
-| `PUT` | Nao | Sim | Substituir recurso inteiro. Client pode gerar o ID |
-| `PATCH` | Nao | Nao* | Atualizar parcialmente um recurso |
-| `DELETE` | Nao | Sim | Remover recurso. **Nunca retorne 404** quando nao achar |
+| Method | Safe | Idempotent | Description |
+|--------|------|------------|-------------|
+| `GET` | Yes | Yes | Fetch resource. Should **never** change server state |
+| `POST` | No | No | Create resource or execute procedure |
+| `PUT` | No | Yes | Replace entire resource. Client can generate the ID |
+| `PATCH` | No | No* | Partially update a resource |
+| `DELETE` | No | Yes | Remove resource. **Never return 404** when not found |
 
-> *PATCH pode ser idempotente dependendo da implementacao
+> *PATCH can be idempotent depending on the implementation
 
-### DELETE e query parameters
+### DELETE and query parameters
 
-Evite ao maximo query parameters em DELETE. Se for necessario, **valide que todos foram passados**.
+Avoid query parameters in DELETE as much as possible. If necessary, **validate that all were provided**.
 
 ## URL
 
@@ -25,53 +25,53 @@ scheme://host:port/path?query#fragment
 https://api.exemplo.com:443/v1/clientes?ativo=true#resultados
 ```
 
-### Dicas de seguranca
+### Security tips
 
-- **Evite dados sensiveis na URL** (email, CPF, dados que identificam usuarios)
-- A URL e logada em varios lugares (access logs, proxies, browser history)
-- Query string e menos logada, mas ainda pode ser capturada
+- **Avoid sensitive data in the URL** (email, SSN, data that identifies users)
+- The URL is logged in many places (access logs, proxies, browser history)
+- Query string is less frequently logged, but can still be captured
 
 ## TCP vs UDP
 
-| Aspecto | TCP | UDP |
-|---------|-----|-----|
-| Garantia de entrega | Sim | Nao |
-| Ordem dos pacotes | Garantida | Nao garantida |
-| Velocidade | Mais lento | Mais rapido |
-| Uso | HTTP, APIs, email | Video, gaming, DNS |
+| Aspect | TCP | UDP |
+|--------|-----|-----|
+| Delivery guarantee | Yes | No |
+| Packet ordering | Guaranteed | Not guaranteed |
+| Speed | Slower | Faster |
+| Usage | HTTP, APIs, email | Video, gaming, DNS |
 
-## Encoding de URL
+## URL Encoding
 
-Diferentes partes da URL tem diferentes tipos de encoding:
+Different parts of the URL have different types of encoding:
 
-- `/` no path e um separador, mas no query string e normal
-- `%` pode ser problema no query string, mas nao no path
-- Caracteres especiais devem ser codificados: `%20` (espaco), `%2F` (/), etc.
+- `/` in the path is a separator, but in the query string it is normal
+- `%` can be a problem in the query string, but not in the path
+- Special characters must be encoded: `%20` (space), `%2F` (/), etc.
 
 ## Redirects
 
-| Codigo | Tipo | Nota |
-|--------|------|------|
-| 301 | Permanent Redirect | Problemas de seguranca em alguns cenarios |
-| 302 | Found (temporary) | Uso historico inconsistente |
-| 303 | See Other | Problemas de seguranca |
-| **307** | Temporary Redirect | Substituto seguro do 302 |
-| **308** | Permanent Redirect | Substituto seguro do 301 |
+| Code | Type | Note |
+|------|------|------|
+| 301 | Permanent Redirect | Security issues in some scenarios |
+| 302 | Found (temporary) | Historically inconsistent usage |
+| 303 | See Other | Security issues |
+| **307** | Temporary Redirect | Safe replacement for 302 |
+| **308** | Permanent Redirect | Safe replacement for 301 |
 
-> Prefira **307** e **308** por serem mais seguros e previsíveis.
+> Prefer **307** and **308** as they are safer and more predictable.
 
 ## Content Negotiation
 
-Cliente e servidor negociam o formato do conteudo:
+Client and server negotiate the content format:
 
 ```http
-# Cliente diz o que aceita
+# Client says what it accepts
 Accept: application/json
 
-# Servidor diz o que retorna
+# Server says what it returns
 Content-Type: application/json
 ```
 
 ---
 
-[Próximo: MIME Types →](02-mime-types.md) | [Voltar ao índice](README.md)
+[Next: MIME Types →](02-mime-types.md) | [Back to index](README.md)

@@ -1,13 +1,13 @@
 # Equals() vs ==
 
-## Diferenca fundamental
+## Fundamental difference
 
-- `==` compara por **referencia** (para reference types) ou por **valor** (para value types)
-- `Equals()` compara por **valor/conteudo** (pode ser sobrescrito)
+- `==` compares by **reference** (for reference types) or by **value** (for value types)
+- `Equals()` compares by **value/content** (can be overridden)
 
-## Com value types (int, struct, etc.)
+## With value types (int, struct, etc.)
 
-Ambos comparam por **valor** - funcionam da mesma forma:
+Both compare by **value** - they work the same way:
 
 ```csharp
 int a = 5;
@@ -16,9 +16,9 @@ Console.WriteLine(a == b);        // True
 Console.WriteLine(a.Equals(b));   // True
 ```
 
-## Com reference types (classes)
+## With reference types (classes)
 
-`==` compara se as **referencias apontam para o mesmo objeto na memoria**:
+`==` compares whether the **references point to the same object in memory**:
 
 ```csharp
 var obj1 = new Pessoa("Joao");
@@ -28,7 +28,7 @@ Console.WriteLine(obj1 == obj2);      // False (referencias diferentes)
 Console.WriteLine(obj1.Equals(obj2)); // False (Equals padrao tambem compara referencia)
 ```
 
-Para comparar por conteudo, e preciso sobrescrever `Equals()`:
+To compare by content, you need to override `Equals()`:
 
 ```csharp
 public class Pessoa
@@ -49,9 +49,9 @@ var obj2 = new Pessoa { Nome = "Joao" };
 Console.WriteLine(obj1.Equals(obj2)); // True (agora compara por conteudo)
 ```
 
-## Caso especial: string
+## Special case: string
 
-`string` e reference type, mas o `==` foi **sobrescrito** para comparar por conteudo:
+`string` is a reference type, but `==` has been **overridden** to compare by content:
 
 ```csharp
 string a = "hello";
@@ -62,7 +62,7 @@ Console.WriteLine(a.Equals(b)); // True
 
 ## Records (C# 9+)
 
-Records implementam automaticamente `Equals()` e `==` por valor:
+Records automatically implement `Equals()` and `==` by value:
 
 ```csharp
 public record Pessoa(string Nome);
@@ -73,7 +73,7 @@ Console.WriteLine(p1 == p2);      // True
 Console.WriteLine(p1.Equals(p2)); // True
 ```
 
-## Cuidado com null
+## Watch out for null
 
 ```csharp
 Pessoa? p = null;
@@ -84,16 +84,16 @@ Pessoa? p = null;
 Console.WriteLine(Equals(p, outro)); // metodo estatico, seguro com null
 ```
 
-## Resumo
+## Summary
 
-| Cenario | `==` | `Equals()` |
-|---------|------|------------|
-| Value types | Valor | Valor |
-| Reference types (padrao) | Referencia | Referencia |
-| string | Conteudo (sobrescrito) | Conteudo |
-| Record | Conteudo (sobrescrito) | Conteudo |
-| Com override de Equals | Referencia (a menos que sobrecarregue `==` tambem) | Conteudo customizado |
+| Scenario | `==` | `Equals()` |
+|----------|------|------------|
+| Value types | Value | Value |
+| Reference types (default) | Reference | Reference |
+| string | Content (overridden) | Content |
+| Record | Content (overridden) | Content |
+| With Equals override | Reference (unless you also overload `==`) | Custom content |
 
 ---
 
-[← Anterior: Modificadores](05-modificadores.md) | [Próximo: Generics →](07-generics.md) | [Voltar ao índice](README.md)
+[← Previous: Modifiers](05-modificadores.md) | [Next: Generics →](07-generics.md) | [Back to index](README.md)

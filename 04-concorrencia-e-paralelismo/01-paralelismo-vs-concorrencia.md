@@ -1,21 +1,21 @@
-# Paralelismo vs Concorrência
+# Parallelism vs Concurrency
 
-## Diferença
+## Difference
 
-- **Concorrência:** várias tarefas *em progresso* ao mesmo tempo (pode ser intercalado em uma CPU)
-- **Paralelismo:** várias tarefas *executadas literalmente ao mesmo tempo* (requer múltiplos núcleos)
+- **Concurrency:** multiple tasks *in progress* at the same time (can be interleaved on a single CPU)
+- **Parallelism:** multiple tasks *executed literally at the same time* (requires multiple cores)
 
-## Quando NÃO usar paralelismo
+## When NOT to use parallelism
 
-- **Em tarefas I/O-bound** (como chamadas de API ou banco de dados): prefira `async/await`
-- **Em tarefas curtas demais**: o overhead do paralelismo pode deixar tudo mais lento
-- **Em códigos com muitos acessos a recursos compartilhados** (como listas): o paralelismo pode gerar problemas de concorrência (race conditions)
+- **For I/O-bound tasks** (such as API calls or database queries): prefer `async/await`
+- **For tasks that are too short**: the overhead of parallelism can make everything slower
+- **In code with many accesses to shared resources** (such as lists): parallelism can cause concurrency problems (race conditions)
 
-## Como o C# decide quantas threads usar?
+## How does C# decide how many threads to use?
 
-`Parallel` e `Task` usam o **ThreadPool**, que é gerenciado automaticamente.
+`Parallel` and `Task` use the **ThreadPool**, which is managed automatically.
 
-Você pode limitar com `ParallelOptions`:
+You can limit it with `ParallelOptions`:
 
 ```csharp
 var options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
@@ -24,4 +24,4 @@ Parallel.ForEach(lista, options, item => Processar(item));
 
 ---
 
-[Voltar ao índice](README.md) | [Próximo: Parallel.ForEach e Invoke →](02-parallel-foreach-invoke.md)
+[Back to index](README.md) | [Next: Parallel.ForEach and Invoke →](02-parallel-foreach-invoke.md)

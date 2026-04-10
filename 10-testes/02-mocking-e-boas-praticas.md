@@ -1,43 +1,43 @@
-# Mocking e Boas Praticas de Testes
+# Mocking and Testing Best Practices
 
 ## Arrange-Act-Assert (AAA)
 
-Padrao para organizar testes:
+Pattern for organizing tests:
 
 ```csharp
 [TestMethod]
 public async Task AprovarPedido_DeveAtualizarStatus()
 {
-    // Arrange — prepara o cenario
+    // Arrange — set up the scenario
     var pedido = new Pedido("cliente-1", 100m);
     var repo = new Mock<IPedidoRepository>();
     repo.Setup(r => r.ObterPorIdAsync(pedido.Id)).ReturnsAsync(pedido);
     var service = new PedidoService(repo.Object);
 
-    // Act — executa a acao
+    // Act — execute the action
     await service.AprovarAsync(pedido.Id);
 
-    // Assert — verifica o resultado
+    // Assert — verify the result
     Assert.AreEqual(StatusPedido.Aprovado, pedido.Status);
     repo.Verify(r => r.SalvarAsync(pedido), Times.Once);
 }
 ```
 
-## Moq (framework de mocking)
+## Moq (mocking framework)
 
-### Setup e retorno
+### Setup and return
 
 ```csharp
 var mock = new Mock<IProdutoRepository>();
 
-// Retorno simples
+// Simple return
 mock.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(new Produto("Notebook"));
 
-// Retorno com callback
+// Return with callback
 mock.Setup(r => r.ObterPorIdAsync(It.IsAny<int>()))
     .ReturnsAsync((int id) => new Produto($"Produto-{id}"));
 
-// Lanca excecao
+// Throw exception
 mock.Setup(r => r.ObterPorIdAsync(-1))
     .ThrowsAsync(new NotFoundException());
 ```
@@ -45,29 +45,29 @@ mock.Setup(r => r.ObterPorIdAsync(-1))
 ### Matchers (It)
 
 ```csharp
-It.IsAny<int>()                    // qualquer int
-It.Is<int>(x => x > 0)            // int positivo
-It.IsIn(1, 2, 3)                   // 1, 2 ou 3
+It.IsAny<int>()                    // any int
+It.Is<int>(x => x > 0)            // positive int
+It.IsIn(1, 2, 3)                   // 1, 2, or 3
 It.IsRegex("[A-Z]+")              // regex
 ```
 
-### Verify (verificar chamadas)
+### Verify (verify calls)
 
 ```csharp
-// Verificar que foi chamado
+// Verify it was called
 mock.Verify(r => r.SalvarAsync(It.IsAny<Pedido>()), Times.Once);
 
-// Verificar que NAO foi chamado
+// Verify it was NOT called
 mock.Verify(r => r.RemoverAsync(It.IsAny<int>()), Times.Never);
 
-// Verificar chamada com parametro especifico
+// Verify call with specific parameter
 mock.Verify(r => r.SalvarAsync(It.Is<Pedido>(p => p.Status == StatusPedido.Aprovado)));
 ```
 
 ## Naming Conventions
 
 ```csharp
-// Padrao: Metodo_Cenario_ResultadoEsperado
+// Pattern: Method_Scenario_ExpectedResult
 [TestMethod]
 public void Somar_NumerosPositivos_DeveRetornarSoma()
 public void Somar_ComZero_DeveRetornarOutroNumero()
@@ -75,7 +75,7 @@ public void Aprovar_PedidoJaAprovado_DeveLancarException()
 public void CriarUsuario_EmailDuplicado_DeveRetornarConflito()
 ```
 
-## Teste de excecoes
+## Testing exceptions
 
 ```csharp
 [TestMethod]
@@ -87,7 +87,7 @@ public void Aprovar_PedidoCancelado_DeveLancarException()
     pedido.Aprovar(); // deve lancar
 }
 
-// Ou com Assert (mais controle)
+// Or with Assert (more control)
 [TestMethod]
 public void Aprovar_PedidoCancelado_DeveLancarException()
 {
@@ -112,7 +112,7 @@ public void Somar_ComVariosInputs(int a, int b, int esperado)
     Assert.AreEqual(esperado, Calculadora.Somar(a, b));
 }
 
-// DynamicData para cenarios complexos
+// DynamicData for complex scenarios
 [TestMethod]
 [DynamicData(nameof(CenariosDeDesconto), DynamicDataSourceType.Method)]
 public void CalcularDesconto_ComVariosCenarios(Pedido pedido, decimal esperado)
@@ -128,7 +128,7 @@ private static IEnumerable<object[]> CenariosDeDesconto()
 }
 ```
 
-## Testes de integracao com WebApplicationFactory
+## Integration tests with WebApplicationFactory
 
 ```csharp
 [TestClass]
@@ -165,16 +165,16 @@ public class PedidoApiTests
 }
 ```
 
-## Boas praticas
+## Best practices
 
-1. **Teste comportamento, nao implementacao** — se mudar a implementacao e o comportamento for o mesmo, o teste nao deve quebrar
-2. **Um assert por teste** (idealmente) — facilita diagnostico
-3. **Nao teste metodos privados** — teste pela interface publica
-4. **Testes devem ser independentes** — nao depender de ordem de execucao
-5. **Nao teste o framework** — nao teste se EF Core faz INSERT corretamente
-6. **Use builders** para criar objetos complexos de teste
-7. **Evite logica nos testes** — sem if/else/for nos testes
+1. **Test behavior, not implementation** -- if the implementation changes but behavior stays the same, the test should not break
+2. **One assert per test** (ideally) -- makes diagnosis easier
+3. **Do not test private methods** -- test through the public interface
+4. **Tests must be independent** -- do not depend on execution order
+5. **Do not test the framework** -- do not test whether EF Core does INSERT correctly
+6. **Use builders** to create complex test objects
+7. **Avoid logic in tests** -- no if/else/for in tests
 
 ---
 
-[← Anterior: Pirâmide de Testes](01-piramide-de-testes.md) | [Voltar ao índice](README.md)
+[← Previous: Testing Pyramid](01-piramide-de-testes.md) | [Back to index](README.md)

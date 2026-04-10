@@ -1,14 +1,14 @@
 # Tell, Don't Ask
 
-## Resumo
+## Summary
 
-O princípio "Tell, Don't Ask" nos ajuda a estruturar o código de forma que os próprios objetos sejam responsáveis por suas operações, em vez de expor dados para que outra classe tome decisões. Isso melhora a coesão, reduz o acoplamento e torna o código mais alinhado com os princípios da Programação Orientada a Objetos.
+The "Tell, Don't Ask" principle helps us structure code so that objects themselves are responsible for their operations, instead of exposing data for another class to make decisions. This improves cohesion, reduces coupling, and makes the code more aligned with Object-Oriented Programming principles.
 
-## Exemplo
+## Example
 
-Temos uma classe de ContaBancaria com uma propriedade SALDO. Ao invés de existir um ContaBancariaService que pega o valor de saldo (ContaBancaria.Saldo) e valida se pode realizar o saque, essa lógica deve estar dentro da entidade.
+We have a BankAccount class with a BALANCE property. Instead of having a BankAccountService that retrieves the balance value (BankAccount.Balance) and validates whether the withdrawal can be made, this logic should be inside the entity.
 
-### Errado (Ask):
+### Wrong (Ask):
 ```csharp
 public class ContaBancariaService
 {
@@ -26,7 +26,7 @@ public class ContaBancariaService
 }
 ```
 
-### Correto (Tell):
+### Correct (Tell):
 ```csharp
 public class ContaBancaria
 {
@@ -55,8 +55,8 @@ public class ContaBancaria
 }
 ```
 
-A lógica de negócio (validação de saldo e limite) fica **dentro da entidade**, não em um serviço externo.
+The business logic (balance and limit validation) stays **inside the entity**, not in an external service.
 
 ---
 
-[← Anterior: Object Calisthenics](04-object-calisthenics.md) | [Voltar ao índice](README.md) | [Próximo: SAGA Pattern →](06-saga-pattern.md)
+[← Previous: Object Calisthenics](04-object-calisthenics.md) | [Back to index](README.md) | [Next: SAGA Pattern →](06-saga-pattern.md)

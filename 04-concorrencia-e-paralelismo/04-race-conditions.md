@@ -1,14 +1,14 @@
 # Race Conditions
 
-## O que são
+## What are they
 
-**Race conditions** ocorrem quando múltiplas threads acessam o mesmo recurso compartilhado, levando a comportamento inesperado devido à falta de sincronização entre as threads. Por exemplo, duas threads executando addClick e removeClick ao mesmo tempo. O total de cliques pode ser diferente dependendo de qual thread executa primeiro.
+**Race conditions** occur when multiple threads access the same shared resource, leading to unexpected behavior due to the lack of synchronization between threads. For example, two threads executing addClick and removeClick at the same time. The total number of clicks may differ depending on which thread executes first.
 
-## Como evitar
+## How to avoid them
 
 ### 1. Locks
 
-Uma técnica de sincronização para restringir acesso a um recurso compartilhado. Um objeto que só pode ser mantido por uma thread por vez. A thread deve obter o lock antes de acessar o recurso e liberá-lo quando terminar.
+A synchronization technique to restrict access to a shared resource. An object that can only be held by one thread at a time. The thread must acquire the lock before accessing the resource and release it when done.
 
 ```csharp
 object lockObj = new object();
@@ -27,11 +27,11 @@ lock (lockObj)
 }
 ```
 
-Usando locks, apenas uma thread pode acessar `sharedVar` por vez, evitando race conditions.
+Using locks, only one thread can access `sharedVar` at a time, preventing race conditions.
 
 ### 2. Interlocked
 
-Outra forma de evitar race conditions é usar a classe `Interlocked`, que fornece operações atômicas sobre variáveis compartilhadas. Operações atômicas são executadas em um único passo, sem interrupção de outras threads.
+Another way to avoid race conditions is by using the `Interlocked` class, which provides atomic operations on shared variables. Atomic operations are executed in a single step, without interruption from other threads.
 
 ```csharp
 int sharedVar = 0;
@@ -43,11 +43,11 @@ Interlocked.Increment(ref sharedVar);
 Interlocked.Increment(ref sharedVar);
 ```
 
-O `Interlocked.Increment` garante que a operação de incremento é executada atomicamente, evitando race conditions.
+`Interlocked.Increment` ensures that the increment operation is executed atomically, preventing race conditions.
 
 ### 3. Thread Safety
 
-Ao escrever código C#, é importante considerar thread safety no design de classes e métodos. Código thread-safe pode ser acessado por múltiplas threads simultaneamente sem causar race conditions. Você pode garantir thread safety usando técnicas de sincronização como locks ou operações Interlocked, ou usando objetos imutáveis.
+When writing C# code, it is important to consider thread safety in the design of classes and methods. Thread-safe code can be accessed by multiple threads simultaneously without causing race conditions. You can ensure thread safety by using synchronization techniques such as locks or Interlocked operations, or by using immutable objects.
 
 ```csharp
 public class ThreadSafeCounter
@@ -73,12 +73,12 @@ public class ThreadSafeCounter
 }
 ```
 
-## Coleções thread-safe
+## Thread-safe collections
 
-O .NET fornece coleções thread-safe no namespace `System.Collections.Concurrent`:
+.NET provides thread-safe collections in the `System.Collections.Concurrent` namespace:
 
 ```csharp
-// Em vez de List<T> + lock:
+// Instead of List<T> + lock:
 var bag = new ConcurrentBag<string>();
 var dict = new ConcurrentDictionary<string, int>();
 var queue = new ConcurrentQueue<string>();
@@ -86,4 +86,4 @@ var queue = new ConcurrentQueue<string>();
 
 ---
 
-[← Anterior: Task, async/await](03-task-async-await.md) | [Voltar ao índice](README.md) | [Próximo: Deadlocks →](05-deadlocks.md)
+[← Previous: Task, async/await](03-task-async-await.md) | [Back to index](README.md) | [Next: Deadlocks →](05-deadlocks.md)

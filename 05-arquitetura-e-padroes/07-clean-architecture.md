@@ -1,33 +1,33 @@
 # Clean Architecture
 
-## O que e
+## What it is
 
-Arquitetura proposta por Robert C. Martin (Uncle Bob) que organiza o codigo em **camadas concentricas**, onde a **dependencia aponta para dentro** — camadas externas dependem das internas, nunca o contrario.
+Architecture proposed by Robert C. Martin (Uncle Bob) that organizes code into **concentric layers**, where **dependencies point inward** -- outer layers depend on inner ones, never the other way around.
 
 ```
 ┌─────────────────────────────────────┐
-│          Infrastructure             │  Frameworks, DB, APIs externas
+│          Infrastructure             │  Frameworks, DB, external APIs
 │  ┌───────────────────────────────┐  │
 │  │        Application            │  │  Use Cases, DTOs, Services
 │  │  ┌─────────────────────────┐  │  │
-│  │  │        Domain            │  │  │  Entidades, Value Objects, Interfaces
+│  │  │        Domain            │  │  │  Entities, Value Objects, Interfaces
 │  │  └─────────────────────────┘  │  │
 │  └───────────────────────────────┘  │
 └─────────────────────────────────────┘
 ```
 
-## Camadas
+## Layers
 
-### 1. Domain (centro)
+### 1. Domain (center)
 
-A camada mais interna. **Nao depende de nada externo**. Contem:
+The innermost layer. **Does not depend on anything external**. Contains:
 
-- Entidades e Aggregates
+- Entities and Aggregates
 - Value Objects
 - Domain Events
-- Interfaces de repositorio (contratos, nao implementacao)
+- Repository interfaces (contracts, not implementation)
 - Domain Services
-- Enums e Exceptions do dominio
+- Domain Enums and Exceptions
 
 ```csharp
 // Domain/Entities/Pedido.cs
@@ -55,13 +55,13 @@ public interface IPedidoRepository
 
 ### 2. Application (use cases)
 
-Orquestra o fluxo. Contem:
+Orchestrates the flow. Contains:
 
 - Use Cases / Application Services
-- DTOs (entrada e saida)
-- Interfaces de servicos externos
-- Validacao de input
-- Mapeamento entre DTO e entidade
+- DTOs (input and output)
+- External service interfaces
+- Input validation
+- DTO to entity mapping
 
 ```csharp
 // Application/UseCases/AprovarPedidoUseCase.cs
@@ -89,14 +89,14 @@ public class AprovarPedidoUseCase
 }
 ```
 
-### 3. Infrastructure (borda)
+### 3. Infrastructure (boundary)
 
-Implementacoes concretas. Contem:
+Concrete implementations. Contains:
 
-- Repositorios (EF Core, Dapper)
-- Servicos externos (email, storage, APIs)
-- Configuracao de banco de dados
-- Mapeamentos ORM
+- Repositories (EF Core, Dapper)
+- External services (email, storage, APIs)
+- Database configuration
+- ORM mappings
 
 ```csharp
 // Infrastructure/Repositories/PedidoRepository.cs
@@ -119,23 +119,23 @@ public class PedidoRepository : IPedidoRepository
 
 - Controllers / Minimal APIs
 - View Models
-- Configuracao de DI
+- DI configuration
 - Middlewares
 
-## Regra de dependencia
+## Dependency Rule
 
 ```
 Presentation → Application → Domain ← Infrastructure
                                 ↑
-                    Infrastructure implementa interfaces do Domain
+                    Infrastructure implements Domain interfaces
 ```
 
-- **Domain** nao referencia nenhum outro projeto
-- **Application** referencia apenas Domain
-- **Infrastructure** referencia Domain (para implementar interfaces)
-- **Presentation** referencia Application e Infrastructure (para DI)
+- **Domain** does not reference any other project
+- **Application** references only Domain
+- **Infrastructure** references Domain (to implement interfaces)
+- **Presentation** references Application and Infrastructure (for DI)
 
-## Estrutura tipica de Solution
+## Typical Solution Structure
 
 ```
 src/
@@ -149,22 +149,22 @@ tests/
 └── MyApp.Integration.Tests/
 ```
 
-## Clean Architecture vs outras
+## Clean Architecture vs others
 
-| Aspecto | Clean Architecture | N-Layer tradicional | Vertical Slices |
+| Aspect | Clean Architecture | Traditional N-Layer | Vertical Slices |
 |---------|-------------------|--------------------|--------------------|
-| Dependencia | De fora pra dentro | De cima pra baixo | Por feature |
-| Domain | Centro, isolado | Meio, acoplado ao DB | Dentro da feature |
-| Testabilidade | Alta | Media | Alta |
-| Complexidade | Media-Alta | Baixa | Media |
-| Quando usar | Dominio complexo | CRUD simples | Dominio medio |
+| Dependency | From outside to inside | Top to bottom | Per feature |
+| Domain | Center, isolated | Middle, coupled to DB | Inside the feature |
+| Testability | High | Medium | High |
+| Complexity | Medium-High | Low | Medium |
+| When to use | Complex domain | Simple CRUD | Medium domain |
 
-## Quando NAO usar
+## When NOT to use
 
-- Apps CRUD simples — overengineering
-- Prototipos ou MVPs — muito overhead inicial
-- Times pequenos com dominio simples — adiciona camadas desnecessarias
+- Simple CRUD apps -- overengineering
+- Prototypes or MVPs -- too much initial overhead
+- Small teams with simple domain -- adds unnecessary layers
 
 ---
 
-[← Anterior: SAGA Pattern](06-saga-pattern.md) | [Próximo: CQRS →](08-cqrs.md) | [Voltar ao índice](README.md)
+[← Previous: SAGA Pattern](06-saga-pattern.md) | [Next: CQRS →](08-cqrs.md) | [Back to index](README.md)

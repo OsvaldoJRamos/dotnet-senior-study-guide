@@ -1,11 +1,11 @@
-# 02 - Coleções e LINQ
+# 02 - Collections and LINQ
 
-## Conteúdo
+## Content
 
-1. [IEnumerable vs IQueryable](01-ienumerable-vs-iqueryable.md) - Diferenças e quando usar cada um
-2. [ICollection e IList](02-icollection-ilist.md) - Hierarquia de interfaces de coleção
-3. [Yield Return](03-yield-return.md) - Iteradores lazy e quando usar
+1. [IEnumerable vs IQueryable](01-ienumerable-vs-iqueryable.md) - Differences and when to use each one
+2. [ICollection and IList](02-icollection-ilist.md) - Collection interface hierarchy
+3. [Yield Return](03-yield-return.md) - Lazy iterators and when to use them
 
 ---
 
-[Voltar ao índice](../README.md)
+[Back to index](../README.md)

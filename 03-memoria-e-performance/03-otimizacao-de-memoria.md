@@ -1,14 +1,14 @@
-# Otimização de Memória em .NET
+# Memory Optimization in .NET
 
-## 1. Use StringBuilder para concatenação
+## 1. Use StringBuilder for concatenation
 
-Strings são imutáveis em C#, então cada concatenação cria um novo objeto string.
+Strings are immutable in C#, so each concatenation creates a new string object.
 
 ```csharp
-// Ineficiente: pode causar múltiplas alocações grandes no LOH
+// Inefficient: can cause multiple large allocations on the LOH
 string result = "Hello" + largeString1 + largeString2;
 
-// Eficiente: usa StringBuilder para evitar alocações grandes
+// Efficient: uses StringBuilder to avoid large allocations
 StringBuilder sb = new StringBuilder();
 sb.Append("Hello");
 sb.Append(largeString1);
@@ -16,9 +16,9 @@ sb.Append(largeString2);
 string result = sb.ToString(); // Final result without multiple large allocations
 ```
 
-## 2. Escolha estruturas de dados adequadas
+## 2. Choose appropriate data structures
 
-Escolher uma estrutura de dados adequada é um aspecto chave da otimização de memória. **Ao invés de usar objetos e coleções complexas**, que podem consumir mais memória devido a metadados adicionais, prefira estruturas de dados simples como **arrays**, **lists** e **structs**.
+Choosing an appropriate data structure is a key aspect of memory optimization. **Instead of using complex objects and collections**, which can consume more memory due to additional metadata, prefer simple data structures like **arrays**, **lists**, and **structs**.
 
 ### Arrays vs Lists
 
@@ -34,25 +34,25 @@ names[0] = "John";
 names[1] = "Doe";
 ```
 
-O `string[]` array requer menos memória comparado ao `List<string>` porque **não possui estrutura de dados adicional para gerenciar redimensionamento dinâmico**.
+The `string[]` array requires less memory compared to `List<string>` because it **does not have additional data structures to manage dynamic resizing**.
 
-**Porém**, isso não significa que você deva sempre usar arrays em vez de lists. Se você precisa frequentemente adicionar novos elementos e reconstruir o array, ou fazer buscas pesadas já disponíveis na list, é melhor escolher a list.
+**However**, this does not mean you should always use arrays instead of lists. If you frequently need to add new elements and rebuild the array, or perform heavy lookups already available in the list, it is better to choose the list.
 
-## 3. Use `Span<T>` e `Memory<T>` (alto desempenho)
+## 3. Use `Span<T>` and `Memory<T>` (high performance)
 
-Para cenários de alta performance, evite alocar arrays novos:
+For high-performance scenarios, avoid allocating new arrays:
 
 ```csharp
-// Aloca novo array
-byte[] slice = array[10..20]; // cria cópia
+// Allocates new array
+byte[] slice = array[10..20]; // creates a copy
 
-// Sem alocação — usa uma "janela" sobre o array original
+// No allocation — uses a "window" over the original array
 Span<byte> slice = array.AsSpan(10, 10);
 ```
 
 ## 4. Object Pooling
 
-Reutilize objetos caros em vez de criar e destruir repetidamente:
+Reuse expensive objects instead of repeatedly creating and destroying them:
 
 ```csharp
 // Microsoft.Extensions.ObjectPool
@@ -62,38 +62,38 @@ var sb = pool.Get();
 try
 {
     sb.Append("Hello");
-    // usa o StringBuilder
+    // uses the StringBuilder
 }
 finally
 {
-    pool.Return(sb); // devolve ao pool para reutilização
+    pool.Return(sb); // returns to the pool for reuse
 }
 ```
 
-## 5. ArrayPool para arrays temporários
+## 5. ArrayPool for temporary arrays
 
 ```csharp
 var pool = ArrayPool<byte>.Shared;
-byte[] buffer = pool.Rent(1024); // pega emprestado
+byte[] buffer = pool.Rent(1024); // borrows
 try
 {
-    // usa o buffer
+    // uses the buffer
 }
 finally
 {
-    pool.Return(buffer); // devolve
+    pool.Return(buffer); // returns
 }
 ```
 
-## Técnicas de otimização (checklist)
+## Optimization techniques (checklist)
 
-1. **Cache** — armazene resultados de operações caras
-2. **Jobs Assíncronos** — processe trabalho pesado em background
-3. **Monitoramento** — use ferramentas para medir métricas reais em produção
-4. **CDN no front-end** — sirva assets estáticos mais perto do usuário
-5. **Separação de bancos de leitura e escrita** — CQRS para escalar leitura independentemente
-6. **ElasticSearch** — para full-text search e busca por relevância
+1. **Cache** — store results of expensive operations
+2. **Async Jobs** — process heavy work in the background
+3. **Monitoring** — use tools to measure real metrics in production
+4. **CDN on the front-end** — serve static assets closer to the user
+5. **Separate read and write databases** — CQRS to scale reads independently
+6. **ElasticSearch** — for full-text search and relevance-based search
 
 ---
 
-[← Anterior: Garbage Collector](02-garbage-collector.md) | [Voltar ao índice](README.md) | [Próximo: Memory Leak →](04-memory-leak.md)
+[← Previous: Garbage Collector](02-garbage-collector.md) | [Back to index](README.md) | [Next: Memory Leak →](04-memory-leak.md)

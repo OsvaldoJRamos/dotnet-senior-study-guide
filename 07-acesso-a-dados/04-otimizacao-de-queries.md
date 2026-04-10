@@ -1,44 +1,44 @@
-# Otimizacao de Queries SQL
+# SQL Query Optimization
 
-## O que faz uma query SQL ser lenta?
+## What makes a SQL query slow?
 
-Combinacao de fatores de modelagem, indexacao, volume de dados e forma como a query e escrita:
+A combination of modeling, indexing, data volume, and how the query is written:
 
-1. **Falta ou uso incorreto de indices** - colunas em WHERE, JOIN, ORDER BY, GROUP BY sem indice adequado
-2. **Funcoes nas colunas** - impede uso de indices (consulta nao-sargavel)
-3. **Joins mal planejados** - muitas tabelas, cardinalidade errada, joins em colunas nao indexadas
-4. **Volume de dados alto** sem paginacao ou particionamento
-5. **SELECT \* desnecessario** - traz mais dados do que o necessario
-6. **Subqueries e CTEs mal usadas** - quando poderiam ser joins mais eficientes
-7. **Estatisticas desatualizadas** - otimizador escolhe planos ruins
-8. **Bloqueios e concorrencia** - locks, transacoes longas, isolamento mal configurado
-9. **Infraestrutura** - I/O lento, pouca memoria para cache
+1. **Missing or incorrect indexes** - columns in WHERE, JOIN, ORDER BY, GROUP BY without proper indexes
+2. **Functions on columns** - prevents index usage (non-sargable query)
+3. **Poorly planned joins** - too many tables, wrong cardinality, joins on non-indexed columns
+4. **High data volume** without pagination or partitioning
+5. **Unnecessary SELECT \*** - brings more data than needed
+6. **Poorly used subqueries and CTEs** - when they could be more efficient joins
+7. **Outdated statistics** - optimizer chooses bad plans
+8. **Locks and concurrency** - locks, long transactions, misconfigured isolation
+9. **Infrastructure** - slow I/O, insufficient memory for cache
 
-### Abordagem pratica
+### Practical approach
 
-Em producao:
-1. Olhar o **plano de execucao**
-2. Verificar metricas de **tempo e I/O**
-3. Validar se a query esta **usando os indices esperados**
-4. Ajustar query, indices ou modelo, **medindo impacto antes e depois**
+In production:
+1. Look at the **execution plan**
+2. Check **time and I/O** metrics
+3. Validate whether the query is **using the expected indexes**
+4. Adjust query, indexes, or model, **measuring impact before and after**
 
 ## Parameter Sniffing (SQL Server)
 
-### O que e
+### What it is
 
-O SQL Server usa Parameter Sniffing para otimizar queries parametrizadas:
+SQL Server uses Parameter Sniffing to optimize parameterized queries:
 
-1. Na **primeira execucao**, pega os valores reais dos parametros
-2. Gera um **plano de execucao otimizado** para esses valores
-3. **Cacheia** o plano para reutilizar nas proximas execucoes
+1. On the **first execution**, it takes the actual parameter values
+2. Generates an **execution plan optimized** for those values
+3. **Caches** the plan to reuse on subsequent executions
 
-### O problema
+### The problem
 
-Se os proximos parametros forem **muito diferentes** dos primeiros, o plano cacheado pode ser **pessimo** para os novos valores.
+If the next parameters are **very different** from the first ones, the cached plan can be **terrible** for the new values.
 
-Sintoma classico: query funciona rapido no SSMS (SQL local) e **trava** rodando pela aplicacao.
+Classic symptom: query runs fast in SSMS (local SQL) and **hangs** when running from the application.
 
-### Solucao: OPTION (RECOMPILE)
+### Solution: OPTION (RECOMPILE)
 
 ```sql
 SELECT * FROM Pedidos
@@ -49,33 +49,33 @@ OPTION (RECOMPILE)  -- forca novo plano a cada execucao
 
 ### Trade-off
 
-- **Custo**: ~10-50ms de overhead de compilacao por query
-- **Beneficio**: evita queries que travavam por 30-60 segundos
-- **Resultado tipico**: query de 45s cai para ~300ms
+- **Cost**: ~10-50ms compilation overhead per query
+- **Benefit**: avoids queries that used to hang for 30-60 seconds
+- **Typical result**: query goes from 45s down to ~300ms
 
-### Quando NAO usar RECOMPILE em tudo
+### When NOT to use RECOMPILE on everything
 
-- Queries simples e rapidas (<10ms) - o overhead de compilacao pode dobrar o tempo
-- Consome CPU extra do SQL Server
-- So e necessario quando ha problemas reais de parameter sniffing
+- Simple and fast queries (<10ms) - compilation overhead can double the time
+- Consumes extra CPU from SQL Server
+- Only necessary when there are real parameter sniffing problems
 
-## Consultas nao-sargaveis
+## Non-sargable queries
 
-Uma consulta e **sargavel** (Search ARGument ABLE) quando o otimizador consegue usar indices para filtrar.
+A query is **sargable** (Search ARGument ABLE) when the optimizer can use indexes to filter.
 
 ```sql
--- NAO SARGAVEL (funcao na coluna impede uso de indice)
+-- NON-SARGABLE (function on column prevents index usage)
 WHERE ISNUMERIC(Quantity) = 1
 WHERE YEAR(DataCriacao) = 2024
 WHERE UPPER(Nome) = 'JOAO'
 
--- SARGAVEL (indice pode ser usado)
+-- SARGABLE (index can be used)
 WHERE Quantity IS NOT NULL AND Quantity > 0
 WHERE DataCriacao >= '2024-01-01' AND DataCriacao < '2025-01-01'
 WHERE Nome = 'JOAO'  -- com collation case-insensitive
 ```
 
-### Exemplo real
+### Real-world example
 
 ```sql
 -- Problematico: ISNUMERIC() impede uso de indice
@@ -89,18 +89,18 @@ WHERE opd.OrderId = os1.Id
 -- Plano ruim: calcula ISNUMERIC() para TODAS as rows
 ```
 
-**Solucao**: usar coluna computada com indice ou corrigir o tipo de dado no banco.
+**Solution**: use a computed column with an index or fix the data type in the database.
 
-## Dicas gerais de otimizacao
+## General optimization tips
 
-1. **Crie indices** nas colunas usadas em WHERE, JOIN, ORDER BY - mas nao exagere (indices demais prejudicam escrita)
-2. **Evite SELECT \*** - selecione apenas as colunas necessarias
-3. **Use paginacao** (OFFSET/FETCH ou keyset pagination)
-4. **Atualize estatisticas** do banco regularmente
-5. **Use NOLOCK com cautela** - pode causar dirty reads
-6. **Prefira EXISTS a IN** para subqueries com muitos resultados
-7. **Evite cursors** - use operacoes baseadas em conjunto (SET-based)
+1. **Create indexes** on columns used in WHERE, JOIN, ORDER BY - but don't overdo it (too many indexes hurt writes)
+2. **Avoid SELECT \*** - select only the necessary columns
+3. **Use pagination** (OFFSET/FETCH or keyset pagination)
+4. **Update statistics** on the database regularly
+5. **Use NOLOCK with caution** - can cause dirty reads
+6. **Prefer EXISTS over IN** for subqueries with many results
+7. **Avoid cursors** - use set-based operations
 
 ---
 
-[← Anterior: Bancos de Dados](03-bancos-de-dados.md) | [Voltar ao índice](README.md)
+[← Previous: Databases](03-bancos-de-dados.md) | [Back to index](README.md)

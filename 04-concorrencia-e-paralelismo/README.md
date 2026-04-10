@@ -1,14 +1,14 @@
-# 04 - Concorrência e Paralelismo
+# 04 - Concurrency and Parallelism
 
-## Conteúdo
+## Contents
 
-1. [Paralelismo vs Concorrência](01-paralelismo-vs-concorrencia.md) - Conceitos e diferenças
-2. [Parallel.ForEach e Parallel.Invoke](02-parallel-foreach-invoke.md) - Execução paralela de tarefas
-3. [Task, async/await e PLINQ](03-task-async-await.md) - Programação assíncrona
-4. [Race Conditions](04-race-conditions.md) - Locks e Interlocked
-5. [Deadlocks](05-deadlocks.md) - Causas e prevenção
-6. [SemaphoreSlim](06-semaphore-slim.md) - Controle de concorrência assíncrona
+1. [Parallelism vs Concurrency](01-paralelismo-vs-concorrencia.md) - Concepts and differences
+2. [Parallel.ForEach and Parallel.Invoke](02-parallel-foreach-invoke.md) - Parallel task execution
+3. [Task, async/await and PLINQ](03-task-async-await.md) - Asynchronous programming
+4. [Race Conditions](04-race-conditions.md) - Locks and Interlocked
+5. [Deadlocks](05-deadlocks.md) - Causes and prevention
+6. [SemaphoreSlim](06-semaphore-slim.md) - Asynchronous concurrency control
 
 ---
 
-[Voltar ao índice](../README.md)
+[Back to index](../README.md)

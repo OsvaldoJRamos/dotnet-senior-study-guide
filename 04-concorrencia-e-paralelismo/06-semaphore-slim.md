@@ -1,37 +1,37 @@
 # SemaphoreSlim
 
-## O que é um semáforo?
+## What is a semaphore?
 
-Um **semáforo** é um mecanismo de sincronização que **controla quantas threads podem acessar um recurso compartilhado ao mesmo tempo**.
+A **semaphore** is a synchronization mechanism that **controls how many threads can access a shared resource at the same time**.
 
-> Imagine um estacionamento com 3 vagas: só 3 carros (threads) podem entrar ao mesmo tempo. Quem chegar depois, espera alguém sair.
+> Imagine a parking lot with 3 spaces: only 3 cars (threads) can enter at a time. Anyone who arrives after that must wait for someone to leave.
 
-## O que é SemaphoreSlim?
+## What is SemaphoreSlim?
 
-`SemaphoreSlim` é uma versão leve e moderna do semáforo em C#.
-- Suporta operações assíncronas com `await`, sem bloquear a thread como o `lock` tradicional.
+`SemaphoreSlim` is a lightweight, modern version of the semaphore in C#.
+- Supports asynchronous operations with `await`, without blocking the thread like the traditional `lock`.
 
-## Como funciona
+## How it works
 
-### Criação:
+### Creation:
 ```csharp
-var semaforo = new SemaphoreSlim(1); // só 1 thread pode entrar por vez (como um lock)
+var semaforo = new SemaphoreSlim(1); // only 1 thread can enter at a time (like a lock)
 ```
 
-### Uso básico:
+### Basic usage:
 ```csharp
-await semaforo.WaitAsync(); // aguarda permissão para entrar
+await semaforo.WaitAsync(); // waits for permission to enter
 try
 {
-    // Região crítica: apenas 1 thread por vez
+    // Critical region: only 1 thread at a time
 }
 finally
 {
-    semaforo.Release(); // libera permissão
+    semaforo.Release(); // releases permission
 }
 ```
 
-### Exemplo com paralelismo assíncrono:
+### Example with asynchronous parallelism:
 
 ```csharp
 private static readonly SemaphoreSlim _semaforo = new(1, 1);
@@ -52,31 +52,31 @@ public async Task ProcessarAsync()
 }
 ```
 
-Se você iniciar várias chamadas `ProcessarAsync()` ao mesmo tempo, apenas **uma** entrará na região crítica por vez.
+If you start multiple `ProcessarAsync()` calls at the same time, only **one** will enter the critical region at a time.
 
-## Quando usar SemaphoreSlim
+## When to use SemaphoreSlim
 
-| Situação | Usar SemaphoreSlim? |
+| Situation | Use SemaphoreSlim? |
 |---|---|
-| Várias tarefas assíncronas acessando recurso compartilhado (ex: arquivo, cache, lista) | Sim |
-| Você precisa **limitar concorrência** (ex: máximo 3 chamadas simultâneas a uma API) | Sim |
-| Você precisa de sincronização assíncrona (evitar `lock` com `await`) | Sim |
-| Você está em código sincronizado (sem `async`) | Prefira `lock` |
-| Quer evitar deadlocks e travamentos causados por `.Result` / `.Wait()` | Sim, pois SemaphoreSlim com `await` não bloqueia thread |
+| Multiple async tasks accessing a shared resource (e.g., file, cache, list) | Yes |
+| You need to **limit concurrency** (e.g., maximum 3 simultaneous API calls) | Yes |
+| You need asynchronous synchronization (avoid `lock` with `await`) | Yes |
+| You are in synchronous code (no `async`) | Prefer `lock` |
+| You want to avoid deadlocks and freezes caused by `.Result` / `.Wait()` | Yes, because SemaphoreSlim with `await` does not block the thread |
 
-## O que evitar
+## What to avoid
 
 ```csharp
-// ERRADO - lock com await causa deadlock
+// WRONG - lock with await causes deadlock
 lock (locker)
 {
-    await MetodoAsync(); // NÃO faça isso
+    await MetodoAsync(); // DO NOT do this
 }
 ```
 
-Isso causa **deadlock**, pois `lock` bloqueia a thread enquanto o `await` espera.
+This causes a **deadlock**, because `lock` blocks the thread while `await` waits.
 
-### Correto com SemaphoreSlim:
+### Correct with SemaphoreSlim:
 
 ```csharp
 await _semaforo.WaitAsync();
@@ -90,13 +90,13 @@ finally
 }
 ```
 
-## Conclusão
+## Conclusion
 
-`SemaphoreSlim` é ideal para:
-- **Evitar race conditions** em código assíncrono
-- **Controlar concorrência** sem travar a aplicação
-- **Evitar deadlocks** ao substituir `lock` em métodos `async`
+`SemaphoreSlim` is ideal for:
+- **Avoiding race conditions** in asynchronous code
+- **Controlling concurrency** without freezing the application
+- **Avoiding deadlocks** by replacing `lock` in `async` methods
 
 ---
 
-[← Anterior: Deadlocks](05-deadlocks.md) | [Voltar ao índice](README.md)
+[← Previous: Deadlocks](05-deadlocks.md) | [Back to index](README.md)

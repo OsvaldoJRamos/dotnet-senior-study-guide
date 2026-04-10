@@ -1,29 +1,29 @@
-# Dependency Injection (DI), IoC, DIP e Service Locator
+# Dependency Injection (DI), IoC, DIP and Service Locator
 
 ## DIP (Dependency Inversion Principle)
 
-Princípio SOLID que prega que devemos **depender de abstrações e não de implementações**. Falando a grosso modo, seria depender da interface e não da classe. Isso reduz o **acoplamento** entre classes, facilitando testes, manutenção e reutilização.
+A SOLID principle that states we should **depend on abstractions, not on implementations**. In simple terms, this means depending on the interface rather than the class. This reduces **coupling** between classes, making testing, maintenance, and reuse easier.
 
-> Veja mais em [SOLID](../05-arquitetura-e-padroes/01-solid.md)
+> See more in [SOLID](../05-arquitetura-e-padroes/01-solid.md)
 
 ## IoC (Inversion of Control)
 
-É o **padrão** que diz: "não crie suas dependências, receba-as de fora". Em vez de a classe criar seus próprios objetos, alguém de fora fornece.
+It is the **pattern** that says: "don't create your dependencies, receive them from the outside". Instead of a class creating its own objects, someone else provides them.
 
 ## DI (Dependency Injection)
 
-É a **técnica** que implementa o Inversion of Control. Ou seja, quando falamos que estamos trabalhando com Dependency Injection, estamos na verdade aplicando o padrão de Inversion of Control.
+It is the **technique** that implements Inversion of Control. In other words, when we say we are working with Dependency Injection, we are actually applying the Inversion of Control pattern.
 
-Ao invés de instanciar coisas na minha classe, eu externalizo essa responsabilidade e injeto as dependências na minha classe. Ou seja, a minha classe deixa de ser responsável por criar e passa a ser dependente de uma implementação.
+Instead of instantiating things inside my class, I externalize that responsibility and inject the dependencies into my class. That is, my class stops being responsible for creating and becomes dependent on an implementation.
 
 ```csharp
-// SEM DI - classe cria sua dependência
+// WITHOUT DI - class creates its dependency
 public class PedidoService
 {
     private readonly PedidoRepository _repo = new PedidoRepository();
 }
 
-// COM DI - dependência é injetada
+// WITH DI - dependency is injected
 public class PedidoService
 {
     private readonly IPedidoRepository _repo;
@@ -37,9 +37,9 @@ public class PedidoService
 
 ## Service Locator
 
-Faz o "de para". Dada uma abstração X, vou utilizar a implementação Y. O ASP.NET Core já traz esse container como padrão, embora tenha outros containers que façam isso como o Ninject.
+Performs the mapping. Given an abstraction X, it will use implementation Y. ASP.NET Core already comes with this container built-in, although there are other containers that do this such as Ninject.
 
-Para configurar isso devemos ir no startup e definir como singleton, scoped ou transient.
+To configure this we should go to the startup and define it as singleton, scoped, or transient.
 
 ```csharp
 // Program.cs / Startup.cs
@@ -48,9 +48,9 @@ builder.Services.AddTransient<IEmailService, SmtpEmailService>();
 builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 ```
 
-## Formas de injeção
+## Injection methods
 
-### 1. Constructor Injection (recomendada)
+### 1. Constructor Injection (recommended)
 ```csharp
 public class PedidoService
 {
@@ -77,4 +77,4 @@ public class PedidoService(IPedidoRepository repo)
 
 ---
 
-[Voltar ao índice](README.md) | [Próximo: Service Lifetimes →](02-service-lifetimes.md)
+[Back to index](README.md) | [Next: Service Lifetimes →](02-service-lifetimes.md)

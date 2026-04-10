@@ -1,19 +1,19 @@
 # SAGA Pattern
 
-## Problema
+## Problem
 
-Diversos microserviços que podem apresentar inconsistências nos dados.
+Multiple microservices that can present data inconsistencies.
 
-**Exemplo:** o usuário faz o pedido e possui estoque, porém ao acionar posteriormente o microserviço de estoque, a quantidade já não está mais disponível.
+**Example:** the user places an order and there is stock available, but when the inventory microservice is called later, the quantity is no longer available.
 
-## Solução
+## Solution
 
-Cada microserviço processa uma solicitação e grava no seu banco de dados e em seguida passa essa transação adiante para os outros. Se houver alguma falha, ações compensatórias (ex: rollback) são executadas em todos que já foram executados.
+Each microservice processes a request, saves to its own database, and then passes the transaction along to the others. If any failure occurs, compensating actions (e.g., rollback) are executed on all services that have already been processed.
 
-## Abordagens
+## Approaches
 
-### 1. Orquestração
-Um serviço central (orquestrador) coordena todos os passos da saga e decide o que fazer em caso de falha.
+### 1. Orchestration
+A central service (orchestrator) coordinates all saga steps and decides what to do in case of failure.
 
 ```
 Orquestrador → Serviço A → Serviço B → Serviço C
@@ -21,11 +21,11 @@ Orquestrador → Serviço A → Serviço B → Serviço C
                   └──── Compensação ←──────┘ (se falhar)
 ```
 
-**Vantagens:** fácil de entender, lógica centralizada
-**Desvantagens:** ponto único de falha, acoplamento ao orquestrador
+**Advantages:** easy to understand, centralized logic
+**Disadvantages:** single point of failure, coupling to the orchestrator
 
-### 2. Coreografia
-Cada serviço sabe o que fazer quando recebe um evento. Não há coordenador central.
+### 2. Choreography
+Each service knows what to do when it receives an event. There is no central coordinator.
 
 ```
 Serviço A → Evento → Serviço B → Evento → Serviço C
@@ -33,15 +33,15 @@ Serviço A → Evento → Serviço B → Evento → Serviço C
 Serviço A ← Evento compensatório ←────────────┘ (se falhar)
 ```
 
-**Vantagens:** desacoplado, cada serviço é autônomo
-**Desvantagens:** fluxo mais difícil de rastrear, complexidade distribuída
+**Advantages:** decoupled, each service is autonomous
+**Disadvantages:** harder to trace the flow, distributed complexity
 
-## Quando usar
+## When to use
 
-- Transações distribuídas entre múltiplos microserviços
-- Quando não é possível usar transações ACID tradicionais (banco único)
-- Operações que precisam de rollback em caso de falha parcial
+- Distributed transactions across multiple microservices
+- When traditional ACID transactions (single database) are not possible
+- Operations that need rollback in case of partial failure
 
 ---
 
-[← Anterior: Tell, Don't Ask](05-tell-dont-ask.md) | [Próximo: Clean Architecture →](07-clean-architecture.md) | [Voltar ao índice](README.md)
+[← Previous: Tell, Don't Ask](05-tell-dont-ask.md) | [Next: Clean Architecture →](07-clean-architecture.md) | [Back to index](README.md)

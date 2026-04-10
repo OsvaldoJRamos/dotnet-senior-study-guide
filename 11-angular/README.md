@@ -1,9 +1,9 @@
 # 11 - Angular
 
-## Conteúdo
+## Contents
 
-1. [Promises vs Observables](01-promises-vs-observables.md) - Diferenças, quando usar cada um, RxJS
+1. [Promises vs Observables](01-promises-vs-observables.md) - Differences, when to use each, RxJS
 
 ---
 
-[Voltar ao índice](../README.md)
+[Back to index](../README.md)

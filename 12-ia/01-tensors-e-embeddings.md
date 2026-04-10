@@ -1,29 +1,29 @@
-# IA - Tensors e Embeddings
+# AI - Tensors and Embeddings
 
 ## Tensors
 
-Um tensor e uma generalizacao de vetores e matrizes para N dimensoes:
+A tensor is a generalization of vectors and matrices to N dimensions:
 
-| Dimensoes | Nome | Exemplo |
-|-----------|------|---------|
-| 0 | Escalar | `42` |
-| 1 | Vetor | `[1, 2, 3]` |
-| 2 | Matriz | `[[1, 2], [3, 4]]` |
-| N | Tensor | Matrizes de matrizes de matrizes... |
+| Dimensions | Name | Example |
+|------------|------|---------|
+| 0 | Scalar | `42` |
+| 1 | Vector | `[1, 2, 3]` |
+| 2 | Matrix | `[[1, 2], [3, 4]]` |
+| N | Tensor | Matrices of matrices of matrices... |
 
-Tensors sao a **estrutura de dados fundamental** usada em frameworks de machine learning (TensorFlow, PyTorch).
+Tensors are the **fundamental data structure** used in machine learning frameworks (TensorFlow, PyTorch).
 
 ## Embeddings
 
-### O que sao
+### What they are
 
-Embeddings convertem objetos do mundo real (texto, imagens, audio) em **representacoes matematicas** (vetores) que capturam propriedades e relacoes.
+Embeddings convert real-world objects (text, images, audio) into **mathematical representations** (vectors) that capture properties and relationships.
 
-Embedding de palavras e uma tecnica de **Processamento de Linguagem Natural (PLN)** que representa palavras como numeros para que o computador possa trabalhar com elas.
+Word embedding is a **Natural Language Processing (NLP)** technique that represents words as numbers so that the computer can work with them.
 
-### Como funciona
+### How it works
 
-Cada palavra/frase e convertida em um **vetor de numeros** em um espaco multidimensional:
+Each word/phrase is converted into a **vector of numbers** in a multidimensional space:
 
 ```
 "rei"    -> [0.2, 0.8, 0.1, 0.9, ...]
@@ -31,20 +31,20 @@ Cada palavra/frase e convertida em um **vetor de numeros** em um espaco multidim
 "gato"   -> [0.9, 0.1, 0.3, 0.2, ...]
 ```
 
-Palavras com significados similares ficam **proximas** no espaco vetorial:
+Words with similar meanings are **close** in the vector space:
 
 ```
 "rei" - "homem" + "mulher" ≈ "rainha"
 ```
 
-### Uso pratico
+### Practical use
 
-- **Busca semantica**: encontrar documentos por significado, nao apenas palavras-chave
-- **Sistemas de recomendacao**: encontrar itens similares
-- **Classificacao de texto**: categorizar documentos
-- **Chatbots e LLMs**: entender contexto e significado
+- **Semantic search**: find documents by meaning, not just keywords
+- **Recommendation systems**: find similar items
+- **Text classification**: categorize documents
+- **Chatbots and LLMs**: understand context and meaning
 
-### Em C# com Semantic Kernel
+### In C# with Semantic Kernel
 
 ```csharp
 // Exemplo conceitual com Semantic Kernel
@@ -59,4 +59,4 @@ var embedding = await embeddingService.GenerateEmbeddingAsync("texto para conver
 
 ---
 
-[Voltar ao índice](README.md)
+[Next: OpenAI API →](02-openai-api.md) | [Back to index](README.md)

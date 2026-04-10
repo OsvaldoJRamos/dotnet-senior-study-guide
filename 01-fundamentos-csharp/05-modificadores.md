@@ -1,33 +1,33 @@
-# Modificadores em C#
+# Modifiers in C#
 
-## Modificadores de Acesso (Métodos e Membros)
+## Access Modifiers (Methods and Members)
 
 ### 1. `public`
-- **Uso:** Acesso irrestrito. Pode ser usado em qualquer lugar.
-- **Quando evitar:** Se não quiser expor detalhes internos da aplicação.
+- **Usage:** Unrestricted access. Can be used anywhere.
+- **When to avoid:** If you don't want to expose internal application details.
 
 ### 2. `private`
-- **Uso:** Acesso limitado à própria classe.
-- **Quando usar:** Para esconder detalhes internos, como variáveis auxiliares e métodos de implementação.
+- **Usage:** Access limited to the class itself.
+- **When to use:** To hide internal details, such as helper variables and implementation methods.
 
 ### 3. `protected`
-- **Uso:** Acesso dentro da própria classe e de classes derivadas.
-- **Quando usar:** Quando subclasses precisam de acesso controlado a membros.
+- **Usage:** Access within the class itself and derived classes.
+- **When to use:** When subclasses need controlled access to members.
 
 ### 4. `internal`
-- **Uso:** Acesso permitido somente dentro do mesmo assembly (projeto).
+- **Usage:** Access allowed only within the same assembly (project).
 
 ### 5. `protected internal`
-- **Uso:** Acesso dentro do mesmo assembly **ou** por herança.
+- **Usage:** Access within the same assembly **or** through inheritance.
 
 ### 6. `private protected` (C# 7.2+)
-- **Uso:** Acesso somente por herança **e** dentro do mesmo assembly.
+- **Usage:** Access only through inheritance **and** within the same assembly.
 
-### Resumo visual
+### Visual summary
 
 ```
-Modificador          | Mesma classe | Classe derivada (mesmo assembly) | Mesmo assembly | Classe derivada (outro assembly) | Qualquer lugar
----------------------|-------------|-------------------------------|----------------|-------------------------------|---------------
+Modifier             | Same class | Derived class (same assembly) | Same assembly  | Derived class (other assembly) | Anywhere
+---------------------|------------|-------------------------------|----------------|-------------------------------|---------------
 public               | ✅          | ✅                             | ✅              | ✅                             | ✅
 private              | ✅          | ❌                             | ❌              | ❌                             | ❌
 protected            | ✅          | ✅                             | ❌              | ✅                             | ❌
@@ -36,47 +36,47 @@ protected internal   | ✅          | ✅                             | ✅     
 private protected    | ✅          | ✅                             | ❌              | ❌                             | ❌
 ```
 
-## Modificadores de Classes
+## Class Modifiers
 
 ### 1. `static`
-- **Uso:** Membros ou classes que pertencem ao tipo, não à instância.
+- **Usage:** Members or classes that belong to the type, not to an instance.
 
 ### 2. `abstract`
-- **Uso:** Define uma assinatura obrigatória em classes base.
-- **Quando usar:** Em classes que são apenas "modelos", com lógica deixada para subclasses.
+- **Usage:** Defines a mandatory signature in base classes.
+- **When to use:** In classes that are just "templates", with logic left to subclasses.
 
 ### 3. `virtual` / `override`
-- `virtual` diz que um método ou propriedade pode ser sobrescrito por uma classe que herda.
-- `override` é usado para sobrescrever.
-- **Uso:** Para permitir que métodos sejam sobrescritos.
+- `virtual` indicates that a method or property can be overridden by an inheriting class.
+- `override` is used to override.
+- **Usage:** To allow methods to be overridden.
 
 ### 4. `sealed`
-- **Uso:** Impede que uma classe ou método seja herdado/sobrescrito.
+- **Usage:** Prevents a class or method from being inherited/overridden.
 
-## Modificadores de Atributos (Campos)
+## Field Modifiers
 
 ### 1. `readonly`
-- **Uso:** Define que um campo só pode ser atribuído no construtor ou na declaração.
+- **Usage:** Defines that a field can only be assigned in the constructor or at declaration.
 
 ### 2. `const`
-- **Uso:** Define um valor fixo em tempo de compilação.
-- **Quando usar:** Para valores fixos (ex: `PI`, tempo limite).
-- **Quando evitar:** Se o valor pode depender de ambiente ou mudar com o tempo.
+- **Usage:** Defines a fixed value at compile time.
+- **When to use:** For fixed values (e.g., `PI`, timeout).
+- **When to avoid:** If the value may depend on the environment or change over time.
 
 ### 3. `partial`
-- **Uso:** Permite dividir a definição de uma classe/método/struct em vários arquivos.
+- **Usage:** Allows splitting the definition of a class/method/struct across multiple files.
 
-## Interface vs Classe Abstrata
+## Interface vs Abstract Class
 
-| Característica | Interface | Classe Abstrata |
+| Characteristic | Interface | Abstract Class |
 |---|---|---|
-| Herança múltipla | Sim (pode implementar várias) | Não (só pode herdar de uma) |
-| Construtores | Não | Sim |
-| Campos (state) | Não (só propriedades via contrato) | Sim |
-| Implementação padrão | Sim (C# 8+ default methods) | Sim |
-| Quando usar | Definir contratos que várias classes não relacionadas implementam | Quando há código compartilhado entre classes relacionadas |
+| Multiple inheritance | Yes (can implement several) | No (can only inherit from one) |
+| Constructors | No | Yes |
+| Fields (state) | No (only properties via contract) | Yes |
+| Default implementation | Yes (C# 8+ default methods) | Yes |
+| When to use | Define contracts that multiple unrelated classes implement | When there is shared code between related classes |
 
-**Regra prática:** você só pode estender uma classe (abstrata ou não), mas pode implementar várias interfaces.
+**Rule of thumb:** you can only extend one class (abstract or not), but you can implement multiple interfaces.
 
 ```csharp
 // Interface - contrato
@@ -114,15 +114,15 @@ public class Usuario : EntidadeBase, INotificavel
 
 ## Equals() vs ==
 
-### Operador `==`
-- Para **value types** (`int`, `double`, `struct`): compara os **valores**.
-- Para **reference types** (`class`): compara as **referências** (se apontam para o mesmo objeto na memória).
-- `string` é uma exceção: `==` compara o **conteúdo** (porque o operador é sobrecarregado).
+### Operator `==`
+- For **value types** (`int`, `double`, `struct`): compares **values**.
+- For **reference types** (`class`): compares **references** (whether they point to the same object in memory).
+- `string` is an exception: `==` compares the **content** (because the operator is overloaded).
 
-### Método `Equals()`
-- Pode ser **sobrescrito** para definir igualdade customizada.
-- Por padrão em classes: compara referência (mesma coisa que `==`).
-- Por padrão em structs: compara valores campo a campo (mas com reflexão — lento).
+### Method `Equals()`
+- Can be **overridden** to define custom equality.
+- By default in classes: compares reference (same as `==`).
+- By default in structs: compares values field by field (but with reflection -- slow).
 
 ```csharp
 var a = new Pessoa("João");
@@ -140,8 +140,8 @@ public override bool Equals(object obj)
 Console.WriteLine(a.Equals(b)); // True (agora compara por valor)
 ```
 
-**Boa prática:** ao sobrescrever `Equals`, sempre sobrescreva `GetHashCode` também.
+**Best practice:** when overriding `Equals`, always override `GetHashCode` as well.
 
 ---
 
-[← Anterior: Tipos Numéricos](04-tipos-numericos.md) | [Próximo: Equals vs == →](06-equals-vs-operador.md) | [Voltar ao índice](README.md)
+[← Previous: Numeric Types](04-tipos-numericos.md) | [Next: Equals vs == →](06-equals-vs-operador.md) | [Back to index](README.md)

@@ -1,18 +1,18 @@
 # Deadlocks
 
-## O que é
+## What is it
 
-**Deadlock** é uma situação em computação concorrente onde duas ou mais threads ou processos estão bloqueados, esperando que o outro libere recursos que cada um precisa para prosseguir, resultando em uma espera circular. Pode ser difícil de detectar e pode levar a degradação severa de performance ou até crashes do sistema.
+**Deadlock** is a situation in concurrent computing where two or more threads or processes are blocked, waiting for each other to release resources that each one needs to proceed, resulting in a circular wait. It can be difficult to detect and can lead to severe performance degradation or even system crashes.
 
-## Como prevenir
+## How to prevent
 
-### 1. Evite dependências circulares
+### 1. Avoid circular dependencies
 
-Dependências circulares ocorrem quando duas ou mais threads estão esperando por recursos mantidos uma pela outra. Isso pode ser evitado projetando o sistema de forma que cada processo adquira recursos em uma **ordem específica** e os libere na **ordem inversa**.
+Circular dependencies occur when two or more threads are waiting for resources held by each other. This can be avoided by designing the system so that each process acquires resources in a **specific order** and releases them in the **reverse order**.
 
-### 2. Use Lock Hierarchy (hierarquia de locks)
+### 2. Use Lock Hierarchy
 
-Use uma hierarquia de locks para prevenir dependências circulares. Uma hierarquia de locks é um conjunto de locks organizados em uma ordem específica, e cada thread adquire locks na mesma ordem.
+Use a lock hierarchy to prevent circular dependencies. A lock hierarchy is a set of locks organized in a specific order, and each thread acquires locks in the same order.
 
 ```csharp
 private object lock1 = new object();
@@ -31,7 +31,7 @@ public void Method1()
 
 public void Method2()
 {
-    lock (lock1)       // mesma ordem que Method1!
+    lock (lock1)       // same order as Method1!
     {
         lock (lock2)
         {
@@ -41,25 +41,25 @@ public void Method2()
 }
 ```
 
-Os métodos `Method1` e `Method2` adquirem os locks `lock1` e `lock2` **na mesma ordem**, garantindo que não há espera circular.
+`Method1` and `Method2` acquire locks `lock1` and `lock2` **in the same order**, ensuring there is no circular wait.
 
-### 3. Evite `lock` em recursos externos (ex: I/O, banco de dados)
+### 3. Avoid `lock` on external resources (e.g., I/O, database)
 
-Não use `lock` em métodos `async`, pois pode bloquear threads do pool:
+Do not use `lock` in `async` methods, as it can block threads from the pool:
 
 ```csharp
-// NÃO faça isso
+// DO NOT do this
 lock (locker)
 {
-    await database.SaveAsync(); // perigoso: pode travar
+    await database.SaveAsync(); // dangerous: can freeze
 }
 ```
 
-**Solução:** use mecanismos de sincronização assíncronos (`SemaphoreSlim`).
+**Solution:** use asynchronous synchronization mechanisms (`SemaphoreSlim`).
 
-### 4. Use a Task Parallel Library (TPL)
+### 4. Use the Task Parallel Library (TPL)
 
-A TPL é um framework de concorrência poderoso do .NET que pode ajudar a prevenir deadlocks. Ela gerencia concorrência automaticamente e garante que tasks não interfiram umas com as outras.
+The TPL is a powerful concurrency framework in .NET that can help prevent deadlocks. It manages concurrency automatically and ensures that tasks do not interfere with each other.
 
 ```csharp
 Task.Run(() =>
@@ -82,11 +82,11 @@ try
     Monitor.TryEnter(lockObj, TimeSpan.FromSeconds(5), ref lockTaken);
     if (lockTaken)
     {
-        // recurso adquirido
+        // resource acquired
     }
     else
     {
-        // timeout - log e fallback
+        // timeout - log and fallback
     }
 }
 finally
@@ -97,4 +97,4 @@ finally
 
 ---
 
-[← Anterior: Race Conditions](04-race-conditions.md) | [Voltar ao índice](README.md) | [Próximo: SemaphoreSlim →](06-semaphore-slim.md)
+[← Previous: Race Conditions](04-race-conditions.md) | [Back to index](README.md) | [Next: SemaphoreSlim →](06-semaphore-slim.md)

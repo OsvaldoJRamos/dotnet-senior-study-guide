@@ -1,28 +1,28 @@
-# Resiliencia de APIs
+# API Resilience
 
-## O que e
+## What it is
 
-Capacidade de uma API continuar funcionando de forma aceitavel mesmo quando ocorrem **falhas, lentidao, picos de carga ou dependencias instáveis**.
+The ability of an API to continue functioning acceptably even when **failures, slowdowns, load spikes, or unstable dependencies** occur.
 
-Nao e evitar falhas - e **falhar de forma controlada** e **se recuperar rapido**.
+It's not about avoiding failures — it's about **failing in a controlled manner** and **recovering quickly**.
 
-## Por que e importante
+## Why it matters
 
-Em sistemas distribuidos (microservices, integrações externas, cloud):
+In distributed systems (microservices, external integrations, cloud):
 
-- Dependencias externas caem
-- Redes falham
-- Servicos ficam lentos
-- Picos de trafego acontecem
-- Deploys causam instabilidade
+- External dependencies go down
+- Networks fail
+- Services become slow
+- Traffic spikes happen
+- Deploys cause instability
 
-Sem resiliencia, uma falha pequena vira **efeito domino**.
+Without resilience, a small failure becomes a **domino effect**.
 
-## Padroes de resiliencia
+## Resilience patterns
 
-### 1. Retry (tentativas automaticas)
+### 1. Retry (automatic retries)
 
-Repetir a chamada quando falhas **transitorias** ocorrem (timeout, 5xx, conexao resetada).
+Repeat the call when **transient** failures occur (timeout, 5xx, connection reset).
 
 ```csharp
 // Com Polly
@@ -32,11 +32,11 @@ builder.Services.AddHttpClient("api")
             TimeSpan.FromSeconds(Math.Pow(2, attempt)))); // backoff exponencial
 ```
 
-> Retry sem controle **aumenta carga** e piora a falha. Sempre use **backoff exponencial**.
+> Retry without control **increases load** and worsens the failure. Always use **exponential backoff**.
 
 ### 2. Timeout
 
-Nao esperar para sempre. Cada chamada externa deve ter timeout explicito.
+Don't wait forever. Every external call should have an explicit timeout.
 
 ```csharp
 builder.Services.AddHttpClient("api")
@@ -44,15 +44,15 @@ builder.Services.AddHttpClient("api")
         TimeSpan.FromSeconds(10)));
 ```
 
-Evita threads presas e pool esgotado.
+Prevents stuck threads and pool exhaustion.
 
 ### 3. Circuit Breaker
 
-"Desliga" chamadas para um servico que esta falhando:
+"Shuts off" calls to a service that is failing:
 
-- Apos N falhas -> circuito **abre** (bloqueia chamadas)
-- Depois de um tempo -> **half-open** (testa com uma chamada)
-- Se funcionar -> circuito **fecha** (volta ao normal)
+- After N failures -> circuit **opens** (blocks calls)
+- After some time -> **half-open** (tests with one call)
+- If it works -> circuit **closes** (returns to normal)
 
 ```csharp
 builder.Services.AddHttpClient("api")
@@ -64,12 +64,12 @@ builder.Services.AddHttpClient("api")
 
 ### 4. Fallback
 
-Resposta alternativa quando algo falha:
+An alternative response when something fails:
 
-- Retornar **cache**
-- Retornar **valor padrao**
-- **Degradar** funcionalidade
-- **Mensagem amigavel**
+- Return **cached data**
+- Return a **default value**
+- **Degrade** functionality
+- **Friendly message**
 
 ```csharp
 var fallbackPolicy = Policy<HttpResponseMessage>
@@ -80,9 +80,9 @@ var fallbackPolicy = Policy<HttpResponseMessage>
     });
 ```
 
-### 5. Bulkhead (isolamento)
+### 5. Bulkhead (isolation)
 
-Isola recursos para que a falha de um nao derrube todos:
+Isolates resources so that the failure of one doesn't bring down all of them:
 
 ```csharp
 var bulkhead = Policy.BulkheadAsync<HttpResponseMessage>(
@@ -92,7 +92,7 @@ var bulkhead = Policy.BulkheadAsync<HttpResponseMessage>(
 
 ### 6. Rate Limiting
 
-Limita a taxa de requisicoes para proteger o servico:
+Limits the rate of requests to protect the service:
 
 ```csharp
 // .NET 7+
@@ -106,7 +106,7 @@ builder.Services.AddRateLimiter(options =>
 });
 ```
 
-## Implementacao tipica com HttpClientFactory + Polly
+## Typical implementation with HttpClientFactory + Polly
 
 ```csharp
 builder.Services.AddHttpClient("pagamento", client =>
@@ -120,10 +120,10 @@ builder.Services.AddHttpClient("pagamento", client =>
     TimeSpan.FromSeconds(30)));
 ```
 
-## Resumo
+## Summary
 
-O objetivo e evitar efeito domino, proteger recursos internos e melhorar a experiencia do usuario mesmo quando algo da errado.
+The goal is to avoid the domino effect, protect internal resources, and improve the user experience even when something goes wrong.
 
 ---
 
-[← Anterior: OAuth 2.0](03-oauth2.md) | [Próximo: Middleware →](05-middleware.md) | [Voltar ao índice](README.md)
+[← Previous: OAuth 2.0](03-oauth2.md) | [Next: Middleware →](05-middleware.md) | [Back to index](README.md)

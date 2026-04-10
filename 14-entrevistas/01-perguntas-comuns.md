@@ -1,95 +1,95 @@
-# Perguntas Comuns em Entrevistas .NET
+# Common .NET Interview Questions
 
-## 1. Por que o padrao Singleton pode ser considerado um anti-pattern?
+## 1. Why can the Singleton pattern be considered an anti-pattern?
 
-O Singleton introduz **estado global oculto**, aumenta o acoplamento e dificulta testes automatizados.
+Singleton introduces **hidden global state**, increases coupling, and makes automated testing difficult.
 
-- Viola o principio de **Inversao de Dependencia** (DIP)
-- Esconde dependencias reais
-- Ciclo de vida rigido
-- Pode causar problemas de **concorrencia** em ambientes multithread
-- Pode causar **memory leak** (referencias que nunca sao liberadas)
+- Violates the **Dependency Inversion Principle** (DIP)
+- Hides real dependencies
+- Rigid lifecycle
+- Can cause **concurrency** issues in multithreaded environments
+- Can cause **memory leaks** (references that are never released)
 
-**Solucao**: usar DI com ciclo de vida Singleton controlado pelo container.
+**Solution**: use DI with a Singleton lifecycle controlled by the container.
 
-## 2. Como compartilhar recursos entre requisicoes no ASP.NET Core?
+## 2. How to share resources between requests in ASP.NET Core?
 
-ASP.NET Core e **stateless** - dados compartilhados entre requests precisam viver fora do escopo da requisicao:
+ASP.NET Core is **stateless** - data shared between requests must live outside the request scope:
 
-| Mecanismo | Uso |
+| Mechanism | Use |
 |-----------|-----|
-| `IMemoryCache` | Cache em memoria, thread-safe, com expiracao |
-| `IDistributedCache` (Redis) | Multiplas instancias, persistente |
-| Banco de dados | Dados que precisam sobreviver a restart |
-| Variaveis estaticas | **Desencorajado** - quebra DI, dificulta testes, memory leaks |
+| `IMemoryCache` | In-memory cache, thread-safe, with expiration |
+| `IDistributedCache` (Redis) | Multiple instances, persistent |
+| Database | Data that needs to survive a restart |
+| Static variables | **Discouraged** - breaks DI, hinders testing, memory leaks |
 
-## 3. Diferenca entre interface e classe abstrata
+## 3. Difference between interface and abstract class
 
-| Aspecto | Interface | Classe Abstrata |
-|---------|-----------|----------------|
-| Heranca | Multipla (varias interfaces) | Unica (uma classe base) |
-| Implementacao | So assinatura (ate C# 7) | Pode ter metodos concretos |
-| Construtor | Nao tem | Pode ter |
-| Campos | Nao tem | Pode ter |
-| Default methods | Sim (C# 8+) | Sim |
-| Quando usar | Contrato / capacidade | Modelo base / hierarquia |
+| Aspect | Interface | Abstract Class |
+|--------|-----------|---------------|
+| Inheritance | Multiple (several interfaces) | Single (one base class) |
+| Implementation | Signature only (up to C# 7) | Can have concrete methods |
+| Constructor | None | Can have one |
+| Fields | None | Can have them |
+| Default methods | Yes (C# 8+) | Yes |
+| When to use | Contract / capability | Base model / hierarchy |
 
-## 4. O que faz uma query SQL ser lenta?
+## 4. What makes a SQL query slow?
 
-- Falta de indices adequados
-- Funcoes nas colunas (nao-sargavel)
-- JOINs mal planejados
-- Volume sem paginacao
-- SELECT * desnecessario
-- Estatisticas desatualizadas
-- Bloqueios e concorrencia
+- Lack of proper indexes
+- Functions on columns (non-sargable)
+- Poorly planned JOINs
+- Large volume without pagination
+- Unnecessary SELECT *
+- Outdated statistics
+- Locks and concurrency
 
-(Veja detalhes em [Otimização de Queries](../07-acesso-a-dados/04-otimizacao-de-queries.md))
+(See details in [Query Optimization](../07-acesso-a-dados/04-otimizacao-de-queries.md))
 
 ## 5. Lazy Loading vs Eager Loading
 
-- **Lazy**: carrega sob demanda (risco de N+1)
-- **Eager**: carrega tudo junto com Include (mais previsivel)
-- **Recomendacao**: evitar Lazy Loading na maioria dos cenarios
+- **Lazy**: loads on demand (N+1 risk)
+- **Eager**: loads everything together with Include (more predictable)
+- **Recommendation**: avoid Lazy Loading in most scenarios
 
-(Veja detalhes em [Entity Framework](../07-acesso-a-dados/02-entity-framework.md))
+(See details in [Entity Framework](../07-acesso-a-dados/02-entity-framework.md))
 
 ## 6. Singleton vs Scoped vs Transient
 
-(Veja detalhes em [Service Lifetimes](../06-aspnet-core/02-service-lifetimes.md))
+(See details in [Service Lifetimes](../06-aspnet-core/02-service-lifetimes.md))
 
-## 7. O que e Parameter Sniffing?
+## 7. What is Parameter Sniffing?
 
-SQL Server cacheia plano de execucao baseado nos primeiros parametros. Se parametros futuros forem muito diferentes, o plano pode ser pessimo.
+SQL Server caches the execution plan based on the first parameters. If future parameters are very different, the plan can be terrible.
 
-Solucao: `OPTION (RECOMPILE)` quando necessario.
+Solution: `OPTION (RECOMPILE)` when necessary.
 
-(Veja detalhes em [Otimização de Queries](../07-acesso-a-dados/04-otimizacao-de-queries.md))
+(See details in [Query Optimization](../07-acesso-a-dados/04-otimizacao-de-queries.md))
 
-## 8. Tecnicas de otimizacao de performance
+## 8. Performance optimization techniques
 
-1. **Cache** (em memoria ou distribuido)
-2. **Jobs assincronos** (filas para operacoes pesadas)
-3. **Monitoramento** com metricas em producao (Application Insights, Grafana)
-4. **CDN** no front-end
-5. **CQRS** (separacao de bancos de leitura e escrita)
-6. **ElasticSearch** para pesquisa textual
+1. **Cache** (in-memory or distributed)
+2. **Asynchronous jobs** (queues for heavy operations)
+3. **Monitoring** with production metrics (Application Insights, Grafana)
+4. **CDN** on the front-end
+5. **CQRS** (separate read and write databases)
+6. **ElasticSearch** for text search
 
 ## 9. Race Conditions vs Deadlocks
 
-- **Race condition**: threads acessam recurso compartilhado sem sincronizacao
-- **Deadlock**: threads esperam eternamente uma pela outra
+- **Race condition**: threads access a shared resource without synchronization
+- **Deadlock**: threads wait forever for each other
 
-(Veja detalhes em [Concorrência e Paralelismo](../04-concorrencia-e-paralelismo/))
+(See details in [Concurrency and Parallelism](../04-concorrencia-e-paralelismo/))
 
-## 10. Resiliencia de APIs
+## 10. API Resilience
 
-Padroes: Retry, Timeout, Circuit Breaker, Fallback, Bulkhead, Rate Limiting.
+Patterns: Retry, Timeout, Circuit Breaker, Fallback, Bulkhead, Rate Limiting.
 
-Implementacao: HttpClientFactory + Polly.
+Implementation: HttpClientFactory + Polly.
 
-(Veja detalhes em [Resiliência de APIs](../06-aspnet-core/04-resiliencia-de-apis.md))
+(See details in [API Resilience](../06-aspnet-core/04-resiliencia-de-apis.md))
 
 ---
 
-[Voltar ao índice](README.md)
+[Back to index](README.md)

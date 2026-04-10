@@ -1,54 +1,54 @@
-# Azure - Servicos Principais
+# Azure - Main Services
 
 ## Compute
 
 ### App Service
 
-Plataforma gerenciada para hospedar **web apps, APIs e backends**. Sem gerenciar infra.
+Managed platform for hosting **web apps, APIs, and backends**. No infrastructure management required.
 
-- Suporta .NET, Node.js, Python, Java, PHP
+- Supports .NET, Node.js, Python, Java, PHP
 - Auto-scale, custom domains, SSL
 - Deployment slots (staging → swap → production)
-- **Melhor opcao para APIs .NET na maioria dos casos**
+- **Best option for .NET APIs in most cases**
 
 ### Azure Container Apps
 
-Containers gerenciados com **auto-scaling** (incluindo scale to zero):
+Managed containers with **auto-scaling** (including scale to zero):
 
-- Baseado no Kubernetes (KEDA + Dapr)
-- Ideal para microservices e APIs containerizadas
-- Mais simples que AKS, mais poderoso que App Service
+- Based on Kubernetes (KEDA + Dapr)
+- Ideal for microservices and containerized APIs
+- Simpler than AKS, more powerful than App Service
 
 ### AKS (Azure Kubernetes Service)
 
-Kubernetes gerenciado. Controle total sobre orquestracao:
+Managed Kubernetes. Full control over orchestration:
 
-- Control plane gerenciado pela Microsoft
-- Voce gerencia worker nodes
-- Ideal para cenarios complexos que precisam de K8s nativo
+- Control plane managed by Microsoft
+- You manage worker nodes
+- Ideal for complex scenarios that require native K8s
 
 ### Azure Functions
 
-FaaS — funcoes serverless (veja [FaaS](../08-devops/02-faas.md)):
+FaaS — serverless functions (see [FaaS](../08-devops/02-faas.md)):
 
 - Triggers: HTTP, Queue, Timer, Blob, Event Grid
-- Consumption plan: paga por execucao
-- Premium plan: sem cold start
+- Consumption plan: pay per execution
+- Premium plan: no cold start
 
-### Quando usar o que
+### When to Use What
 
-| Cenario | Servico |
-|---------|---------|
-| API .NET simples | App Service |
-| Microservices containerizados | Container Apps |
-| K8s complexo, controle total | AKS |
-| Evento/trigger isolado | Azure Functions |
+| Scenario | Service |
+|----------|---------|
+| Simple .NET API | App Service |
+| Containerized microservices | Container Apps |
+| Complex K8s, full control | AKS |
+| Isolated event/trigger | Azure Functions |
 
 ## Storage
 
 ### Blob Storage
 
-Equivalente ao S3. Armazena objetos (arquivos, imagens, backups):
+Equivalent to S3. Stores objects (files, images, backups):
 
 ```csharp
 var blobClient = new BlobClient(connectionString, "container", "arquivo.pdf");
@@ -60,54 +60,54 @@ await blobClient.UploadAsync(stream, overwrite: true);
 var response = await blobClient.DownloadContentAsync();
 var conteudo = response.Value.Content;
 
-// SAS Token (URL temporaria)
+// SAS Token (temporary URL)
 var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Read,
     DateTimeOffset.UtcNow.AddHours(1));
 ```
 
-| Tier | Uso | Custo |
-|------|-----|-------|
-| **Hot** | Acesso frequente | $$ |
-| **Cool** | Acesso raro (30+ dias) | $ |
-| **Archive** | Arquivo longo prazo | ¢ |
+| Tier | Use | Cost |
+|------|-----|------|
+| **Hot** | Frequent access | $$ |
+| **Cool** | Rare access (30+ days) | $ |
+| **Archive** | Long-term archive | ¢ |
 
 ## Database
 
 ### Azure SQL
 
-SQL Server gerenciado. Sem gerenciar VM, backups automaticos:
+Managed SQL Server. No VM management, automatic backups:
 
-- Compativel com SQL Server on-premises
-- Elastic pools para multiplos bancos
-- Geo-replication para disaster recovery
+- Compatible with on-premises SQL Server
+- Elastic pools for multiple databases
+- Geo-replication for disaster recovery
 
 ### Cosmos DB
 
-Banco NoSQL multi-modelo distribuido globalmente:
+Globally distributed multi-model NoSQL database:
 
 - APIs: SQL, MongoDB, Cassandra, Gremlin, Table
-- Latencia < 10ms no p99
-- Multi-region com consistency levels configuravel
-- Caro — use apenas quando precisa de escala global
+- Latency < 10ms at p99
+- Multi-region with configurable consistency levels
+- Expensive — use only when you need global scale
 
 ## Messaging
 
 ### Azure Service Bus
 
-Broker de mensagens enterprise:
+Enterprise message broker:
 
-- **Queues**: ponto a ponto
+- **Queues**: point-to-point
 - **Topics/Subscriptions**: pub/sub
-- Suporta transacoes, sessoes, dead-letter queue
-- Equivalente ao RabbitMQ gerenciado
+- Supports transactions, sessions, dead-letter queue
+- Equivalent to managed RabbitMQ
 
 ```csharp
-// Enviar
+// Send
 var sender = serviceBusClient.CreateSender("pedidos-queue");
 await sender.SendMessageAsync(new ServiceBusMessage(
     JsonSerializer.Serialize(pedido)));
 
-// Receber
+// Receive
 var processor = serviceBusClient.CreateProcessor("pedidos-queue");
 processor.ProcessMessageAsync += async args =>
 {
@@ -119,45 +119,45 @@ processor.ProcessMessageAsync += async args =>
 
 ### Azure Event Grid
 
-Roteamento de **eventos** entre servicos Azure:
+**Event** routing between Azure services:
 
 ```
-[Blob criado] → [Event Grid] → [Azure Function processa]
-[Resource mudou] → [Event Grid] → [Logic App notifica]
+[Blob created] → [Event Grid] → [Azure Function processes]
+[Resource changed] → [Event Grid] → [Logic App notifies]
 ```
 
 ## Identity
 
 ### Azure AD / Entra ID
 
-Identity provider da Microsoft. Gerencia autenticacao e autorizacao:
+Microsoft's identity provider. Manages authentication and authorization:
 
 - SSO (Single Sign-On)
 - OAuth 2.0 / OpenID Connect
-- Managed Identities (sem gerenciar secrets)
+- Managed Identities (no secret management needed)
 
 ### Managed Identity
 
-Identidade gerenciada para servicos Azure acessarem outros servicos **sem secrets**:
+Managed identity for Azure services to access other services **without secrets**:
 
 ```csharp
-// Em vez de connection string com senha:
-var credential = new DefaultAzureCredential(); // usa managed identity
+// Instead of a connection string with password:
+var credential = new DefaultAzureCredential(); // uses managed identity
 var client = new BlobServiceClient(new Uri("https://mystorage.blob.core.windows.net"), credential);
 ```
 
-> **Sempre prefira Managed Identity** sobre connection strings com senha.
+> **Always prefer Managed Identity** over connection strings with passwords.
 
 ## Monitoring
 
 ### Application Insights
 
-APM (Application Performance Monitoring) integrado:
+Integrated APM (Application Performance Monitoring):
 
 - Request tracking
 - Dependency tracking (SQL, HTTP, Redis)
 - Exception logging
-- Custom metrics e events
+- Custom metrics and events
 - Live metrics stream
 
 ```csharp
@@ -174,29 +174,29 @@ telemetry.TrackEvent("PedidoCriado", new Dictionary<string, string>
 
 ### Azure Monitor
 
-Plataforma de monitoramento unificada:
-- Metricas de todos os servicos Azure
-- Log Analytics (queries KQL)
-- Alertas e action groups
+Unified monitoring platform:
+- Metrics from all Azure services
+- Log Analytics (KQL queries)
+- Alerts and action groups
 
 ## Networking
 
 ### Azure API Management (APIM)
 
-API Gateway gerenciado:
+Managed API Gateway:
 - Rate limiting, throttling
-- Autenticacao centralizada
-- Transformacao de request/response
+- Centralized authentication
+- Request/response transformation
 - Developer portal
 
 ### Azure Front Door
 
-CDN + WAF + Load Balancer global:
-- Distribuicao global de conteudo
-- Protecao contra DDoS
+CDN + WAF + Global Load Balancer:
+- Global content distribution
+- DDoS protection
 - SSL offloading
 
-## Arquitetura tipica no Azure
+## Typical Azure Architecture
 
 ```
 [Azure Front Door / CDN]
@@ -205,13 +205,13 @@ CDN + WAF + Load Balancer global:
          ↓
 [App Service / Container Apps]     (API)
     ↓            ↓
-[Azure SQL]  [Redis Cache]         (dados)
+[Azure SQL]  [Redis Cache]         (data)
 [Service Bus] → [Azure Functions]  (async)
-[Blob Storage]                     (arquivos)
-[Application Insights]             (monitoramento)
+[Blob Storage]                     (files)
+[Application Insights]             (monitoring)
 [Key Vault]                        (secrets)
 ```
 
 ---
 
-[← Anterior: AWS Aprofundado](02-aws-aprofundado.md) | [Voltar ao índice](README.md)
+[← Previous: AWS In Depth](02-aws-aprofundado.md) | [Back to index](README.md)

@@ -1,15 +1,15 @@
 # SOLID
 
-SOLID é um acrônimo para cinco princípios de design orientado a objetos que ajudam a criar software mais manutenível, flexível e escalável.
+SOLID is an acronym for five object-oriented design principles that help create more maintainable, flexible, and scalable software.
 
 ## S - Single Responsibility Principle (SRP)
 
-**Uma classe deve ter apenas um motivo para mudar.**
+**A class should have only one reason to change.**
 
-Cada classe deve ter uma única responsabilidade. Se uma classe faz muitas coisas, ela se torna difícil de manter.
+Each class should have a single responsibility. If a class does too many things, it becomes difficult to maintain.
 
 ```csharp
-// ERRADO - classe com múltiplas responsabilidades
+// WRONG - class with multiple responsibilities
 public class Pedido
 {
     public void CalcularTotal() { }
@@ -17,7 +17,7 @@ public class Pedido
     public void EnviarEmail() { }
 }
 
-// CORRETO - cada classe com uma responsabilidade
+// CORRECT - each class with one responsibility
 public class Pedido
 {
     public decimal CalcularTotal() { ... }
@@ -36,12 +36,12 @@ public class NotificacaoService
 
 ## O - Open/Closed Principle (OCP)
 
-**Aberto para extensão, fechado para modificação.**
+**Open for extension, closed for modification.**
 
-Você deve poder adicionar novos comportamentos sem alterar o código existente.
+You should be able to add new behaviors without changing existing code.
 
 ```csharp
-// ERRADO - precisa modificar a classe para cada novo tipo
+// WRONG - need to modify the class for each new type
 public class CalculadoraDesconto
 {
     public decimal Calcular(string tipo, decimal valor)
@@ -52,7 +52,7 @@ public class CalculadoraDesconto
     }
 }
 
-// CORRETO - extensível via novas implementações
+// CORRECT - extensible via new implementations
 public interface IDesconto
 {
     decimal Calcular(decimal valor);
@@ -71,12 +71,12 @@ public class DescontoPremium : IDesconto
 
 ## L - Liskov Substitution Principle (LSP)
 
-**Subclasses devem poder substituir suas classes base sem quebrar o programa.**
+**Subclasses should be able to replace their base classes without breaking the program.**
 
-Se a classe B herda de A, então B deve funcionar em qualquer lugar que A funciona.
+If class B inherits from A, then B should work anywhere that A works.
 
 ```csharp
-// ERRADO - Pinguim herda de Ave mas não voa
+// WRONG - Pinguim inherits from Ave but doesn't fly
 public class Ave
 {
     public virtual void Voar() { Console.WriteLine("Voando..."); }
@@ -84,10 +84,10 @@ public class Ave
 
 public class Pinguim : Ave
 {
-    public override void Voar() { throw new Exception("Não voa!"); } // viola LSP
+    public override void Voar() { throw new Exception("Não voa!"); } // violates LSP
 }
 
-// CORRETO - separar contratos
+// CORRECT - separate contracts
 public interface IAve { }
 public interface IAveVoadora : IAve
 {
@@ -99,17 +99,17 @@ public class Aguia : IAveVoadora
     public void Voar() { Console.WriteLine("Voando..."); }
 }
 
-public class Pinguim : IAve { } // não implementa Voar
+public class Pinguim : IAve { } // does not implement Voar
 ```
 
 ## I - Interface Segregation Principle (ISP)
 
-**Nenhum cliente deve ser forçado a depender de métodos que não usa.**
+**No client should be forced to depend on methods it does not use.**
 
-Prefira várias interfaces pequenas e específicas a uma interface grande e genérica.
+Prefer several small, specific interfaces over one large, generic interface.
 
 ```csharp
-// ERRADO - interface grande demais
+// WRONG - interface too large
 public interface IWorker
 {
     void Trabalhar();
@@ -117,7 +117,7 @@ public interface IWorker
     void Dormir();
 }
 
-// CORRETO - interfaces segregadas
+// CORRECT - segregated interfaces
 public interface ITrabalhador
 {
     void Trabalhar();
@@ -132,18 +132,18 @@ public interface ISerVivo
 
 ## D - Dependency Inversion Principle (DIP)
 
-**Dependa de abstrações, não de implementações.**
+**Depend on abstractions, not on implementations.**
 
-Módulos de alto nível não devem depender de módulos de baixo nível. Ambos devem depender de abstrações.
+High-level modules should not depend on low-level modules. Both should depend on abstractions.
 
 ```csharp
-// ERRADO - depende da implementação concreta
+// WRONG - depends on concrete implementation
 public class PedidoService
 {
     private readonly SqlPedidoRepository _repo = new SqlPedidoRepository();
 }
 
-// CORRETO - depende da abstração
+// CORRECT - depends on abstraction
 public class PedidoService
 {
     private readonly IPedidoRepository _repo;
@@ -155,8 +155,8 @@ public class PedidoService
 }
 ```
 
-> O DIP é a base para a Injeção de Dependência (DI). Veja mais em [Dependency Injection](../06-aspnet-core/01-dependency-injection.md).
+> DIP is the foundation for Dependency Injection (DI). See more in [Dependency Injection](../06-aspnet-core/01-dependency-injection.md).
 
 ---
 
-[Voltar ao índice](README.md) | [Próximo: Design Patterns →](02-design-patterns.md)
+[Back to index](README.md) | [Next: Design Patterns →](02-design-patterns.md)

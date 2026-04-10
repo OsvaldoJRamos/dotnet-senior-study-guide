@@ -1,52 +1,52 @@
-# Ecossistema .NET
+# .NET Ecosystem
 
-## Visão geral dos termos
+## Overview of Terms
 
-| Termo | O que é? | Para que serve? |
+| Term | What is it? | What is it for? |
 |---|---|---|
-| C# | Linguagem de programação | Para escrever o código-fonte |
-| .NET (ou .NET Core / .NET 6/7/8) | Plataforma de desenvolvimento | Para compilar, executar e hospedar aplicações |
-| ASP.NET Core | Framework web dentro do .NET | Para criar APIs, sites e aplicações web |
-| Visual Studio / VS Code | IDEs e editores | Para programar com recursos como IntelliSense |
-| NuGet | Gerenciador de pacotes | Para adicionar bibliotecas externas ao seu projeto |
-| Entity Framework Core | ORM do .NET | Para trabalhar com banco de dados de forma OO |
+| C# | Programming language | To write source code |
+| .NET (or .NET Core / .NET 6/7/8) | Development platform | To compile, run, and host applications |
+| ASP.NET Core | Web framework within .NET | To create APIs, websites, and web applications |
+| Visual Studio / VS Code | IDEs and editors | To program with features like IntelliSense |
+| NuGet | Package manager | To add external libraries to your project |
+| Entity Framework Core | .NET ORM | To work with databases in an OO fashion |
 
-## .NET (também chamado .NET Core, .NET 5/6/7/8)
+## .NET (also known as .NET Core, .NET 5/6/7/8)
 
-### O que é?
-Um runtime + biblioteca + SDKs. É a plataforma que executa aplicações escritas em C# e outras linguagens como F#, VB.NET.
+### What is it?
+A runtime + library + SDKs. It is the platform that runs applications written in C# and other languages such as F#, VB.NET.
 
-### Ferramentas que possui:
-- Compilar o código
-- Gerenciar memória
-- Executar aplicações
-- Acesso a arquivos, rede, banco de dados, etc.
+### Tools it provides:
+- Compile code
+- Manage memory
+- Run applications
+- Access files, network, databases, etc.
 
-### Tipos de aplicações suportadas:
-- **ASP.NET Core** - Web e APIs
+### Supported application types:
+- **ASP.NET Core** - Web and APIs
 - **WPF/WinForms** - Desktop (Windows)
-- **Blazor** - Web com C#
+- **Blazor** - Web with C#
 - **MAUI / Xamarin** - Mobile
 - **Console apps**
 - **Azure Functions** - Serverless
-- **Unity** - Jogos
+- **Unity** - Games
 
 ## ASP.NET Core
 
-### O que é?
-Um **framework web moderno, multiplataforma**, parte do .NET.
+### What is it?
+A **modern, cross-platform web framework**, part of .NET.
 
-### Permite criar:
-- APIs REST
-- Aplicações web MVC
-- Web apps com Razor Pages
+### Allows you to create:
+- REST APIs
+- MVC web applications
+- Web apps with Razor Pages
 - SignalR (real-time apps)
 
-### Características:
-- Rápido, leve, baseado em middleware
-- Executa no Windows, Linux e macOS
-- Integrado com injeção de dependência, logging, configuração, etc.
+### Features:
+- Fast, lightweight, middleware-based
+- Runs on Windows, Linux, and macOS
+- Integrated with dependency injection, logging, configuration, etc.
 
 ---
 
-[Voltar ao índice](README.md) | [Próximo: Namespace →](02-namespace.md)
+[Back to index](README.md) | [Next: Namespace →](02-namespace.md)

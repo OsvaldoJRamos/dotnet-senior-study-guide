@@ -1,58 +1,58 @@
 # Middleware Pipeline
 
-## O que e Middleware
+## What is Middleware
 
-Middleware sao componentes que formam um **pipeline de processamento** de requisicoes HTTP no ASP.NET Core. Cada middleware pode:
+Middleware are components that form an HTTP request **processing pipeline** in ASP.NET Core. Each middleware can:
 
-- Processar a requisicao **antes** de passar para o proximo
-- Processar a resposta **depois** que o proximo retorna
-- **Curto-circuitar** o pipeline (nao chamar o proximo)
+- Process the request **before** passing it to the next one
+- Process the response **after** the next one returns
+- **Short-circuit** the pipeline (not call the next one)
 
 ```
 Request → [Middleware 1] → [Middleware 2] → [Middleware 3] → Endpoint
 Response ← [Middleware 1] ← [Middleware 2] ← [Middleware 3] ←
 ```
 
-## Ordem importa
+## Order matters
 
-A ordem em que os middlewares sao registrados define a ordem de execucao. **Ordem errada = bugs sutis**.
+The order in which middlewares are registered defines the execution order. **Wrong order = subtle bugs**.
 
 ```csharp
 var app = builder.Build();
 
-// Ordem recomendada pela Microsoft:
-app.UseExceptionHandler("/error");   // 1. Captura excecoes
+// Recommended order by Microsoft:
+app.UseExceptionHandler("/error");   // 1. Catches exceptions
 app.UseHsts();                        // 2. HSTS
-app.UseHttpsRedirection();            // 3. Redireciona HTTP -> HTTPS
-app.UseStaticFiles();                 // 4. Arquivos estaticos (curto-circuita aqui)
-app.UseRouting();                     // 5. Determina o endpoint
+app.UseHttpsRedirection();            // 3. Redirects HTTP -> HTTPS
+app.UseStaticFiles();                 // 4. Static files (short-circuits here)
+app.UseRouting();                     // 5. Determines the endpoint
 app.UseCors();                        // 6. CORS
-app.UseAuthentication();              // 7. Identifica quem e o usuario
-app.UseAuthorization();               // 8. Verifica se pode acessar
-app.MapControllers();                 // 9. Executa o endpoint
+app.UseAuthentication();              // 7. Identifies who the user is
+app.UseAuthorization();               // 8. Checks if access is allowed
+app.MapControllers();                 // 9. Executes the endpoint
 ```
 
-> Se `UseAuthentication` vier **depois** de `UseAuthorization`, a autorizacao nao vai ter o usuario identificado = bug.
+> If `UseAuthentication` comes **after** `UseAuthorization`, the authorization won't have the user identified = bug.
 
-## Middleware customizado
+## Custom middleware
 
-### Inline (simples)
+### Inline (simple)
 
 ```csharp
 app.Use(async (context, next) =>
 {
-    // Antes do proximo middleware
+    // Before the next middleware
     var sw = Stopwatch.StartNew();
     
     await next(context);
     
-    // Depois do proximo middleware
+    // After the next middleware
     sw.Stop();
     Console.WriteLine($"{context.Request.Path} levou {sw.ElapsedMilliseconds}ms");
 });
 ```
 
-### Classe (reutilizavel)
+### Class (reusable)
 
 ```csharp
 public class RequestTimingMiddleware
@@ -78,22 +78,22 @@ public class RequestTimingMiddleware
     }
 }
 
-// Registro
+// Registration
 app.UseMiddleware<RequestTimingMiddleware>();
 ```
 
-## Map e MapWhen (branching)
+## Map and MapWhen (branching)
 
-Permite criar **ramificacoes** no pipeline para rotas especificas:
+Allows creating **branches** in the pipeline for specific routes:
 
 ```csharp
-// Middleware so para rotas que comecam com /api
+// Middleware only for routes starting with /api
 app.MapWhen(
     context => context.Request.Path.StartsWithSegments("/api"),
     appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>()
 );
 
-// Branch completa para /health
+// Complete branch for /health
 app.Map("/health", appBuilder =>
 {
     appBuilder.Run(async context =>
@@ -103,9 +103,9 @@ app.Map("/health", appBuilder =>
 });
 ```
 
-## Curto-circuito
+## Short-circuit
 
-Middleware pode parar o pipeline sem chamar `next`:
+Middleware can stop the pipeline without calling `next`:
 
 ```csharp
 app.Use(async (context, next) =>
@@ -123,21 +123,21 @@ app.Use(async (context, next) =>
 
 ## Middleware vs Filters
 
-| Aspecto | Middleware | Filter |
+| Aspect | Middleware | Filter |
 |---------|-----------|--------|
-| Escopo | **Toda** requisicao HTTP | Apenas requisicoes que chegam ao **MVC/Minimal API** |
-| Acesso ao endpoint | Nao tem contexto do endpoint | Tem acesso a action, model binding, etc. |
-| Ordem | Definida pelo registro | Definida por ordem + tipo (Authorization, Resource, Action, etc.) |
-| Uso ideal | Cross-cutting (logging, CORS, auth) | Logica especifica de MVC (validacao, cache de action) |
+| Scope | **Every** HTTP request | Only requests that reach **MVC/Minimal API** |
+| Endpoint access | No endpoint context | Has access to action, model binding, etc. |
+| Order | Defined by registration | Defined by order + type (Authorization, Resource, Action, etc.) |
+| Ideal use | Cross-cutting (logging, CORS, auth) | MVC-specific logic (validation, action caching) |
 
-## Pontos importantes para entrevista
+## Key points for interviews
 
-1. **Ordem de registro = ordem de execucao** — errar a ordem e um bug comum
-2. **RequestDelegate** e o delegate que representa o proximo middleware
-3. Middlewares sao **singletons** — cuidado com injecao de servicos Scoped (use `InvokeAsync` com parametros)
-4. `app.Run()` e um middleware **terminal** — nao chama `next`
-5. `app.Use()` pode chamar ou nao `next` — decisao do middleware
+1. **Registration order = execution order** — getting the order wrong is a common bug
+2. **RequestDelegate** is the delegate that represents the next middleware
+3. Middlewares are **singletons** — be careful with Scoped service injection (use `InvokeAsync` with parameters)
+4. `app.Run()` is a **terminal** middleware — it doesn't call `next`
+5. `app.Use()` can call or not call `next` — it's the middleware's decision
 
 ---
 
-[← Anterior: Resiliência de APIs](04-resiliencia-de-apis.md) | [Próximo: Background Services →](06-background-services.md) | [Voltar ao índice](README.md)
+[← Previous: API Resilience](04-resiliencia-de-apis.md) | [Next: Background Services →](06-background-services.md) | [Back to index](README.md)

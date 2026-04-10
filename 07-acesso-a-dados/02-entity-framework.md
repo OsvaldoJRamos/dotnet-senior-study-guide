@@ -1,46 +1,46 @@
 # Entity Framework
 
-> Geralmente o lazy load faz muitas queries e vira uma bagunça, cai muito a performance. **EVITAR AO MÁXIMO USAR.**
+> Generally lazy load makes too many queries and becomes a mess, performance drops significantly. **AVOID USING IT AS MUCH AS POSSIBLE.**
 
 ## Lazy Loading
 
-**Definição:** Os dados relacionados **não são carregados automaticamente** quando você consulta a entidade principal. Eles só são buscados no banco **quando acessados pela primeira vez**.
+**Definition:** Related data **is not loaded automatically** when you query the main entity. It is only fetched from the database **when accessed for the first time**.
 
-### Exemplo:
+### Example:
 ```csharp
 var blog = context.Blogs.First();
-var posts = blog.Posts; // Aqui o EF faz uma nova query para carregar Posts
+var posts = blog.Posts; // Here EF makes a new query to load Posts
 ```
 
-### Vantagens:
-- Evita trazer dados desnecessários
-- Pode melhorar a performance em cenários simples
+### Advantages:
+- Avoids bringing unnecessary data
+- Can improve performance in simple scenarios
 
-### Desvantagens:
-- Pode causar o problema do **N+1 queries** (muitas consultas extras)
-- Requer que as propriedades de navegação sejam `virtual`
-- Em cenários de alta carga, pode gerar gargalo
+### Disadvantages:
+- Can cause the **N+1 queries** problem (many extra queries)
+- Requires navigation properties to be `virtual`
+- In high-load scenarios, it can create bottlenecks
 
-### Como ativar Lazy Loading:
+### How to enable Lazy Loading:
 
-1. **Propriedades de navegação virtuais:**
+1. **Virtual navigation properties:**
 ```csharp
 public class Blog
 {
     public int BlogId { get; set; }
     public string Name { get; set; }
 
-    // Precisa ser virtual
+    // Must be virtual
     public virtual ICollection<Post> Posts { get; set; }
 }
 ```
 
-2. **Pacote de proxies (no EF Core):**
+2. **Proxies package (in EF Core):**
 ```bash
 dotnet add package Microsoft.EntityFrameworkCore.Proxies
 ```
 
-3. **Configurar no DbContext:**
+3. **Configure in DbContext:**
 ```csharp
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 {
@@ -54,16 +54,16 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 
 ## Eager Loading
 
-**Definição:** Os dados relacionados são **carregados junto com a consulta principal** usando `Include`.
+**Definition:** Related data is **loaded together with the main query** using `Include`.
 
-### Exemplo:
+### Example:
 ```csharp
 var blog = context.Blogs
     .Include(b => b.Posts)
     .First();
 ```
 
-Com `ThenInclude` para relações mais profundas:
+With `ThenInclude` for deeper relationships:
 ```csharp
 var blogs = context.Blogs
     .Include(b => b.Posts)
@@ -71,49 +71,49 @@ var blogs = context.Blogs
     .ToList();
 ```
 
-Aqui você já carrega tudo de uma vez.
+Here you load everything at once.
 
-### Vantagens:
-- Reduz o número de queries (melhor contra o problema N+1)
-- Bom quando você **já sabe** que vai precisar dos dados relacionados
+### Advantages:
+- Reduces the number of queries (better against the N+1 problem)
+- Good when you **already know** you will need the related data
 
-### Desvantagens:
-- Pode carregar dados demais, ocupando mais memória e tráfego de rede
-- Consultas podem ficar mais pesadas
+### Disadvantages:
+- May load too much data, consuming more memory and network traffic
+- Queries can become heavier
 
 ---
 
-## Quando usar cada um?
+## When to use each one?
 
-| Cenário | Usar |
+| Scenario | Use |
 |---|---|
-| Quando nem sempre você precisa dos dados relacionados | Lazy Loading |
-| Cenários simples, poucas relações, baixo volume | Lazy Loading |
-| Quando você sabe que **sempre vai precisar** das entidades relacionadas | Eager Loading |
-| Consultas para APIs que retornam objetos completos (DTOs, ViewModels) | Eager Loading |
+| When you don't always need the related data | Lazy Loading |
+| Simple scenarios, few relationships, low volume | Lazy Loading |
+| When you know you will **always need** the related entities | Eager Loading |
+| Queries for APIs that return complete objects (DTOs, ViewModels) | Eager Loading |
 
-## Explicit Loading (alternativa)
+## Explicit Loading (alternative)
 
-Quando você quer controle total sobre quando carregar os dados relacionados:
+When you want full control over when to load related data:
 
 ```csharp
 var blog = context.Blogs.First();
 
-// Carrega explicitamente quando necessário
+// Explicitly loads when needed
 context.Entry(blog)
     .Collection(b => b.Posts)
     .Load();
 ```
 
-## Boas práticas
+## Best practices
 
-- Prefira **Eager Loading** na maioria dos cenários de API
-- Use **AsNoTracking()** para queries de leitura (melhor performance):
+- Prefer **Eager Loading** in most API scenarios
+- Use **AsNoTracking()** for read queries (better performance):
 ```csharp
 var produtos = context.Produtos.AsNoTracking().ToList();
 ```
-- Evite **Select N+1** — sempre verifique as queries geradas no log
+- Avoid **Select N+1** — always check the generated queries in the log
 
 ---
 
-[← Anterior: ORM vs Micro ORM vs ADO.NET](01-orm-vs-microorm-vs-adonet.md) | [Voltar ao índice](README.md) | [Próximo: Bancos de Dados →](03-bancos-de-dados.md)
+[← Previous: ORM vs Micro ORM vs ADO.NET](01-orm-vs-microorm-vs-adonet.md) | [Back to index](README.md) | [Next: Databases →](03-bancos-de-dados.md)

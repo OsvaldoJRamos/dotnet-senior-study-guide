@@ -1,38 +1,38 @@
-# Memory Leak em C#
+# Memory Leak in C#
 
-## O que é
+## What it is
 
-Um **memory leak** acontece quando a aplicação aloca memória mas falha em liberá-la quando não é mais necessária. Com o tempo, essa memória residual entope o sistema, causando problemas de performance e, no pior caso, crashes da aplicação.
+A **memory leak** happens when the application allocates memory but fails to release it when it is no longer needed. Over time, this residual memory clogs the system, causing performance problems and, in the worst case, application crashes.
 
-Um **memory profiler** pode ser usado para identificar memory leaks.
+A **memory profiler** can be used to identify memory leaks.
 
-## Causas comuns
+## Common causes
 
-### 1. Conexões com o banco não fechadas
+### 1. Database connections not closed
 
-Abrir muitas conexões com o banco sem fechá-las (dentro de um loop por exemplo).
+Opening many database connections without closing them (inside a loop, for example).
 
 ```csharp
-// ERRADO - conexão nunca é fechada
+// WRONG - connection is never closed
 for (int i = 0; i < 1000; i++)
 {
     var conn = new SqlConnection(connectionString);
     conn.Open();
-    // usa a conexão mas nunca fecha
+    // uses the connection but never closes it
 }
 
-// CORRETO - using garante que a conexão é fechada
+// CORRECT - using ensures the connection is closed
 for (int i = 0; i < 1000; i++)
 {
     using var conn = new SqlConnection(connectionString);
     conn.Open();
-    // conexão fechada automaticamente ao sair do escopo
+    // connection automatically closed when leaving scope
 }
 ```
 
-### 2. Eventos não desregistrados
+### 2. Unregistered events
 
-Uma das causas mais comuns de memory leak em C# é esquecer de **desregistrar event handlers**. Quando você se inscreve em um evento, o objeto que possui o event handler mantém uma referência ao subscriber, impedindo o garbage collection.
+One of the most common causes of memory leaks in C# is forgetting to **unregister event handlers**. When you subscribe to an event, the object that owns the event handler keeps a reference to the subscriber, preventing garbage collection.
 
 ```csharp
 public class Publisher
@@ -54,7 +54,7 @@ public class Subscriber
 }
 ```
 
-**Solução:** sempre desregistre de eventos quando não forem mais necessários.
+**Solution:** always unregister from events when they are no longer needed.
 
 ```csharp
 public void Unsubscribe(Publisher publisher)
@@ -63,22 +63,22 @@ public void Unsubscribe(Publisher publisher)
 }
 ```
 
-### 3. Referências estáticas
+### 3. Static references
 
-Objetos referenciados por variáveis estáticas podem persistir durante toda a vida da aplicação, e se não forem gerenciados cuidadosamente, podem levar a memory leaks.
+Objects referenced by static variables can persist throughout the application's lifetime, and if not managed carefully, can lead to memory leaks.
 
 ```csharp
-// PROBLEMA: lista estática que só cresce
+// PROBLEM: static list that only grows
 public class MemoryLeak
 {
     public static List<string> CachedData = new List<string>();
 }
 ```
 
-**Solução:** use weak references ou garanta que campos estáticos sejam limpos quando não forem mais necessários.
+**Solution:** use weak references or ensure that static fields are cleared when no longer needed.
 
 ```csharp
-// SOLUÇÃO: método para limpar o cache
+// SOLUTION: method to clear the cache
 public class MemoryLeak
 {
     public static List<string> CachedData = new List<string>();
@@ -90,11 +90,11 @@ public class MemoryLeak
 }
 ```
 
-### 4. Objetos IDisposable não descartados
+### 4. IDisposable objects not disposed
 
-Objetos que implementam a interface `IDisposable` precisam de cleanup adequado. Se o método `Dispose` não é chamado explicitamente ou não usamos o bloco `using`, pode levar a resource leaks e memory leaks.
+Objects that implement the `IDisposable` interface need proper cleanup. If the `Dispose` method is not called explicitly or we don't use the `using` block, it can lead to resource leaks and memory leaks.
 
-**Exemplo errado:**
+**Wrong example:**
 ```csharp
 using System;
 using System.IO;
@@ -110,7 +110,7 @@ class Program
 }
 ```
 
-**Forma correta com try/finally:**
+**Correct approach with try/finally:**
 ```csharp
 using System;
 
@@ -145,7 +145,7 @@ class Program
 }
 ```
 
-**Forma correta com using (recomendada):**
+**Correct approach with using (recommended):**
 ```csharp
 using System;
 using System.IO;
@@ -162,20 +162,20 @@ class Program
 }
 ```
 
-### Use `IDisposable` corretamente
+### Use `IDisposable` correctly
 
-Recursos não gerenciados (como arquivos, conexões, streams, etc.) **não são liberados automaticamente pelo GC**.
+Unmanaged resources (such as files, connections, streams, etc.) **are not automatically released by the GC**.
 
-**Prática recomendada:** implemente e use `IDisposable`:
+**Recommended practice:** implement and use `IDisposable`:
 
 ```csharp
 using (var stream = new FileStream("data.txt", FileMode.Open))
 {
-    // uso seguro
+    // safe usage
 }
-// Isso garante liberação de recursos com Dispose().
+// This ensures resource release with Dispose().
 ```
 
 ---
 
-[← Anterior: Otimização de Memória](03-otimizacao-de-memoria.md) | [Voltar ao índice](README.md) | [Próximo: Structs vs Classes →](05-structs-vs-classes.md)
+[← Previous: Memory Optimization](03-otimizacao-de-memoria.md) | [Back to index](README.md) | [Next: Structs vs Classes →](05-structs-vs-classes.md)

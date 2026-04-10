@@ -1,18 +1,18 @@
 # Caching
 
-## Por que usar cache
+## Why use caching
 
-Banco de dados e o gargalo numero 1 em aplicacoes web. Cache reduz acessos ao banco e melhora drasticamente o tempo de resposta.
+The database is the number 1 bottleneck in web applications. Caching reduces database access and drastically improves response time.
 
 ## IMemoryCache (in-process)
 
-Cache na memoria do processo. Simples e rapido, mas **nao compartilha** entre instancias.
+Cache in the process memory. Simple and fast, but **not shared** between instances.
 
 ```csharp
-// Registro
+// Registration
 builder.Services.AddMemoryCache();
 
-// Uso
+// Usage
 public class ProdutoService
 {
     private readonly IMemoryCache _cache;
@@ -41,7 +41,7 @@ public class ProdutoService
 }
 ```
 
-### GetOrCreate (mais conciso)
+### GetOrCreate (more concise)
 
 ```csharp
 var produto = await _cache.GetOrCreateAsync($"produto:{id}", async entry =>
@@ -53,17 +53,17 @@ var produto = await _cache.GetOrCreateAsync($"produto:{id}", async entry =>
 
 ## IDistributedCache (Redis)
 
-Cache distribuido entre multiplas instancias. Sobrevive a restarts.
+Distributed cache across multiple instances. Survives restarts.
 
 ```csharp
-// Registro
+// Registration
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = "localhost:6379";
     options.InstanceName = "minha-app:";
 });
 
-// Uso
+// Usage
 public class ProdutoService
 {
     private readonly IDistributedCache _cache;
@@ -95,13 +95,13 @@ public class ProdutoService
 
 ## Output Caching (.NET 7+)
 
-Cache de **respostas HTTP inteiras** no servidor:
+Cache of **entire HTTP responses** on the server:
 
 ```csharp
 builder.Services.AddOutputCache();
 app.UseOutputCache();
 
-// Em controller
+// In controller
 [OutputCache(Duration = 60)]
 [HttpGet("produtos")]
 public async Task<IActionResult> Listar()
@@ -109,14 +109,14 @@ public async Task<IActionResult> Listar()
     return Ok(await _service.ListarAsync());
 }
 
-// Em minimal API
+// In minimal API
 app.MapGet("/produtos", () => service.ListarAsync())
    .CacheOutput(p => p.Expire(TimeSpan.FromMinutes(1)));
 ```
 
 ## Response Caching (HTTP cache headers)
 
-Usa headers HTTP para cache no **cliente ou CDN**:
+Uses HTTP headers for caching on the **client or CDN**:
 
 ```csharp
 [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
@@ -126,37 +126,37 @@ public IActionResult ListarCategorias()
     return Ok(categorias);
 }
 
-// Gera header: Cache-Control: public, max-age=300
+// Generates header: Cache-Control: public, max-age=300
 ```
 
-## Estrategias de invalidacao
+## Invalidation strategies
 
-| Estrategia | Descricao | Quando usar |
+| Strategy | Description | When to use |
 |-----------|-----------|-------------|
-| **TTL (Time to Live)** | Expira apos X minutos | Dados que podem ficar stale por um tempo |
-| **Cache-aside** | App verifica cache, se nao tem vai ao banco | Padrao mais comum |
-| **Write-through** | Escrita atualiza cache + banco juntos | Dados que mudam e sao lidos frequentemente |
-| **Write-behind** | Escrita atualiza cache, banco e atualizado depois | Alta performance de escrita |
-| **Event-based** | Evento invalida cache quando dado muda | Consistencia mais forte |
+| **TTL (Time to Live)** | Expires after X minutes | Data that can be stale for a while |
+| **Cache-aside** | App checks cache, if missing goes to database | Most common pattern |
+| **Write-through** | Write updates cache + database together | Data that changes and is read frequently |
+| **Write-behind** | Write updates cache, database is updated later | High write performance |
+| **Event-based** | Event invalidates cache when data changes | Stronger consistency |
 
 ## IMemoryCache vs IDistributedCache
 
-| Aspecto | IMemoryCache | IDistributedCache (Redis) |
+| Aspect | IMemoryCache | IDistributedCache (Redis) |
 |---------|-------------|--------------------------|
-| Velocidade | Mais rapido (in-process) | Mais lento (rede) |
-| Compartilhamento | Uma instancia so | Todas as instancias |
-| Sobrevive a restart | Nao | Sim |
-| Serializacao | Nao precisa | Precisa (JSON/binary) |
-| Quando usar | App com uma instancia | Multiplas instancias, dados compartilhados |
+| Speed | Faster (in-process) | Slower (network) |
+| Sharing | Single instance only | All instances |
+| Survives restart | No | Yes |
+| Serialization | Not needed | Required (JSON/binary) |
+| When to use | App with a single instance | Multiple instances, shared data |
 
-## Dicas
+## Tips
 
-1. **Nunca cache dados sensiveis** sem encriptacao
-2. **Defina TTL** sempre — cache sem expiracao e memory leak
-3. **Use cache-aside** como padrao
-4. **Monitore hit rate** — cache com hit rate baixo nao ajuda
-5. **Cache stampede**: quando o cache expira e N requests vao ao banco simultaneamente. Solucao: lock ou `GetOrCreate` com factory
+1. **Never cache sensitive data** without encryption
+2. **Always set a TTL** — cache without expiration is a memory leak
+3. **Use cache-aside** as the default pattern
+4. **Monitor hit rate** — cache with low hit rate doesn't help
+5. **Cache stampede**: when cache expires and N requests hit the database simultaneously. Solution: lock or `GetOrCreate` with factory
 
 ---
 
-[← Anterior: Background Services](06-background-services.md) | [Próximo: Minimal APIs →](08-minimal-apis.md) | [Voltar ao índice](README.md)
+[← Previous: Background Services](06-background-services.md) | [Next: Minimal APIs →](08-minimal-apis.md) | [Back to index](README.md)

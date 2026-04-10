@@ -1,16 +1,16 @@
-# 01 - Fundamentos C#
+# 01 - C# Fundamentals
 
-## Conteúdo
+## Content
 
-1. [Ecossistema .NET](01-ecossistema-dotnet.md) - C#, .NET, ASP.NET Core e como se relacionam
-2. [Namespace](02-namespace.md) - Organização lógica do código
-3. [CLR e IL](03-clr-e-il.md) - Common Language Runtime e Intermediate Language
-4. [Tipos Numéricos](04-tipos-numericos.md) - Float vs Double vs Decimal
-5. [Modificadores](05-modificadores.md) - Modificadores de acesso, classes e atributos
-6. [Equals vs ==](06-equals-vs-operador.md) - Comparação por valor vs referência, records
-7. [Generics](07-generics.md) - Constraints, covariância/contravariância
-8. [Delegates e Eventos](08-delegates-e-eventos.md) - Func, Action, events, observer pattern
+1. [.NET Ecosystem](01-ecossistema-dotnet.md) - C#, .NET, ASP.NET Core and how they relate
+2. [Namespace](02-namespace.md) - Logical code organization
+3. [CLR and IL](03-clr-e-il.md) - Common Language Runtime and Intermediate Language
+4. [Numeric Types](04-tipos-numericos.md) - Float vs Double vs Decimal
+5. [Modifiers](05-modificadores.md) - Access modifiers, class and field modifiers
+6. [Equals vs ==](06-equals-vs-operador.md) - Value vs reference comparison, records
+7. [Generics](07-generics.md) - Constraints, covariance/contravariance
+8. [Delegates and Events](08-delegates-e-eventos.md) - Func, Action, events, observer pattern
 
 ---
 
-[Voltar ao índice](../README.md)
+[Back to index](../README.md)

@@ -1,57 +1,57 @@
-# Bancos de Dados
+# Databases
 
-## Geral
+## General
 
-Numa aplicação com grande pressão de escrita, digamos um e-commerce em dia de Black Friday, fechando várias compras por segundo, você deve programar sua aplicação para usar **filas**. Toda nova compra entra na fila e vai sendo escrito no banco à medida que der. Você nunca pode só aumentar a quantidade de servidores de aplicação web e deixar conectar todo mundo no mesmo banco ao mesmo tempo, isso só vai aumentar a contenção e no final ninguém consegue escrever.
+In an application with heavy write pressure, say an e-commerce on Black Friday, closing several purchases per second, you should program your application to use **queues**. Every new purchase enters the queue and gets written to the database as capacity allows. You should never just increase the number of web application servers and let everyone connect to the same database at the same time — that will only increase contention and in the end nobody can write.
 
-É melhor todo mundo entrar numa fila e só a fila gerenciar o banco. As leituras usam caches de Redis e isso tira a carga de pesquisa no banco.
+It's better for everyone to enter a queue and let only the queue manage the database. Reads use Redis caches, which takes the search load off the database.
 
-O grande gargalo numa aplicação web é o banco de dados, porque mesmo com replicação e sharding, você sempre vai ter contenção por causa das garantias ACID.
+The major bottleneck in a web application is the database, because even with replication and sharding, you will always have contention due to ACID guarantees.
 
-## Bancos NoSQL
+## NoSQL Databases
 
-Diferente de um banco relacional, a maioria não é nem um banco transacional e nem um banco analítico, ou seja, que você pode sair fazendo queries como em SQL com qualquer critério e a qualquer momento.
+Unlike a relational database, most are neither a transactional database nor an analytical database where you can run queries like SQL with any criteria at any time.
 
-Pesquisas em bancos NoSQL precisam ser **planejadas, indexadas com antecedência**. NoSQLs tendem a ser bancos que funcionem em cluster, com shards, ou seja, nenhum servidor tem todos os dados que você precisa ao mesmo tempo, e se sua pesquisa for mal planejada, ela vai ter que ir vasculhando em todos os nós da rede, e isso custa processamento e custa tempo, muito tempo.
+Searches in NoSQL databases need to be **planned and indexed in advance**. NoSQL databases tend to be databases that run in clusters, with shards, meaning no single server has all the data you need at the same time, and if your search is poorly planned, it will have to scan across all nodes in the network, which costs processing and time — a lot of time.
 
-## Bancos Relacionais
+## Relational Databases
 
-Num banco relacional, o que mais custa performance é escrever, mais do que ler. A escrita precisa ter o tal ACID garantido: **atomicidade, consistência, isolamento e durabilidade**. Dados escritos precisam garantidamente estar no disco de tal forma que uma pane inesperada não faça você perder dados.
+In a relational database, what costs the most in terms of performance is writing, more than reading. Writes need to have ACID guaranteed: **atomicity, consistency, isolation, and durability**. Written data must be guaranteed to be on disk so that an unexpected crash doesn't cause data loss.
 
-Múltiplas conexões escrevendo ao mesmo tempo não podem um pisar no pé do outro, você precisa de um esquema de concorrência como **multiversion concurrency control ou MVCC** que a maioria dos bancos usa hoje em dia. E você precisa de **transaction logs** pra conseguir dar rollback ou voltar ao estado original dos dados se uma transação de múltiplas operações dá pau na metade.
+Multiple connections writing at the same time cannot step on each other's toes — you need a concurrency scheme like **multiversion concurrency control or MVCC**, which most databases use today. And you need **transaction logs** to be able to rollback or return to the original state of the data if a multi-operation transaction fails midway.
 
 ## 1. MongoDB
 
-É um banco de dados NoSQL. Todas as operações são feitas em RAM, é o que garante sua performance. Mas isso significa que se a máquina der pane antes da RAM ter chance de dar flush pro disco, **você pode perder dados**.
+It is a NoSQL database. All operations are done in RAM, which is what guarantees its performance. But this means that if the machine crashes before RAM has a chance to flush to disk, **you can lose data**.
 
-Você pode configurar pra que ele garanta mais durabilidade. Por exemplo, hoje quando você manda gravar alguma coisa no Mongo ele devolve ok antes de ter realmente gravado. O ok do Mongo é mais tipo "belê, recebi a ordem pra gravar, quando der eu gravo". Diferente de um banco relacional que só dá ok se garantidamente o dado foi gravado.
+You can configure it to guarantee more durability. For example, today when you send a write to Mongo it returns OK before having actually written. Mongo's OK is more like "alright, I received the order to write, I'll write when I can." This is different from a relational database that only returns OK if the data was guaranteed to be written.
 
-Você pode configurar o Mongo pra devolver ok só se garantidamente uma outra instância de replica master recebeu o dado. Mas aí você perde a performance que era justamente o que te fez escolher Mongo em primeiro lugar.
+You can configure Mongo to return OK only if a replica master instance has guaranteed to receive the data. But then you lose the performance that was precisely why you chose Mongo in the first place.
 
 ## 2. Cassandra
 
-Um NoSQL wide column store. Apesar de ter similaridades com bancos relacionais só na superfície — especialmente nos schemas e no CQL que é similar a SQL — não tem absolutamente nada a ver. Eles são como **key-value stores multi dimensionais com column families** e foram feitos pra serem bancos altamente distribuídos, com múltiplos nós num cluster, de preferência em múltiplas regiões diferentes.
+A NoSQL wide column store. Despite having surface-level similarities with relational databases — especially in schemas and CQL which is similar to SQL — it has absolutely nothing in common. They are like **multi-dimensional key-value stores with column families** and were built to be highly distributed databases, with multiple nodes in a cluster, preferably across multiple different regions.
 
-Cassandra **não foi feito pra usar numa única instância**, como banco de um blog. O sweet spot dele é funcionar em cluster, com múltiplos nós, e com muita escrita.
+Cassandra **was not made to be used on a single instance**, like a blog database. Its sweet spot is running in a cluster, with multiple nodes, and with heavy writes.
 
 ## 3. Redis
 
-Na prática a maioria de nós vai sempre acabar usando uma **combinação de um banco relacional com um cache**, usando algo como um Redis. Nessa configuração o Redis pode até ser um pouco mais relaxado porque o certo é fazer com que os dados sejam consultados no Redis e o que não estiver lá você carrega do banco relacional e grava no Redis à medida que for precisando.
+In practice most of us will always end up using a **combination of a relational database with a cache**, using something like Redis. In this configuration Redis can be a bit more relaxed because the right approach is to have data queried from Redis and whatever isn't there you load from the relational database and write to Redis as needed.
 
-Portanto o Redis pode ser reconstruído do zero mesmo se der pane e precisar derrubar tudo. E você usa o Redis pra manter coisas pesadas de calcular e gravar num banco relacional como **agregações**, coisas com contadores, médias e outras métricas que agregam múltiplas linhas do banco.
+Therefore Redis can be rebuilt from scratch even if there's a crash and you need to tear everything down. And you use Redis to keep things that are expensive to calculate and write in a relational database like **aggregations**, things with counters, averages, and other metrics that aggregate multiple rows from the database.
 
-## Dicas de Performance
+## Performance Tips
 
-1. **Desnormalização controlada** — Quanto mais normalizada a tabela, mais lento vai ficar pois vai exigir mais do banco. Ex: ao invés de criar uma tabela ESTADOS (São Paulo, Minas Gerais), a sigla e nome do estado podem ser salvos diretamente na tabela de usuário. Isso irá deixar o banco com menos joins e aumentar a performance.
+1. **Controlled denormalization** — The more normalized the table, the slower it will be as it demands more from the database. E.g.: instead of creating a STATES table (Sao Paulo, Minas Gerais), the state abbreviation and name can be saved directly in the user table. This will reduce joins and increase performance.
 
-2. **Cache** — Colocar cache para evitar ao máximo ir até o banco.
+2. **Cache** — Add caching to avoid hitting the database as much as possible.
 
-3. **Filas para escrita** — Programar a aplicação para deixar o pedido de escrita do banco em uma fila (como RabbitMQ), para evitar gargalos e dar timeout para o usuário.
+3. **Queues for writes** — Program the application to put database write requests into a queue (like RabbitMQ), to avoid bottlenecks and timeouts for the user.
 
-4. **Full-text search** — Quando precisar fazer pesquisa textual e mostrar resultados por relevância (como busca em e-commerces), o mais correto e performático é usar algo como **ElasticSearch**.
+4. **Full-text search** — When you need to do text search and show results by relevance (like e-commerce search), the most correct and performant approach is to use something like **ElasticSearch**.
 
-5. **Índices** — Criar os índices necessários, mas não criar demais pois pode prejudicar a performance (cada índice precisa ser atualizado a cada escrita).
+5. **Indexes** — Create the necessary indexes, but don't create too many as it can hurt performance (each index needs to be updated on every write).
 
 ---
 
-[← Anterior: Entity Framework](02-entity-framework.md) | [Próximo: Otimização de Queries →](04-otimizacao-de-queries.md) | [Voltar ao índice](README.md)
+[← Previous: Entity Framework](02-entity-framework.md) | [Next: Query Optimization →](04-otimizacao-de-queries.md) | [Back to index](README.md)

@@ -1,38 +1,38 @@
 # Structs vs Classes
 
-## Diferenças fundamentais
+## Fundamental differences
 
-| Característica | `struct` (Value Type) | `class` (Reference Type) |
+| Feature | `struct` (Value Type) | `class` (Reference Type) |
 |---|---|---|
-| Onde é armazenado | Stack (geralmente) | Heap |
-| Passagem por parâmetro | Cópia do valor | Cópia da referência |
-| Herança | Não suporta | Suporta |
-| Pode ser null | Não (a menos que `Nullable<T>`) | Sim |
-| Garbage Collection | Não precisa | Precisa |
-| Default constructor | Sempre existe (não pode ser removido) | Pode ser customizado |
-| Performance | Melhor para objetos pequenos e frequentes | Melhor para objetos complexos |
+| Where it is stored | Stack (generally) | Heap |
+| Parameter passing | Copy of the value | Copy of the reference |
+| Inheritance | Not supported | Supported |
+| Can be null | No (unless `Nullable<T>`) | Yes |
+| Garbage Collection | Not needed | Needed |
+| Default constructor | Always exists (cannot be removed) | Can be customized |
+| Performance | Better for small and frequent objects | Better for complex objects |
 
-## Quando usar struct
+## When to use struct
 
-Structs são melhores em cenários com **muitos objetos pequenos e de vida curta**, onde evitar alocações no heap faz diferença significativa:
+Structs are better in scenarios with **many small, short-lived objects**, where avoiding heap allocations makes a significant difference:
 
-- Simulação de água com um grande array de vetores de velocidade
-- Jogos de construção de cidades com muitos objetos de mesmo comportamento (como carros)
-- Sistemas de partículas em tempo real
-- Renderização de CPU usando um grande array de pixels
+- Water simulation with a large array of velocity vectors
+- City-building games with many objects of the same behavior (like cars)
+- Real-time particle systems
+- CPU rendering using a large array of pixels
 
-## Quando usar class
+## When to use class
 
-- Quando o objeto precisa de herança
-- Quando o objeto é grande (mais de ~16 bytes)
-- Quando precisa de identidade (duas instâncias com mesmos valores são coisas diferentes)
-- Quando precisa ser nulo (`null`)
-- Na grande maioria das situações do dia a dia
+- When the object needs inheritance
+- When the object is large (more than ~16 bytes)
+- When identity is needed (two instances with the same values are different things)
+- When it needs to be null (`null`)
+- In the vast majority of everyday situations
 
-## Exemplo prático
+## Practical example
 
 ```csharp
-// Struct - bom para coordenadas (pequeno, sem identidade)
+// Struct - good for coordinates (small, no identity)
 public struct Point
 {
     public double X { get; }
@@ -41,7 +41,7 @@ public struct Point
     public Point(double x, double y) => (X, Y) = (x, y);
 }
 
-// Class - bom para entidades de negócio (identidade, herança)
+// Class - good for business entities (identity, inheritance)
 public class Cliente
 {
     public Guid Id { get; }
@@ -59,16 +59,16 @@ public class Cliente
 
 ## Records (C# 9+)
 
-Para cenários onde você quer **imutabilidade** e **igualdade por valor** sem usar struct:
+For scenarios where you want **immutability** and **value equality** without using struct:
 
 ```csharp
-// record class - alocado no heap mas com igualdade por valor
+// record class - allocated on the heap but with value equality
 public record Endereco(string Rua, string Cidade, string Estado);
 
-// record struct (C# 10) - alocado na stack com igualdade por valor
+// record struct (C# 10) - allocated on the stack with value equality
 public readonly record struct Coordenada(double Lat, double Lon);
 ```
 
 ---
 
-[← Anterior: Memory Leak](04-memory-leak.md) | [Voltar ao índice](README.md)
+[← Previous: Memory Leak](04-memory-leak.md) | [Back to index](README.md)

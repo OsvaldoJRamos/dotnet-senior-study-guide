@@ -1,58 +1,58 @@
 # Namespace
 
-## O que é
+## What it is
 
-Namespaces servem para duas coisas principais:
+Namespaces serve two main purposes:
 
-- **Divisão lógica** — organizar o código, agrupando classes, estruturas e outros afins
-- **Evitar conflitos de nomes** — de classes, estruturas, delegates, etc.
+- **Logical division** — organize code by grouping classes, structs, and other related types
+- **Avoid name conflicts** — of classes, structs, delegates, etc.
 
-## O que significa o namespace
+## What the namespace means
 
-Quando você cria classes e outros tipos dentro de um namespace, na verdade o namespace faz parte do nome daquela classe.
+When you create classes and other types inside a namespace, the namespace actually becomes part of that class's name.
 
 ```csharp
 namespace EspacoNomes { public class MinhaClasse { } }
 ```
 
-Na verdade o nome completo dessa classe é `EspacoNomes.MinhaClasse`.
+The actual full name of this class is `EspacoNomes.MinhaClasse`.
 
-## Usando classes sem indicar o nome completo
+## Using classes without specifying the full name
 
-O nome completo da classe pode ser reduzido para somente `MinhaClasse` quando se faz uso dos `using`s no topo do arquivo, ou no início do namespace:
+The full class name can be shortened to just `MinhaClasse` by using `using` directives at the top of the file or at the beginning of the namespace:
 
 ```csharp
-using EspacoNomes; // faz com que todas as classes dentro do namespace possam
-// ser referidas somente pelo nome final da classe
+using EspacoNomes; // allows all classes within the namespace to be
+// referred to by just the final class name
 ```
 
-Também é possível renomear completamente uma classe com um using:
+It is also possible to completely rename a class with a using:
 
 ```csharp
 using NovoNome = EspacoNomes.MinhaClasse;
 ```
 
-Agora pode-se fazer referência à `EspacoNomes.MinhaClasse` usando-se simplesmente `NovoNome`.
+Now you can reference `EspacoNomes.MinhaClasse` by simply using `NovoNome`.
 
-## Referência direta dentro do mesmo namespace
+## Direct reference within the same namespace
 
-Quando um código está dentro de um namespace, ele pode fazer referência direta a tudo que está diretamente no mesmo namespace. Por exemplo, duas classes dentro do mesmo namespace podem se referir uma à outra usando apenas o nome final da classe.
+When code is inside a namespace, it can directly reference everything that is directly in the same namespace. For example, two classes within the same namespace can refer to each other using just the final class name.
 
 ## File-scoped namespaces (C# 10+)
 
-A partir do C# 10, é possível declarar o namespace sem chaves, aplicando-o ao arquivo inteiro:
+Starting with C# 10, you can declare the namespace without braces, applying it to the entire file:
 
 ```csharp
 namespace MeuProjeto.Services;
 
 public class MeuServico
 {
-    // Todo o arquivo pertence ao namespace MeuProjeto.Services
+    // The entire file belongs to the MeuProjeto.Services namespace
 }
 ```
 
-Isso reduz a indentação e é o padrão recomendado em projetos modernos.
+This reduces indentation and is the recommended standard in modern projects.
 
 ---
 
-[← Anterior: Ecossistema .NET](01-ecossistema-dotnet.md) | [Voltar ao índice](README.md) | [Próximo: CLR e IL →](03-clr-e-il.md)
+[← Previous: .NET Ecosystem](01-ecossistema-dotnet.md) | [Back to index](README.md) | [Next: CLR and IL →](03-clr-e-il.md)

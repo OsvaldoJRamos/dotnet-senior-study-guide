@@ -1,24 +1,24 @@
 # Terraform (Infrastructure as Code)
 
-## O que e
+## What it is
 
-Terraform e uma ferramenta de **Infrastructure as Code (IaC)** da HashiCorp. Define infraestrutura em arquivos declarativos (HCL) e provisiona em qualquer cloud (AWS, Azure, GCP).
+Terraform is an **Infrastructure as Code (IaC)** tool by HashiCorp. It defines infrastructure in declarative files (HCL) and provisions on any cloud (AWS, Azure, GCP).
 
-## Por que IaC
+## Why IaC
 
-| Sem IaC (manual) | Com IaC (Terraform) |
+| Without IaC (manual) | With IaC (Terraform) |
 |-------------------|---------------------|
-| "Clica aqui, configura ali" | Codigo versionado no Git |
-| Impossivel reproduzir | Reproduzivel em qualquer ambiente |
-| Sem historico de mudancas | Git blame mostra quem mudou o que |
-| "Funciona na minha cloud" | Mesmo codigo = mesma infra |
-| Propenso a erro humano | Automatizado e revisavel em PR |
+| "Click here, configure there" | Code versioned in Git |
+| Impossible to reproduce | Reproducible in any environment |
+| No change history | Git blame shows who changed what |
+| "Works on my cloud" | Same code = same infra |
+| Prone to human error | Automated and reviewable in PRs |
 
-## Conceitos fundamentais
+## Fundamental concepts
 
 ### Provider
 
-Plugin que conecta o Terraform a um cloud provider:
+Plugin that connects Terraform to a cloud provider:
 
 ```hcl
 terraform {
@@ -38,7 +38,7 @@ provider "azurerm" {
 
 ### Resource
 
-Componente de infraestrutura:
+Infrastructure component:
 
 ```hcl
 resource "azurerm_resource_group" "main" {
@@ -73,13 +73,13 @@ resource "azurerm_linux_web_app" "api" {
 ```hcl
 # variables.tf
 variable "environment" {
-  description = "Ambiente (dev, staging, prod)"
+  description = "Environment (dev, staging, prod)"
   type        = string
   default     = "dev"
 }
 
 variable "db_password" {
-  description = "Senha do banco"
+  description = "Database password"
   type        = string
   sensitive   = true  # nao aparece nos logs
 }
@@ -92,7 +92,7 @@ resource "azurerm_resource_group" "main" {
 
 ### Output
 
-Valores de saida apos o apply:
+Output values after apply:
 
 ```hcl
 output "api_url" {
@@ -107,9 +107,9 @@ output "db_connection_string" {
 
 ## State
 
-Terraform mantem um **state file** (`terraform.tfstate`) que mapeia recursos declarados vs recursos reais na cloud.
+Terraform maintains a **state file** (`terraform.tfstate`) that maps declared resources vs actual resources in the cloud.
 
-### Remote state (obrigatorio em time)
+### Remote state (mandatory for teams)
 
 ```hcl
 terraform {
@@ -122,25 +122,25 @@ terraform {
 }
 ```
 
-> **Nunca** commite o `terraform.tfstate` no Git — contem secrets.
+> **Never** commit `terraform.tfstate` to Git — it contains secrets.
 
-## Workflow basico
+## Basic workflow
 
 ```bash
-# 1. Inicializa providers e backend
+# 1. Initializes providers and backend
 terraform init
 
-# 2. Mostra o que vai mudar (dry-run)
+# 2. Shows what will change (dry-run)
 terraform plan
 
-# 3. Aplica as mudancas
+# 3. Applies changes
 terraform apply
 
-# 4. Destroi tudo (cuidado!)
+# 4. Destroys everything (be careful!)
 terraform destroy
 ```
 
-## Exemplo completo: API + SQL Server no Azure
+## Full example: API + SQL Server on Azure
 
 ```hcl
 resource "azurerm_resource_group" "main" {
@@ -175,7 +175,7 @@ resource "azurerm_linux_web_app" "api" {
 }
 ```
 
-## Exemplo: Infra na AWS
+## Example: Infra on AWS
 
 ```hcl
 provider "aws" {
@@ -225,10 +225,10 @@ resource "aws_ecs_service" "api" {
 }
 ```
 
-## Modules (reutilizacao)
+## Modules (reuse)
 
 ```hcl
-# Modulo reutilizavel
+# Reusable module
 module "api" {
   source      = "./modules/web-app"
   environment = "prod"
@@ -244,25 +244,25 @@ module "api_staging" {
 }
 ```
 
-## Terraform vs outras ferramentas
+## Terraform vs other tools
 
-| Aspecto | Terraform | ARM/Bicep (Azure) | CloudFormation (AWS) | Pulumi |
+| Aspect | Terraform | ARM/Bicep (Azure) | CloudFormation (AWS) | Pulumi |
 |---------|-----------|--------------------|-----------------------|--------|
-| Multi-cloud | Sim | Nao (so Azure) | Nao (so AWS) | Sim |
-| Linguagem | HCL | JSON/Bicep | JSON/YAML | C#, TS, Python |
-| State | Arquivo (remote) | Gerenciado pelo Azure | Gerenciado pela AWS | Arquivo (remote) |
-| Ecossistema | Maior | Azure only | AWS only | Crescendo |
+| Multi-cloud | Yes | No (Azure only) | No (AWS only) | Yes |
+| Language | HCL | JSON/Bicep | JSON/YAML | C#, TS, Python |
+| State | File (remote) | Managed by Azure | Managed by AWS | File (remote) |
+| Ecosystem | Largest | Azure only | AWS only | Growing |
 
-## Boas praticas
+## Best practices
 
-1. **Remote state** — nunca local em time
-2. **State locking** — evita duas pessoas aplicando ao mesmo tempo
-3. **Modules** — reutilize codigo entre ambientes
-4. **`terraform plan` em CI** — review antes de apply
-5. **Variáveis sensíveis** — use `sensitive = true` e secret managers
-6. **Workspaces ou pastas por ambiente** — isole dev/staging/prod
+1. **Remote state** — never local for teams
+2. **State locking** — prevents two people from applying at the same time
+3. **Modules** — reuse code across environments
+4. **`terraform plan` in CI** — review before apply
+5. **Sensitive variables** — use `sensitive = true` and secret managers
+6. **Workspaces or folders per environment** — isolate dev/staging/prod
 7. **`.gitignore`** — ignore `*.tfstate`, `*.tfstate.backup`, `.terraform/`
 
 ---
 
-[← Anterior: Docker e Kubernetes](03-docker-e-kubernetes.md) | [Próximo: Azure Pipelines →](05-azure-pipelines.md) | [Voltar ao índice](README.md)
+[← Previous: Docker and Kubernetes](03-docker-e-kubernetes.md) | [Next: Azure Pipelines →](05-azure-pipelines.md) | [Back to index](README.md)

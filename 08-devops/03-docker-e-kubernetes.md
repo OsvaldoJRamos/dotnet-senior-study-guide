@@ -1,17 +1,17 @@
-# Docker e Kubernetes
+# Docker and Kubernetes
 
 ## Docker
 
-### O que e
+### What it is
 
-Docker empacota uma aplicacao e suas dependencias em um **container** — ambiente isolado, leve e reproduzivel.
+Docker packages an application and its dependencies into a **container** — an isolated, lightweight, and reproducible environment.
 
 ```
 ┌──────────────────────┐
 │     Container         │
 │  ┌──────────────────┐│
-│  │  Sua aplicacao   ││
-│  │  + dependencias  ││
+│  │  Your application ││
+│  │  + dependencies  ││
 │  │  + runtime       ││
 │  └──────────────────┘│
 │     Linux kernel      │
@@ -20,13 +20,13 @@ Docker empacota uma aplicacao e suas dependencias em um **container** — ambien
 
 ### Container vs VM
 
-| Aspecto | Container | VM |
+| Aspect | Container | VM |
 |---------|-----------|-----|
-| Peso | MBs (leve) | GBs (pesado) |
-| Startup | Segundos | Minutos |
-| Isolamento | Processo | SO completo |
-| Overhead | Minimo | Alto |
-| Uso | Microservices, CI/CD | Isolamento total, legacy |
+| Size | MBs (lightweight) | GBs (heavy) |
+| Startup | Seconds | Minutes |
+| Isolation | Process | Full OS |
+| Overhead | Minimal | High |
+| Use case | Microservices, CI/CD | Full isolation, legacy |
 
 ### Dockerfile (.NET)
 
@@ -39,7 +39,7 @@ RUN dotnet restore
 COPY . .
 RUN dotnet publish -c Release -o /app/publish
 
-# Runtime stage (multi-stage = imagem menor)
+# Runtime stage (multi-stage = smaller image)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
@@ -47,28 +47,28 @@ EXPOSE 8080
 ENTRYPOINT ["dotnet", "MinhaApp.dll"]
 ```
 
-### Comandos essenciais
+### Essential commands
 
 ```bash
 # Build
 docker build -t minha-app:1.0 .
 
-# Rodar
+# Run
 docker run -d -p 8080:8080 --name app minha-app:1.0
 
-# Listar containers
+# List containers
 docker ps
 
 # Logs
 docker logs app
 
-# Parar e remover
+# Stop and remove
 docker stop app && docker rm app
 ```
 
 ### Docker Compose
 
-Orquestra **multiplos containers** localmente:
+Orchestrates **multiple containers** locally:
 
 ```yaml
 # docker-compose.yml
@@ -99,28 +99,28 @@ services:
 ```
 
 ```bash
-docker compose up -d    # sobe tudo
-docker compose down     # derruba tudo
-docker compose logs -f  # acompanha logs
+docker compose up -d    # starts everything
+docker compose down     # tears everything down
+docker compose logs -f  # follows logs
 ```
 
 ## Kubernetes (K8s)
 
-### O que e
+### What it is
 
-Plataforma de **orquestracao de containers** em escala. Gerencia deploy, escala, networking e resiliencia.
+A **container orchestration** platform at scale. It manages deployment, scaling, networking, and resilience.
 
-### Conceitos principais
+### Main concepts
 
-| Conceito | Descricao |
+| Concept | Description |
 |----------|-----------|
-| **Pod** | Menor unidade — 1 ou mais containers juntos |
-| **Deployment** | Gerencia replicas de pods (rolling updates, rollback) |
-| **Service** | Expoe pods na rede (load balancer interno) |
-| **Ingress** | Roteia trafego externo (HTTP) para services |
-| **Namespace** | Isolamento logico (dev, staging, prod) |
-| **ConfigMap** | Configuracoes nao-sensiveis |
-| **Secret** | Dados sensiveis (senhas, connection strings) |
+| **Pod** | Smallest unit — 1 or more containers together |
+| **Deployment** | Manages pod replicas (rolling updates, rollback) |
+| **Service** | Exposes pods on the network (internal load balancer) |
+| **Ingress** | Routes external traffic (HTTP) to services |
+| **Namespace** | Logical isolation (dev, staging, prod) |
+| **ConfigMap** | Non-sensitive configurations |
+| **Secret** | Sensitive data (passwords, connection strings) |
 
 ### Deployment YAML
 
@@ -173,19 +173,19 @@ spec:
   type: ClusterIP
 ```
 
-### Comandos essenciais
+### Essential commands
 
 ```bash
-kubectl apply -f deployment.yaml      # aplica configuracao
-kubectl get pods                       # lista pods
-kubectl get services                   # lista services
-kubectl scale deployment minha-api --replicas=5  # escala
+kubectl apply -f deployment.yaml      # applies configuration
+kubectl get pods                       # lists pods
+kubectl get services                   # lists services
+kubectl scale deployment minha-api --replicas=5  # scales
 kubectl rollout undo deployment minha-api        # rollback
 kubectl logs -f pod-name               # logs
-kubectl describe pod pod-name          # detalhes do pod
+kubectl describe pod pod-name          # pod details
 ```
 
-### Health Checks em .NET
+### Health Checks in .NET
 
 ```csharp
 builder.Services.AddHealthChecks()
@@ -196,16 +196,16 @@ app.MapHealthChecks("/health");    // liveness
 app.MapHealthChecks("/ready");     // readiness
 ```
 
-## Servicos gerenciados de K8s
+## Managed K8s services
 
-| Servico | Provedor |
+| Service | Provider |
 |---------|----------|
 | **AKS** | Azure Kubernetes Service |
 | **EKS** | Amazon Elastic Kubernetes Service |
 | **GKE** | Google Kubernetes Engine |
 
-Gerenciados = nao precisa gerenciar o control plane (master nodes).
+Managed = no need to manage the control plane (master nodes).
 
 ---
 
-[← Anterior: FaaS](02-faas.md) | [Próximo: Terraform →](04-terraform.md) | [Voltar ao índice](README.md)
+[← Previous: FaaS](02-faas.md) | [Next: Terraform →](04-terraform.md) | [Back to index](README.md)

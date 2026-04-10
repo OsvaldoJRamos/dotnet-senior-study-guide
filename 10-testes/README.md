@@ -1,10 +1,10 @@
-# 10 - Testes
+# 10 - Testing
 
-## Conteúdo
+## Contents
 
-1. [Pirâmide de Testes](01-piramide-de-testes.md) - Unitários, integração, E2E, test doubles
-2. [Mocking e Boas Práticas](02-mocking-e-boas-praticas.md) - Moq, AAA, DataRow, WebApplicationFactory
+1. [Testing Pyramid](01-piramide-de-testes.md) - Unit, integration, E2E, test doubles
+2. [Mocking and Best Practices](02-mocking-e-boas-praticas.md) - Moq, AAA, DataRow, WebApplicationFactory
 
 ---
 
-[Voltar ao índice](../README.md)
+[Back to index](../README.md)

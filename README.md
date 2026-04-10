@@ -12,51 +12,51 @@ A comprehensive, open-source study guide covering the core topics a **senior .NE
 
 Every topic includes **concise explanations**, **code examples**, and **practical tips** — written the way you'd explain it in an interview, not like a textbook.
 
-> All content is written in **Portuguese (pt-BR)** with code and technical terms in English.
+> All content is written in **English** with code examples in C#/.NET.
 
 ## Topics
 
-### [01 - Fundamentos C#](01-fundamentos-csharp/README.md)
-Ecossistema .NET, namespaces, CLR/IL, tipos numéricos, modificadores, generics, delegates e eventos.
+### [01 - C# Fundamentals](01-fundamentos-csharp/README.md)
+.NET ecosystem, namespaces, CLR/IL, numeric types, modifiers, generics, delegates, and events.
 
-### [02 - Coleções e LINQ](02-colecoes-e-linq/README.md)
+### [02 - Collections and LINQ](02-colecoes-e-linq/README.md)
 IEnumerable, IQueryable, ICollection, IList, yield return.
 
-### [03 - Memória e Performance](03-memoria-e-performance/README.md)
-Stack/Heap, Garbage Collector, otimização de memória, memory leaks, structs vs classes.
+### [03 - Memory and Performance](03-memoria-e-performance/README.md)
+Stack/Heap, Garbage Collector, memory optimization, memory leaks, structs vs classes.
 
-### [04 - Concorrência e Paralelismo](04-concorrencia-e-paralelismo/README.md)
+### [04 - Concurrency and Parallelism](04-concorrencia-e-paralelismo/README.md)
 Parallel, Task, async/await, race conditions, deadlocks, SemaphoreSlim.
 
-### [05 - Arquitetura e Padrões](05-arquitetura-e-padroes/README.md)
-SOLID, Design Patterns, Clean Architecture, CQRS, Microservices, Mensageria.
+### [05 - Architecture and Patterns](05-arquitetura-e-padroes/README.md)
+SOLID, Design Patterns, Clean Architecture, CQRS, Microservices, Messaging.
 
 ### [06 - ASP.NET Core](06-aspnet-core/README.md)
-DI, lifetimes, OAuth, resiliência, middleware, caching, Minimal APIs, SignalR.
+DI, lifetimes, OAuth, resilience, middleware, caching, Minimal APIs, SignalR.
 
-### [07 - Acesso a Dados](07-acesso-a-dados/README.md)
-ORM vs Micro ORM vs ADO.NET, Entity Framework, bancos de dados, otimização de queries.
+### [07 - Data Access](07-acesso-a-dados/README.md)
+ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization.
 
 ### [08 - DevOps](08-devops/README.md)
 CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
 
-### [09 - HTTP e Web](09-http-e-web/README.md)
-Semântica HTTP, MIME types, REST API design, segurança web.
+### [09 - HTTP and Web](09-http-e-web/README.md)
+HTTP semantics, MIME types, REST API design, web security.
 
-### [10 - Testes](10-testes/README.md)
-Pirâmide de testes, mocking (Moq), boas práticas, WebApplicationFactory.
+### [10 - Testing](10-testes/README.md)
+Testing pyramid, mocking (Moq), best practices, WebApplicationFactory.
 
 ### [11 - Angular](11-angular/README.md)
 Promises vs Observables, RxJS.
 
-### [12 - IA](12-ia/README.md)
-Tensors, embeddings, Semantic Kernel.
+### [12 - AI](12-ia/README.md)
+Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.
 
 ### [13 - Cloud](13-cloud/README.md)
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
-### [14 - Entrevistas](14-entrevistas/README.md)
-Perguntas comuns em entrevistas .NET.
+### [14 - Interviews](14-entrevistas/README.md)
+Common .NET interview questions.
 
 ## How to use
 

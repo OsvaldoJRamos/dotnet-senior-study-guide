@@ -1,8 +1,8 @@
 # Generics
 
-## O que sao
+## What they are
 
-Generics permitem criar classes, interfaces e metodos que trabalham com **qualquer tipo**, sem perder type safety. Evitam duplicacao de codigo e boxing/unboxing desnecessario.
+Generics allow you to create classes, interfaces, and methods that work with **any type**, without losing type safety. They avoid code duplication and unnecessary boxing/unboxing.
 
 ```csharp
 // Sem generics: precisa de cast, sem type safety
@@ -16,7 +16,7 @@ lista.Add(42);
 int valor = lista[0]; // sem cast
 ```
 
-## Classes e metodos genericos
+## Generic classes and methods
 
 ```csharp
 // Classe generica
@@ -41,28 +41,28 @@ repo.Adicionar(new Produto("Notebook"));
 var produto = repo.ObterPorIndice(0);
 ```
 
-## Constraints (restricoes)
+## Constraints (restrictions)
 
-Constraints limitam quais tipos podem ser usados como argumento generico:
+Constraints limit which types can be used as a generic argument:
 
 ```csharp
 public class Servico<T> where T : class, IEntidade, new()
 //                        ↑         ↑           ↑
-//                   reference type  implementa   tem construtor
-//                                  IEntidade     sem parametros
+//                   reference type  implements   has parameterless
+//                                  IEntidade     constructor
 ```
 
-| Constraint | Significado |
-|-----------|-------------|
-| `where T : class` | Deve ser reference type |
-| `where T : struct` | Deve ser value type |
-| `where T : new()` | Deve ter construtor sem parametros |
-| `where T : IEntidade` | Deve implementar a interface |
-| `where T : BaseClass` | Deve herdar da classe |
-| `where T : notnull` | Nao pode ser null |
-| `where T : unmanaged` | Deve ser tipo unmanaged (int, float, struct sem refs) |
+| Constraint | Meaning |
+|-----------|---------|
+| `where T : class` | Must be a reference type |
+| `where T : struct` | Must be a value type |
+| `where T : new()` | Must have a parameterless constructor |
+| `where T : IEntidade` | Must implement the interface |
+| `where T : BaseClass` | Must inherit from the class |
+| `where T : notnull` | Cannot be null |
+| `where T : unmanaged` | Must be an unmanaged type (int, float, struct without refs) |
 
-### Multiplas constraints
+### Multiple constraints
 
 ```csharp
 public class Repositorio<T> where T : class, IEntidade, new()
@@ -76,9 +76,9 @@ public class Repositorio<T> where T : class, IEntidade, new()
 }
 ```
 
-## Covariancia e Contravariancia
+## Covariance and Contravariance
 
-### Covariancia (`out`) — "pode retornar tipo mais especifico"
+### Covariance (`out`) -- "can return a more specific type"
 
 ```csharp
 // IEnumerable<out T> e covariante
@@ -88,7 +88,7 @@ IEnumerable<object> objects = strings; // OK! string herda de object
 // Funciona porque IEnumerable so RETORNA T, nunca recebe
 ```
 
-### Contravariancia (`in`) — "pode aceitar tipo mais generico"
+### Contravariance (`in`) -- "can accept a more generic type"
 
 ```csharp
 // Action<in T> e contravariante
@@ -98,10 +98,10 @@ Action<string> printString = printObject; // OK!
 // Funciona porque Action so RECEBE T, nunca retorna
 ```
 
-### Regra pratica
+### Practical rule
 
-- `out T` = T so aparece como **retorno** (covariante)
-- `in T` = T so aparece como **parametro** (contravariante)
+- `out T` = T only appears as a **return** (covariant)
+- `in T` = T only appears as a **parameter** (contravariant)
 
 ```csharp
 public interface IConvertedor<in TEntrada, out TSaida>
@@ -112,21 +112,21 @@ public interface IConvertedor<in TEntrada, out TSaida>
 
 ## Generic vs object/dynamic
 
-| Aspecto | Generic (`T`) | `object` | `dynamic` |
-|---------|---------------|----------|-----------|
-| Type safety | Compile-time | Nenhum (precisa cast) | Runtime |
-| Performance | Sem boxing | Boxing para value types | Overhead DLR |
-| IntelliSense | Sim | Nao | Nao |
-| Quando usar | Sempre que possivel | Interop, reflection | COM interop, ExpandoObject |
+| Aspect | Generic (`T`) | `object` | `dynamic` |
+|--------|---------------|----------|-----------|
+| Type safety | Compile-time | None (needs cast) | Runtime |
+| Performance | No boxing | Boxing for value types | DLR overhead |
+| IntelliSense | Yes | No | No |
+| When to use | Whenever possible | Interop, reflection | COM interop, ExpandoObject |
 
-## Dicas para entrevista
+## Interview tips
 
-1. Generics evitam **boxing/unboxing** com value types (performance)
-2. Constraints garantem **type safety em compile-time**
-3. Covariancia/contravariancia so funcionam com **interfaces e delegates**, nao classes
-4. `List<T>` nao e covariante — `IEnumerable<T>` e (porque e read-only)
-5. Generics sao resolvidos em **compile-time** (diferente de Java que usa type erasure)
+1. Generics avoid **boxing/unboxing** with value types (performance)
+2. Constraints guarantee **type safety at compile-time**
+3. Covariance/contravariance only work with **interfaces and delegates**, not classes
+4. `List<T>` is not covariant -- `IEnumerable<T>` is (because it's read-only)
+5. Generics are resolved at **compile-time** (unlike Java which uses type erasure)
 
 ---
 
-[← Anterior: Equals vs ==](06-equals-vs-operador.md) | [Próximo: Delegates e Eventos →](08-delegates-e-eventos.md) | [Voltar ao índice](README.md)
+[← Previous: Equals vs ==](06-equals-vs-operador.md) | [Next: Delegates and Events →](08-delegates-e-eventos.md) | [Back to index](README.md)

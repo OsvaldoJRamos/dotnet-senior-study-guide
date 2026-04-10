@@ -1,31 +1,31 @@
-# Testes de Software
+# Software Testing
 
-## Piramide de Testes
+## Testing Pyramid
 
 ```
         /\
-       /  \      E2E (poucos, caros, criticos)
+       /  \      E2E (few, expensive, critical)
       /----\
-     /      \    Integracao (medio volume)
+     /      \    Integration (medium volume)
     /--------\
-   /          \  Unitarios (muitos, rapidos, baratos)
+   /          \  Unit (many, fast, cheap)
   /____________\
 ```
 
-## Ponto importante
+## Important point
 
-Testes **nao podem depender de servicos externos**. Em CI/CD, testes sao executados antes do build. Se o servico externo falhar ou nao tiver os dados necessarios, os testes falham e consequentemente o build.
+Tests **must not depend on external services**. In CI/CD, tests run before the build. If the external service fails or does not have the required data, the tests fail and consequently the build fails.
 
-## Testes Unitarios
+## Unit Tests
 
-Testam a **menor porcao do codigo** (metodo publico, value object, etc.).
+Test the **smallest portion of the code** (public method, value object, etc.).
 
-- Feitos em **maior escala** por serem simples de implementar
-- Usam **mocks** para dependencias externas
-- Devem ser feitos pelo **desenvolvedor**
-- Geralmente testam **somente metodos publicos**
+- Done at **larger scale** because they are simple to implement
+- Use **mocks** for external dependencies
+- Should be written by the **developer**
+- Generally test **only public methods**
 
-> Se e necessario testar metodos privados, talvez a classe tenha **muita responsabilidade**. Considere mover o metodo para outra classe e torna-lo publico.
+> If you need to test private methods, perhaps the class has **too much responsibility**. Consider moving the method to another class and making it public.
 
 ```csharp
 [TestClass]
@@ -51,19 +51,19 @@ public class CalculadoraTests
 }
 ```
 
-## Testes de Integracao
+## Integration Tests
 
-Testam se **partes diferentes funcionam corretamente juntas**.
+Test whether **different parts work correctly together**.
 
-- Mais **custosos** de fazer, por isso feitos em **menor quantidade**
-- Mais dificil encontrar os problemas
-- Nem sempre abrangem todos os cenarios
+- More **costly** to write, so done in **smaller quantity**
+- Harder to pinpoint the problems
+- Do not always cover all scenarios
 
-Exemplos:
-- Chamadas de controllers
-- Leitura e escrita em banco de dados
-- Lendo e gravando em filas
-- Utilizacao de sistemas de arquivo
+Examples:
+- Controller calls
+- Database reads and writes
+- Reading from and writing to queues
+- File system usage
 
 ```csharp
 [TestClass]
@@ -88,34 +88,34 @@ public class ClienteControllerTests
 }
 ```
 
-## Testes E2E (Ponta a Ponta)
+## E2E Tests (End-to-End)
 
-Simulam a **interacao do usuario** com a aplicacao.
+Simulate the **user's interaction** with the application.
 
-- **Extremamente dificeis** de fazer e manter
-- Devem estar presentes somente nas partes **mais criticas**
-- Testam o fluxo completo (frontend -> backend -> banco)
+- **Extremely difficult** to write and maintain
+- Should only be present for the **most critical** parts
+- Test the complete flow (frontend -> backend -> database)
 
-Ferramentas: Playwright, Selenium, Cypress
+Tools: Playwright, Selenium, Cypress
 
 ## Contract Tests
 
-Verificam que a **interface (contrato)** entre servicos esta sendo respeitada.
+Verify that the **interface (contract)** between services is being respected.
 
-Util em microservices para garantir que mudancas em uma API nao quebrem os consumidores.
+Useful in microservices to ensure that changes in an API do not break consumers.
 
 ## Test Doubles
 
-Objetos que substituem dependencias reais nos testes:
+Objects that replace real dependencies in tests:
 
-| Tipo | Descricao |
-|------|-----------|
-| **Mock** | Verifica se metodos foram chamados corretamente |
-| **Stub** | Retorna valores pre-definidos |
-| **Fake** | Implementacao simplificada (ex: banco em memoria) |
-| **Spy** | Registra chamadas para verificacao posterior |
-| **Dummy** | Objeto que so preenche parametro, nunca e usado |
+| Type | Description |
+|------|-------------|
+| **Mock** | Verifies that methods were called correctly |
+| **Stub** | Returns pre-defined values |
+| **Fake** | Simplified implementation (e.g., in-memory database) |
+| **Spy** | Records calls for later verification |
+| **Dummy** | Object that only fills a parameter, never actually used |
 
 ---
 
-[Próximo: Mocking e Boas Práticas →](02-mocking-e-boas-praticas.md) | [Voltar ao índice](README.md)
+[Next: Mocking and Best Practices →](02-mocking-e-boas-praticas.md) | [Back to index](README.md)

@@ -1,12 +1,12 @@
 # Yield Return
 
-## O que é
+## What it is
 
-O `yield return` permite criar iteradores que retornam elementos **um por vez**, sob demanda, sem precisar criar uma lista completa na memória.
+`yield return` allows you to create iterators that return elements **one at a time**, on demand, without needing to create a complete list in memory.
 
-## Comparação: sem yield vs com yield
+## Comparison: without yield vs with yield
 
-### Sem yield (cria lista inteira na memória):
+### Without yield (creates the entire list in memory):
 ```csharp
 List<int> tempResult = new();
 foreach(var item in collection)
@@ -16,7 +16,7 @@ foreach(var item in collection)
 return tempResult;
 ```
 
-### Com yield (retorna elemento por elemento):
+### With yield (returns element by element):
 ```csharp
 foreach(var item in collection)
 {
@@ -24,15 +24,15 @@ foreach(var item in collection)
 }
 ```
 
-## Quando usar
+## When to use
 
-O uso de `yield return` é indicado quando **não será necessário utilizar todo o retorno da lista**. Caso o consumidor da função necessite de usar todos os itens da lista, seu uso pode não ser recomendado, pois pode piorar a performance.
+Using `yield return` is recommended when **you won't need to use the entire return list**. If the function's consumer needs to use all items in the list, its use may not be recommended, as it can worsen performance.
 
-## Exemplo 1: Economia de recursos
+## Example 1: Resource savings
 
-### Sem yield — carrega tudo na memória:
+### Without yield — loads everything into memory:
 ```csharp
-// Retorna um milhão de itens que podem ser iterados
+// Returns one million items that can be iterated
 List<object> GetAllItems()
 {
     List<object> millionCustomers;
@@ -40,7 +40,7 @@ List<object> GetAllItems()
     return millionCustomers;
 }
 
-// Chamada
+// Call
 int num = 0;
 foreach(var itm in GetAllItems())
 {
@@ -48,19 +48,19 @@ foreach(var itm in GetAllItems())
     if (num == 5)
         break;
 }
-// Nota: um milhão de itens são retornados do banco, mas somente 5 são usados.
+// Note: one million items are returned from the database, but only 5 are used.
 ```
 
-### Com yield — carrega sob demanda:
+### With yield — loads on demand:
 ```csharp
-// Retorna cada item em cada chamada
+// Returns each item on each call
 IEnumerable<object> IterateOverItems()
 {
     for (int i = 0; i < database.Customers.Count(); ++i)
         yield return database.Customers[i];
 }
 
-// Chamada
+// Call
 int num = 0;
 foreach(var itm in IterateOverItems())
 {
@@ -68,20 +68,20 @@ foreach(var itm in IterateOverItems())
     if (num == 5)
         break;
 }
-// Somente executa os 5 itens dentre um milhão existente
+// Only executes for 5 items out of one million existing
 ```
 
-Para esse cenário o uso do yield seria **muito mais performático**.
+For this scenario, using yield would be **much more performant**.
 
-## Exemplo 2: Interface responsiva
+## Example 2: Responsive interface
 
-Imagine que uma lista está sendo retornada por um programa com interface com usuário. Sem o yield, todos os dados precisam ser retornados para serem mostrados na interface. Isso pode levar alguns segundos, quem sabe até em casos extremos, minutos. O usuário vai achar que deu "pau".
+Imagine a list being returned by a program with a user interface. Without yield, all data needs to be returned before it can be displayed in the interface. This can take a few seconds, or in extreme cases, even minutes. The user would think something went wrong.
 
-Com o yield é possível pegar elemento por elemento e já ir mostrando para o usuário sem bloquear a interface.
+With yield, you can get elements one by one and start displaying them to the user without blocking the interface.
 
 ## yield break
 
-Usado para encerrar a iteração antecipadamente:
+Used to terminate the iteration early:
 
 ```csharp
 IEnumerable<int> NumerosPares(int max)
@@ -89,7 +89,7 @@ IEnumerable<int> NumerosPares(int max)
     for (int i = 0; i <= max; i++)
     {
         if (i > 100)
-            yield break; // para de gerar elementos
+            yield break; // stops generating elements
         
         if (i % 2 == 0)
             yield return i;
@@ -99,4 +99,4 @@ IEnumerable<int> NumerosPares(int max)
 
 ---
 
-[← Anterior: ICollection e IList](02-icollection-ilist.md) | [Voltar ao índice](README.md)
+[← Previous: ICollection and IList](02-icollection-ilist.md) | [Back to index](README.md)
