@@ -6,6 +6,13 @@ A comprehensive .NET senior study guide — organized markdown files covering C#
 
 **Repository:** https://github.com/OsvaldoJRamos/dotnet-senior-study-guide
 
+## Git Workflow
+
+- **Never commit directly to `main`**. Always create a feature branch and open a Pull Request.
+- Branch naming: `docs/<short-description>` (e.g., `docs/add-aws-lambda-topic`)
+- PR title should be concise and descriptive
+- After creating the PR, share the URL with the user for review
+
 ## Language Rules
 
 - **All content must be in English** — headings, explanations, code comments, variable names, class names, string literals
