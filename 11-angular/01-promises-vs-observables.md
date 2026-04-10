@@ -31,9 +31,9 @@ Real-time search as the user types:
 
 ```typescript
 this.searchControl.valueChanges.pipe(
-  debounceTime(300),          // espera 300ms sem digitar
-  distinctUntilChanged(),      // ignora se o valor nao mudou
-  switchMap(term =>            // cancela requisicao anterior
+  debounceTime(300),          // waits 300ms after last keystroke
+  distinctUntilChanged(),      // ignores if value didn't change
+  switchMap(term =>            // cancels previous request
     this.http.get<Resultado[]>(`/api/busca?q=${term}`)
   )
 ).subscribe(resultados => {

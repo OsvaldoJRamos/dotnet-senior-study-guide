@@ -1,4 +1,4 @@
-# Software Testing
+# Testing Pyramid
 
 ## Testing Pyramid
 

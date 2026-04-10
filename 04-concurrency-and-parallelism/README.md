@@ -1,6 +1,6 @@
 # 04 - Concurrency and Parallelism
 
-## Contents
+## Content
 
 1. [Parallelism vs Concurrency](01-parallelism-vs-concurrency.md) - Concepts and differences
 2. [Parallel.ForEach and Parallel.Invoke](02-parallel-foreach-invoke.md) - Parallel task execution

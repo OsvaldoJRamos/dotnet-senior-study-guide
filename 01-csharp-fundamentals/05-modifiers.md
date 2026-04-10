@@ -112,36 +112,6 @@ public class User : EntityBase, INotifiable
 }
 ```
 
-## Equals() vs ==
-
-### Operator `==`
-- For **value types** (`int`, `double`, `struct`): compares **values**.
-- For **reference types** (`class`): compares **references** (whether they point to the same object in memory).
-- `string` is an exception: `==` compares the **content** (because the operator is overloaded).
-
-### Method `Equals()`
-- Can be **overridden** to define custom equality.
-- By default in classes: compares reference (same as `==`).
-- By default in structs: compares values field by field (but with reflection -- slow).
-
-```csharp
-var a = new Person("John");
-var b = new Person("John");
-
-Console.WriteLine(a == b);      // False (different references)
-Console.WriteLine(a.Equals(b)); // False (by default, compares reference)
-
-// After overriding Equals:
-public override bool Equals(object obj)
-{
-    return obj is Person p && p.Name == Name;
-}
-
-Console.WriteLine(a.Equals(b)); // True (now compares by value)
-```
-
-**Best practice:** when overriding `Equals`, always override `GetHashCode` as well.
-
 ---
 
 [← Previous: Numeric Types](04-numeric-types.md) | [Next: Equals vs == →](06-equals-vs-operator.md) | [Back to index](README.md)

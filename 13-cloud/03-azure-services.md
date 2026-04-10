@@ -33,7 +33,7 @@ FaaS — serverless functions (see [FaaS](../08-devops/02-faas.md)):
 
 - Triggers: HTTP, Queue, Timer, Blob, Event Grid
 - Consumption plan: pay per execution
-- Premium plan: no cold start
+- Premium plan: minimal cold starts (pre-warmed instances)
 
 ### When to Use What
 

@@ -12,6 +12,9 @@
 8. [DevOps and Cloud](08-devops-and-cloud.md) - Docker, Kubernetes, Terraform, CI/CD, AWS, Azure
 9. [HTTP, Security, and Testing](09-http-security-testing.md) - REST, CORS, JWT, OWASP, testing pyramid, mocking
 10. [Algorithms](10-algorithms.md) - Big O, data structures, sorting, search, BFS/DFS, DP
+11. [Angular](11-angular.md) - Promises vs Observables, RxJS, SignalR, OnPush, lazy loading, virtual scrolling
+12. [AI and LLMs](12-ai.md) - Embeddings, RAG, prompt engineering, function calling, Semantic Kernel, MCP
+13. [Cloud and Infrastructure](13-cloud.md) - EC2, ALB/NLB, S3, IAM, VPC, SQS/SNS, Terraform, Docker, Azure
 
 ---
 
