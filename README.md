@@ -58,6 +58,9 @@ AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 ### [14 - Interviews](14-interviews/README.md)
 Common .NET interview questions.
 
+### [15 - Algorithms and Data Structures](15-algorithms-and-data-structures/README.md)
+Big O, sorting, searching, recursion, trees, graphs, dynamic programming, greedy — all with C# examples and complexity analysis.
+
 ## How to use
 
 Pick any section and start reading — each topic is self-contained. Use the navigation links at the bottom of each file to move between related topics.
