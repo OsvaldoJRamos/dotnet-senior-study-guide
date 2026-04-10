@@ -100,16 +100,18 @@ Lists all sections with a one-line description. Update it whenever adding a new 
 4. **Update the section README** — add the new file to the numbered list
 5. **Update navigation links** — add "Next" to the previous file, "Previous" to the new file
 6. **Update root README** — if the section description should change
-7. **Cross-reference** — if the topic is mentioned in other files (e.g., interviews), link to it
+7. **Cross-reference** — if the topic is mentioned in other files, link to it
+8. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `14-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
 
 ## When Modifying Content
 
 - Keep the same format and style as existing files
 - Don't add Portuguese — everything in English
-- Code examples should be practical, interview-ready, and concise
+- Code examples should be practical and concise
 - Use tables for comparisons (X vs Y)
-- Use blockquotes (`>`) for tips, warnings, and interview notes
+- Use blockquotes (`>`) for tips and warnings
 - Keep files focused — one topic per file, not everything in one giant file
+- **Always add/update self-assessment questions** in `14-self-assessment/` when modifying topic content
 
 ## Content Style
 
