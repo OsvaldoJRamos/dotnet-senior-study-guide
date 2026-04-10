@@ -232,14 +232,14 @@ resource "aws_ecs_service" "api" {
 module "api" {
   source      = "./modules/web-app"
   environment = "prod"
-  app_name    = "minha-api"
+  app_name    = "my-api"
   sku         = "P1v2"
 }
 
 module "api_staging" {
   source      = "./modules/web-app"
   environment = "staging"
-  app_name    = "minha-api"
+  app_name    = "my-api"
   sku         = "B1"
 }
 ```

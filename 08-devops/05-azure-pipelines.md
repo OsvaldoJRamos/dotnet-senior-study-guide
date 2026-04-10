@@ -125,7 +125,7 @@ stages:
               steps:
                 - task: AzureWebApp@1
                   inputs:
-                    azureSubscription: 'minha-subscription'
+                    azureSubscription: 'my-subscription'
                     appType: 'webAppLinux'
                     appName: 'app-api-staging'
                     package: '$(Pipeline.Workspace)/drop/**/*.zip'
@@ -146,7 +146,7 @@ stages:
               steps:
                 - task: AzureWebApp@1
                   inputs:
-                    azureSubscription: 'minha-subscription'
+                    azureSubscription: 'my-subscription'
                     appType: 'webAppLinux'
                     appName: 'app-api-prod'
                     package: '$(Pipeline.Workspace)/drop/**/*.zip'
@@ -165,8 +165,8 @@ stages:
           - task: Docker@2
             displayName: 'Build and Push'
             inputs:
-              containerRegistry: 'meu-acr'
-              repository: 'minha-api'
+              containerRegistry: 'my-acr'
+              repository: 'my-api'
               command: 'buildAndPush'
               Dockerfile: '**/Dockerfile'
               tags: |
@@ -197,7 +197,7 @@ steps:
 steps:
   - template: templates/dotnet-build.yml
     parameters:
-      project: 'src/MinhaApi/MinhaApi.csproj'
+      project: 'src/MyApi/MyApi.csproj'
 ```
 
 ## Variables and Secrets
@@ -215,7 +215,7 @@ variables:
 steps:
   - script: echo $(DB_PASSWORD)
     env:
-      DB_PASSWORD: $(dbPassword)  # secret nao aparece nos logs
+      DB_PASSWORD: $(dbPassword)  # secret does not appear in logs
 ```
 
 ## Environments and Approval Gates

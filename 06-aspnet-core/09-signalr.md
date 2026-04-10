@@ -32,35 +32,35 @@ Client  ←──WebSocket──→  Hub (server)  ←──→  Other clients
 public class ChatHub : Hub
 {
     // Client calls this method
-    public async Task EnviarMensagem(string usuario, string mensagem)
+    public async Task SendMessage(string user, string message)
     {
         // Sends to ALL connected clients
-        await Clients.All.SendAsync("ReceberMensagem", usuario, mensagem);
+        await Clients.All.SendAsync("ReceiveMessage", user, message);
     }
 
     // Send to a specific group
-    public async Task EnviarParaSala(string sala, string mensagem)
+    public async Task SendToRoom(string room, string message)
     {
-        await Clients.Group(sala).SendAsync("ReceberMensagem", mensagem);
+        await Clients.Group(room).SendAsync("ReceiveMessage", message);
     }
 
     // Join a room
-    public async Task EntrarNaSala(string sala)
+    public async Task JoinRoom(string room)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, sala);
+        await Groups.AddToGroupAsync(Context.ConnectionId, room);
     }
 
     // Connection events
     public override async Task OnConnectedAsync()
     {
         await base.OnConnectedAsync();
-        // usuario conectou
+        // user connected
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         await base.OnDisconnectedAsync(exception);
-        // usuario desconectou
+        // user disconnected
     }
 }
 
@@ -78,12 +78,12 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
 // Receive messages
-connection.on("ReceberMensagem", (usuario, mensagem) => {
-    console.log(`${usuario}: ${mensagem}`);
+connection.on("ReceiveMessage", (user, message) => {
+    console.log(`${user}: ${message}`);
 });
 
 // Send message
-await connection.invoke("EnviarMensagem", "Osvaldo", "Olá!");
+await connection.invoke("SendMessage", "Osvaldo", "Hello!");
 
 await connection.start();
 ```
@@ -96,13 +96,13 @@ var connection = new HubConnectionBuilder()
     .WithAutomaticReconnect()
     .Build();
 
-connection.On<string, string>("ReceberMensagem", (usuario, msg) =>
+connection.On<string, string>("ReceiveMessage", (user, msg) =>
 {
-    Console.WriteLine($"{usuario}: {msg}");
+    Console.WriteLine($"{user}: {msg}");
 });
 
 await connection.StartAsync();
-await connection.InvokeAsync("EnviarMensagem", "Bot", "Conectado!");
+await connection.InvokeAsync("SendMessage", "Bot", "Connected!");
 ```
 
 ## Sending from outside the Hub
@@ -110,19 +110,19 @@ await connection.InvokeAsync("EnviarMensagem", "Bot", "Conectado!");
 Useful in controllers or background services:
 
 ```csharp
-public class PedidoController : ControllerBase
+public class OrderController : ControllerBase
 {
-    private readonly IHubContext<NotificacaoHub> _hub;
+    private readonly IHubContext<NotificationHub> _hub;
 
     [HttpPost]
-    public async Task<IActionResult> Criar(PedidoDto dto)
+    public async Task<IActionResult> Create(OrderDto dto)
     {
-        var pedido = await _service.CriarAsync(dto);
+        var order = await _service.CreateAsync(dto);
 
         // Notify connected clients
-        await _hub.Clients.All.SendAsync("PedidoCriado", pedido.Id);
+        await _hub.Clients.All.SendAsync("OrderCreated", order.Id);
 
-        return CreatedAtAction(nameof(Obter), new { id = pedido.Id }, pedido);
+        return CreatedAtAction(nameof(Get), new { id = order.Id }, order);
     }
 }
 ```
@@ -135,7 +135,7 @@ With multiple instances, clients on different instances can't see each other. So
 builder.Services.AddSignalR()
     .AddStackExchangeRedis("localhost:6379", options =>
     {
-        options.Configuration.ChannelPrefix = RedisChannel.Literal("minha-app");
+        options.Configuration.ChannelPrefix = RedisChannel.Literal("my-app");
     });
 ```
 

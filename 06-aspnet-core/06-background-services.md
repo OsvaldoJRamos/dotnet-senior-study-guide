@@ -15,17 +15,17 @@ Services that run in the **background** in ASP.NET Core, without depending on HT
 Base interface with two methods:
 
 ```csharp
-public class MeuServico : IHostedService
+public class MyService : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("Servico iniciado");
+        Console.WriteLine("Service started");
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("Servico parado");
+        Console.WriteLine("Service stopped");
         return Task.CompletedTask;
     }
 }
@@ -36,12 +36,12 @@ public class MeuServico : IHostedService
 Abstract class that simplifies the creation of long-running services:
 
 ```csharp
-public class FilaProcessorService : BackgroundService
+public class QueueProcessorService : BackgroundService
 {
-    private readonly ILogger<FilaProcessorService> _logger;
+    private readonly ILogger<QueueProcessorService> _logger;
     private readonly IServiceProvider _provider;
 
-    public FilaProcessorService(ILogger<FilaProcessorService> logger, IServiceProvider provider)
+    public QueueProcessorService(ILogger<QueueProcessorService> logger, IServiceProvider provider)
     {
         _logger = logger;
         _provider = provider;
@@ -54,13 +54,13 @@ public class FilaProcessorService : BackgroundService
             try
             {
                 using var scope = _provider.CreateScope();
-                var servico = scope.ServiceProvider.GetRequiredService<IProcessadorFila>();
+                var service = scope.ServiceProvider.GetRequiredService<IQueueProcessor>();
                 
-                await servico.ProcessarProximoAsync();
+                await service.ProcessNextAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao processar fila");
+                _logger.LogError(ex, "Error processing queue");
             }
 
             await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
@@ -69,7 +69,7 @@ public class FilaProcessorService : BackgroundService
 }
 
 // Registration
-builder.Services.AddHostedService<FilaProcessorService>();
+builder.Services.AddHostedService<QueueProcessorService>();
 ```
 
 ## Be careful with Scoped services
@@ -78,9 +78,9 @@ BackgroundService is a **singleton**. To use **scoped** services (like DbContext
 
 ```csharp
 // WRONG: injecting DbContext directly in the constructor
-public class MeuServico : BackgroundService
+public class MyService : BackgroundService
 {
-    private readonly AppDbContext _context; // ERRO em runtime!
+    private readonly AppDbContext _context; // ERROR at runtime!
 }
 
 // CORRECT: create a scope
@@ -88,20 +88,20 @@ protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 {
     using var scope = _provider.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    // usar context...
+    // use context...
 }
 ```
 
 ## Scheduled job (Timer-based)
 
 ```csharp
-public class RelatorioService : BackgroundService
+public class ReportService : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            await GerarRelatorioAsync();
+            await GenerateReportAsync();
             
             // Runs every 1 hour
             await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
@@ -121,7 +121,7 @@ protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 
     while (await timer.WaitForNextTickAsync(stoppingToken))
     {
-        await ProcessarAsync();
+        await ProcessAsync();
     }
 }
 ```
@@ -135,10 +135,10 @@ For scenarios that need **advanced scheduling** (cron expressions, persistence, 
 
 ```csharp
 // Hangfire
-RecurringJob.AddOrUpdate<RelatorioService>(
-    "relatorio-diario",
-    service => service.GerarAsync(),
-    Cron.Daily(8, 0)); // todo dia as 8h
+RecurringJob.AddOrUpdate<ReportService>(
+    "daily-report",
+    service => service.GenerateAsync(),
+    Cron.Daily(8, 0)); // every day at 8am
 ```
 
 ---

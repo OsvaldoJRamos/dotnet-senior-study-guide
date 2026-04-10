@@ -48,7 +48,7 @@ app.Use(async (context, next) =>
     
     // After the next middleware
     sw.Stop();
-    Console.WriteLine($"{context.Request.Path} levou {sw.ElapsedMilliseconds}ms");
+    Console.WriteLine($"{context.Request.Path} took {sw.ElapsedMilliseconds}ms");
 });
 ```
 
@@ -110,11 +110,11 @@ Middleware can stop the pipeline without calling `next`:
 ```csharp
 app.Use(async (context, next) =>
 {
-    if (context.Request.Headers["X-Api-Key"] != "minha-chave")
+    if (context.Request.Headers["X-Api-Key"] != "my-key")
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsync("Unauthorized");
-        return; // nao chama next = curto-circuito
+        return; // does not call next = short-circuit
     }
 
     await next(context);

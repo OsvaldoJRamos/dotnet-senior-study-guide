@@ -6,20 +6,20 @@ Pattern for organizing tests:
 
 ```csharp
 [TestMethod]
-public async Task AprovarPedido_DeveAtualizarStatus()
+public async Task ApproveOrder_ShouldUpdateStatus()
 {
     // Arrange — set up the scenario
-    var pedido = new Pedido("cliente-1", 100m);
-    var repo = new Mock<IPedidoRepository>();
-    repo.Setup(r => r.ObterPorIdAsync(pedido.Id)).ReturnsAsync(pedido);
-    var service = new PedidoService(repo.Object);
+    var order = new Order("customer-1", 100m);
+    var repo = new Mock<IOrderRepository>();
+    repo.Setup(r => r.GetByIdAsync(order.Id)).ReturnsAsync(order);
+    var service = new OrderService(repo.Object);
 
     // Act — execute the action
-    await service.AprovarAsync(pedido.Id);
+    await service.ApproveAsync(order.Id);
 
     // Assert — verify the result
-    Assert.AreEqual(StatusPedido.Aprovado, pedido.Status);
-    repo.Verify(r => r.SalvarAsync(pedido), Times.Once);
+    Assert.AreEqual(OrderStatus.Approved, order.Status);
+    repo.Verify(r => r.SaveAsync(order), Times.Once);
 }
 ```
 
@@ -28,17 +28,17 @@ public async Task AprovarPedido_DeveAtualizarStatus()
 ### Setup and return
 
 ```csharp
-var mock = new Mock<IProdutoRepository>();
+var mock = new Mock<IProductRepository>();
 
 // Simple return
-mock.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(new Produto("Notebook"));
+mock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Product("Notebook"));
 
 // Return with callback
-mock.Setup(r => r.ObterPorIdAsync(It.IsAny<int>()))
-    .ReturnsAsync((int id) => new Produto($"Produto-{id}"));
+mock.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
+    .ReturnsAsync((int id) => new Product($"Product-{id}"));
 
 // Throw exception
-mock.Setup(r => r.ObterPorIdAsync(-1))
+mock.Setup(r => r.GetByIdAsync(-1))
     .ThrowsAsync(new NotFoundException());
 ```
 
@@ -55,13 +55,13 @@ It.IsRegex("[A-Z]+")              // regex
 
 ```csharp
 // Verify it was called
-mock.Verify(r => r.SalvarAsync(It.IsAny<Pedido>()), Times.Once);
+mock.Verify(r => r.SaveAsync(It.IsAny<Order>()), Times.Once);
 
 // Verify it was NOT called
-mock.Verify(r => r.RemoverAsync(It.IsAny<int>()), Times.Never);
+mock.Verify(r => r.RemoveAsync(It.IsAny<int>()), Times.Never);
 
 // Verify call with specific parameter
-mock.Verify(r => r.SalvarAsync(It.Is<Pedido>(p => p.Status == StatusPedido.Aprovado)));
+mock.Verify(r => r.SaveAsync(It.Is<Order>(p => p.Status == OrderStatus.Approved)));
 ```
 
 ## Naming Conventions
@@ -69,10 +69,10 @@ mock.Verify(r => r.SalvarAsync(It.Is<Pedido>(p => p.Status == StatusPedido.Aprov
 ```csharp
 // Pattern: Method_Scenario_ExpectedResult
 [TestMethod]
-public void Somar_NumerosPositivos_DeveRetornarSoma()
-public void Somar_ComZero_DeveRetornarOutroNumero()
-public void Aprovar_PedidoJaAprovado_DeveLancarException()
-public void CriarUsuario_EmailDuplicado_DeveRetornarConflito()
+public void Sum_PositiveNumbers_ShouldReturnSum()
+public void Sum_WithZero_ShouldReturnOtherNumber()
+public void Approve_AlreadyApproved_ShouldThrowException()
+public void CreateUser_DuplicateEmail_ShouldReturnConflict()
 ```
 
 ## Testing exceptions
@@ -80,22 +80,22 @@ public void CriarUsuario_EmailDuplicado_DeveRetornarConflito()
 ```csharp
 [TestMethod]
 [ExpectedException(typeof(DomainException))]
-public void Aprovar_PedidoCancelado_DeveLancarException()
+public void Approve_CancelledOrder_ShouldThrowException()
 {
-    var pedido = new Pedido("cliente-1", 100m);
-    pedido.Cancelar();
-    pedido.Aprovar(); // deve lancar
+    var order = new Order("customer-1", 100m);
+    order.Cancel();
+    order.Approve(); // should throw
 }
 
 // Or with Assert (more control)
 [TestMethod]
-public void Aprovar_PedidoCancelado_DeveLancarException()
+public void Approve_CancelledOrder_ShouldThrowException()
 {
-    var pedido = new Pedido("cliente-1", 100m);
-    pedido.Cancelar();
+    var order = new Order("customer-1", 100m);
+    order.Cancel();
 
-    var ex = Assert.ThrowsException<DomainException>(() => pedido.Aprovar());
-    Assert.AreEqual("Não é possível aprovar pedido cancelado", ex.Message);
+    var ex = Assert.ThrowsException<DomainException>(() => order.Approve());
+    Assert.AreEqual("Cannot approve a cancelled order", ex.Message);
 }
 ```
 
@@ -107,24 +107,24 @@ public void Aprovar_PedidoCancelado_DeveLancarException()
 [DataRow(0, 0, 0)]
 [DataRow(-1, 1, 0)]
 [DataRow(int.MaxValue, 1, int.MinValue)] // overflow
-public void Somar_ComVariosInputs(int a, int b, int esperado)
+public void Sum_WithVariousInputs(int a, int b, int expected)
 {
-    Assert.AreEqual(esperado, Calculadora.Somar(a, b));
+    Assert.AreEqual(expected, Calculator.Sum(a, b));
 }
 
 // DynamicData for complex scenarios
 [TestMethod]
-[DynamicData(nameof(CenariosDeDesconto), DynamicDataSourceType.Method)]
-public void CalcularDesconto_ComVariosCenarios(Pedido pedido, decimal esperado)
+[DynamicData(nameof(DiscountScenarios), DynamicDataSourceType.Method)]
+public void CalculateDiscount_WithVariousScenarios(Order order, decimal expected)
 {
-    Assert.AreEqual(esperado, pedido.CalcularDesconto());
+    Assert.AreEqual(expected, order.CalculateDiscount());
 }
 
-private static IEnumerable<object[]> CenariosDeDesconto()
+private static IEnumerable<object[]> DiscountScenarios()
 {
-    yield return new object[] { new Pedido(100m, TipoCliente.Regular), 0m };
-    yield return new object[] { new Pedido(100m, TipoCliente.Premium), 10m };
-    yield return new object[] { new Pedido(1000m, TipoCliente.Premium), 150m };
+    yield return new object[] { new Order(100m, CustomerType.Regular), 0m };
+    yield return new object[] { new Order(100m, CustomerType.Premium), 10m };
+    yield return new object[] { new Order(1000m, CustomerType.Premium), 150m };
 }
 ```
 
@@ -132,7 +132,7 @@ private static IEnumerable<object[]> CenariosDeDesconto()
 
 ```csharp
 [TestClass]
-public class PedidoApiTests
+public class OrderApiTests
 {
     private WebApplicationFactory<Program> _factory;
     private HttpClient _client;
@@ -145,7 +145,7 @@ public class PedidoApiTests
             {
                 builder.ConfigureServices(services =>
                 {
-                    // Substituir banco real por in-memory
+                    // Replace real database with in-memory
                     services.RemoveAll<DbContextOptions<AppDbContext>>();
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase("TestDb"));
@@ -155,10 +155,10 @@ public class PedidoApiTests
     }
 
     [TestMethod]
-    public async Task CriarPedido_DeveRetornar201()
+    public async Task CreateOrder_ShouldReturn201()
     {
-        var dto = new { ClienteId = "c1", Valor = 100m };
-        var response = await _client.PostAsJsonAsync("/api/pedidos", dto);
+        var dto = new { CustomerId = "c1", Value = 100m };
+        var response = await _client.PostAsJsonAsync("/api/orders", dto);
 
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
     }

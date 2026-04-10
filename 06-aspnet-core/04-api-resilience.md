@@ -25,11 +25,11 @@ Without resilience, a small failure becomes a **domino effect**.
 Repeat the call when **transient** failures occur (timeout, 5xx, connection reset).
 
 ```csharp
-// Com Polly
+// With Polly
 builder.Services.AddHttpClient("api")
     .AddTransientHttpErrorPolicy(p => 
         p.WaitAndRetryAsync(3, attempt => 
-            TimeSpan.FromSeconds(Math.Pow(2, attempt)))); // backoff exponencial
+            TimeSpan.FromSeconds(Math.Pow(2, attempt)))); // exponential backoff
 ```
 
 > Retry without control **increases load** and worsens the failure. Always use **exponential backoff**.
@@ -76,7 +76,7 @@ var fallbackPolicy = Policy<HttpResponseMessage>
     .Handle<HttpRequestException>()
     .FallbackAsync(new HttpResponseMessage(HttpStatusCode.OK)
     {
-        Content = new StringContent("[]") // retorna lista vazia como fallback
+        Content = new StringContent("[]") // returns empty list as fallback
     });
 ```
 
@@ -86,8 +86,8 @@ Isolates resources so that the failure of one doesn't bring down all of them:
 
 ```csharp
 var bulkhead = Policy.BulkheadAsync<HttpResponseMessage>(
-    maxParallelization: 10,    // maximo de chamadas simultaneas
-    maxQueuingActions: 20);    // maximo na fila de espera
+    maxParallelization: 10,    // max simultaneous calls
+    maxQueuingActions: 20);    // max in the wait queue
 ```
 
 ### 6. Rate Limiting
@@ -109,9 +109,9 @@ builder.Services.AddRateLimiter(options =>
 ## Typical implementation with HttpClientFactory + Polly
 
 ```csharp
-builder.Services.AddHttpClient("pagamento", client =>
+builder.Services.AddHttpClient("payment", client =>
 {
-    client.BaseAddress = new Uri("https://api.pagamento.com");
+    client.BaseAddress = new Uri("https://api.payment.com");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
 .AddTransientHttpErrorPolicy(p => p.WaitAndRetryAsync(3, 

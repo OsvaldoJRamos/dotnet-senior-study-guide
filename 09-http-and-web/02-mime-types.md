@@ -25,16 +25,16 @@ MIME type (or media type) is an identifier that informs the **type and format of
 **Content-Type**: indicates the type of the request body.
 
 ```http
-POST /api/clientes HTTP/1.1
+POST /api/customers HTTP/1.1
 Content-Type: application/json
 
-{"nome": "Osvaldo"}
+{"name": "Osvaldo"}
 ```
 
 **Accept**: indicates which types the client accepts as a response.
 
 ```http
-GET /api/clientes/1 HTTP/1.1
+GET /api/customers/1 HTTP/1.1
 Accept: application/json
 ```
 
@@ -45,7 +45,7 @@ POST /api/upload HTTP/1.1
 Content-Type: multipart/form-data; boundary=---boundary
 
 ---boundary
-Content-Disposition: form-data; name="arquivo"; filename="relatorio.pdf"
+Content-Disposition: form-data; name="file"; filename="report.pdf"
 Content-Type: application/pdf
 
 (binary PDF content)
@@ -57,7 +57,7 @@ Content-Type: application/pdf
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/pdf
-Content-Disposition: attachment; filename="relatorio.pdf"
+Content-Disposition: attachment; filename="report.pdf"
 
 (PDF content)
 ```
@@ -75,18 +75,18 @@ The browser knows whether to open it as a PDF, download it as a file, etc.
 ## In ASP.NET Core
 
 ```csharp
-// Retornando diferentes tipos de conteudo
-[HttpGet("relatorio")]
-public IActionResult GerarRelatorio()
+// Returning different content types
+[HttpGet("report")]
+public IActionResult GenerateReport()
 {
-    var pdf = GerarPdf();
-    return File(pdf, "application/pdf", "relatorio.pdf");
+    var pdf = GeneratePdf();
+    return File(pdf, "application/pdf", "report.pdf");
 }
 
-[HttpGet("dados")]
-public IActionResult ObterDados()
+[HttpGet("data")]
+public IActionResult GetData()
 {
-    return Ok(new { nome = "Osvaldo" }); // retorna application/json automaticamente
+    return Ok(new { name = "Osvaldo" }); // returns application/json automatically
 }
 ```
 

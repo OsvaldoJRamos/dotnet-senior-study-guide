@@ -14,24 +14,24 @@ REST (Representational State Transfer) is an architectural style for HTTP APIs. 
 
 ```
 # GOOD — plural nouns
-GET    /api/pedidos          # list
-GET    /api/pedidos/42       # get by ID
-POST   /api/pedidos          # create
-PUT    /api/pedidos/42       # full update
-PATCH  /api/pedidos/42       # partial update
-DELETE /api/pedidos/42       # remove
+GET    /api/orders          # list
+GET    /api/orders/42       # get by ID
+POST   /api/orders          # create
+PUT    /api/orders/42       # full update
+PATCH  /api/orders/42       # partial update
+DELETE /api/orders/42       # remove
 
 # BAD — verbs in the URL
-POST   /api/criarPedido
-GET    /api/obterPedido/42
-POST   /api/deletarPedido/42
+POST   /api/createOrder
+GET    /api/getOrder/42
+POST   /api/deleteOrder/42
 ```
 
 ### Nested resources
 
 ```
-GET /api/clientes/5/pedidos         # orders for customer 5
-GET /api/clientes/5/pedidos/42      # order 42 for customer 5
+GET /api/customers/5/orders         # orders for customer 5
+GET /api/customers/5/orders/42      # order 42 for customer 5
 ```
 
 > Do not nest more than 2 levels -- it gets confusing. Prefer query parameters.
@@ -69,7 +69,7 @@ GET /api/clientes/5/pedidos/42      # order 42 for customer 5
 ## Pagination
 
 ```
-GET /api/pedidos?page=2&pageSize=20
+GET /api/orders?page=2&pageSize=20
 
 Response:
 {
@@ -84,7 +84,7 @@ Response:
 ### Keyset pagination (better performance)
 
 ```
-GET /api/pedidos?after=pedido_xyz&limit=20
+GET /api/orders?after=order_xyz&limit=20
 ```
 
 More performant than OFFSET for large datasets.
@@ -92,24 +92,24 @@ More performant than OFFSET for large datasets.
 ## Filters, sorting, and search
 
 ```
-GET /api/pedidos?status=aprovado&clienteId=5     # filter
-GET /api/pedidos?sort=dataCriacao:desc            # sorting
-GET /api/pedidos?search=notebook                  # text search
+GET /api/orders?status=approved&customerId=5     # filter
+GET /api/orders?sort=createdDate:desc            # sorting
+GET /api/orders?search=notebook                  # text search
 ```
 
 ## Versioning
 
 ```
 # Via URL (most common)
-GET /api/v1/pedidos
-GET /api/v2/pedidos
+GET /api/v1/orders
+GET /api/v2/orders
 
 # Via header
-GET /api/pedidos
-Accept: application/vnd.minhaapi.v2+json
+GET /api/orders
+Accept: application/vnd.myapi.v2+json
 
 # Via query string
-GET /api/pedidos?api-version=2.0
+GET /api/orders?api-version=2.0
 ```
 
 > URL prefix (`/v1/`) is the most pragmatic and easiest to route.
@@ -120,14 +120,14 @@ Use the **RFC 7807 (Problem Details)** standard:
 
 ```json
 {
-  "type": "https://api.exemplo.com/errors/validation",
-  "title": "Erro de validação",
+  "type": "https://api.example.com/errors/validation",
+  "title": "Validation error",
   "status": 400,
-  "detail": "O campo 'nome' é obrigatório",
-  "instance": "/api/pedidos",
+  "detail": "The 'name' field is required",
+  "instance": "/api/orders",
   "errors": {
-    "nome": ["O campo 'nome' é obrigatório"],
-    "email": ["Email inválido"]
+    "name": ["The 'name' field is required"],
+    "email": ["Invalid email"]
   }
 }
 ```
@@ -137,7 +137,7 @@ In ASP.NET Core:
 ```csharp
 builder.Services.AddProblemDetails();
 
-// Retorna automaticamente Problem Details para erros
+// Automatically returns Problem Details for errors
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 ```
@@ -147,13 +147,13 @@ app.UseStatusCodePages();
 ```json
 {
   "id": 42,
-  "status": "pendente",
+  "status": "pending",
   "total": 150.00,
   "_links": {
-    "self": { "href": "/api/pedidos/42" },
-    "aprovar": { "href": "/api/pedidos/42/aprovar", "method": "POST" },
-    "cancelar": { "href": "/api/pedidos/42/cancelar", "method": "POST" },
-    "cliente": { "href": "/api/clientes/5" }
+    "self": { "href": "/api/orders/42" },
+    "approve": { "href": "/api/orders/42/approve", "method": "POST" },
+    "cancel": { "href": "/api/orders/42/cancel", "method": "POST" },
+    "customer": { "href": "/api/customers/5" }
   }
 }
 ```
@@ -163,7 +163,7 @@ app.UseStatusCodePages();
 ## Best practices
 
 1. **Nouns** in the URL, **verbs** in HTTP methods
-2. **Plural** for collections (`/pedidos`, not `/pedido`)
+2. **Plural** for collections (`/orders`, not `/order`)
 3. **Correct status codes** -- do not return 200 for everything
 4. **Pagination** on listings -- never return all records
 5. **Versioning** from the start

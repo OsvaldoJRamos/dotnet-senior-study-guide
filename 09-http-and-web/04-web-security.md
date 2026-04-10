@@ -28,8 +28,8 @@ eyJhbGci...eyJzdWIi...SflKxwRJ...
   "name": "Osvaldo",
   "role": "admin",
   "exp": 1712000000,
-  "iss": "minha-api",
-  "aud": "minha-app"
+  "iss": "my-api",
+  "aud": "my-app"
 }
 
 // Signature
@@ -45,9 +45,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = "minha-api",
+            ValidIssuer = "my-api",
             ValidateAudience = true,
-            ValidAudience = "minha-app",
+            ValidAudience = "my-app",
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
@@ -72,7 +72,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 Browser mechanism that **blocks** requests from different origins by default.
 
 ```
-https://meu-site.com (frontend)  →  https://api.meu-site.com (API)
+https://my-site.com (frontend)  →  https://api.my-site.com (API)
                                       ↑ Different origin = CORS
 ```
 
@@ -81,16 +81,16 @@ https://meu-site.com (frontend)  →  https://api.meu-site.com (API)
 ```csharp
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("MeuFrontend", policy =>
+    options.AddPolicy("MyFrontend", policy =>
     {
-        policy.WithOrigins("https://meu-site.com")
+        policy.WithOrigins("https://my-site.com")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
-app.UseCors("MeuFrontend");
+app.UseCors("MyFrontend");
 ```
 
 > **Never** use `AllowAnyOrigin()` with `AllowCredentials()` in production.
@@ -100,14 +100,14 @@ app.UseCors("MeuFrontend");
 ### 1. Injection (SQL, Command)
 
 ```csharp
-// VULNERAVEL — concatenacao de string
+// VULNERABLE — string concatenation
 var query = $"SELECT * FROM Users WHERE Name = '{input}'";
 
-// SEGURO — parametros
+// SAFE — parameters
 var query = "SELECT * FROM Users WHERE Name = @name";
 command.Parameters.AddWithValue("@name", input);
 
-// SEGURO — EF Core (parametriza automaticamente)
+// SAFE — EF Core (parameterizes automatically)
 var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == input);
 ```
 
@@ -121,10 +121,10 @@ var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == input);
 ### 3. XSS (Cross-Site Scripting)
 
 ```html
-<!-- VULNERAVEL: renderizar input do usuario sem sanitizar -->
+<!-- VULNERABLE: rendering user input without sanitizing -->
 <p>@Html.Raw(userInput)</p>
 
-<!-- SEGURO: Razor sanitiza automaticamente -->
+<!-- SAFE: Razor sanitizes automatically -->
 <p>@userInput</p>
 ```
 
@@ -133,10 +133,10 @@ var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == input);
 Someone forces the user's browser to make an unwanted request:
 
 ```csharp
-// Protecao em ASP.NET Core (automatico com forms)
+// Protection in ASP.NET Core (automatic with forms)
 [ValidateAntiForgeryToken]
 [HttpPost]
-public IActionResult Transferir(TransferenciaDto dto) { ... }
+public IActionResult Transfer(TransferDto dto) { ... }
 ```
 
 > REST APIs with JWT in the header **do not need** anti-CSRF (the token is not sent automatically).
@@ -175,11 +175,11 @@ app.Use(async (context, next) =>
 
 ```csharp
 // User Secrets (dev)
-dotnet user-secrets set "Jwt:Secret" "minha-chave-super-secreta"
+dotnet user-secrets set "Jwt:Secret" "my-super-secret-key"
 
 // Azure Key Vault (prod)
 builder.Configuration.AddAzureKeyVault(
-    new Uri("https://meu-vault.vault.azure.net/"),
+    new Uri("https://my-vault.vault.azure.net/"),
     new DefaultAzureCredential());
 ```
 

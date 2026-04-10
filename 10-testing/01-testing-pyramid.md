@@ -29,24 +29,24 @@ Test the **smallest portion of the code** (public method, value object, etc.).
 
 ```csharp
 [TestClass]
-public class CalculadoraTests
+public class CalculatorTests
 {
     [TestMethod]
-    public void Somar_DeveRetornarSomaCorreta()
+    public void Sum_ShouldReturnCorrectSum()
     {
-        var calc = new Calculadora();
-        var resultado = calc.Somar(2, 3);
-        Assert.AreEqual(5, resultado);
+        var calc = new Calculator();
+        var result = calc.Sum(2, 3);
+        Assert.AreEqual(5, result);
     }
 
     [TestMethod]
     [DataRow(0, 0, 0)]
     [DataRow(1, 1, 2)]
     [DataRow(-1, 1, 0)]
-    public void Somar_ComDynamicData(int a, int b, int esperado)
+    public void Sum_WithDynamicData(int a, int b, int expected)
     {
-        var calc = new Calculadora();
-        Assert.AreEqual(esperado, calc.Somar(a, b));
+        var calc = new Calculator();
+        Assert.AreEqual(expected, calc.Sum(a, b));
     }
 }
 ```
@@ -67,7 +67,7 @@ Examples:
 
 ```csharp
 [TestClass]
-public class ClienteControllerTests
+public class CustomerControllerTests
 {
     private WebApplicationFactory<Program> _factory;
     private HttpClient _client;
@@ -80,9 +80,9 @@ public class ClienteControllerTests
     }
 
     [TestMethod]
-    public async Task Get_DeveRetornarClientes()
+    public async Task Get_ShouldReturnCustomers()
     {
-        var response = await _client.GetAsync("/api/clientes");
+        var response = await _client.GetAsync("/api/customers");
         response.EnsureSuccessStatusCode();
     }
 }

@@ -51,14 +51,14 @@ FaaS — serverless functions (see [FaaS](../08-devops/02-faas.md)):
 Equivalent to S3. Stores objects (files, images, backups):
 
 ```csharp
-var blobClient = new BlobClient(connectionString, "container", "arquivo.pdf");
+var blobClient = new BlobClient(connectionString, "container", "file.pdf");
 
 // Upload
 await blobClient.UploadAsync(stream, overwrite: true);
 
 // Download
 var response = await blobClient.DownloadContentAsync();
-var conteudo = response.Value.Content;
+var content = response.Value.Content;
 
 // SAS Token (temporary URL)
 var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Read,
@@ -103,15 +103,15 @@ Enterprise message broker:
 
 ```csharp
 // Send
-var sender = serviceBusClient.CreateSender("pedidos-queue");
+var sender = serviceBusClient.CreateSender("orders-queue");
 await sender.SendMessageAsync(new ServiceBusMessage(
-    JsonSerializer.Serialize(pedido)));
+    JsonSerializer.Serialize(order)));
 
 // Receive
-var processor = serviceBusClient.CreateProcessor("pedidos-queue");
+var processor = serviceBusClient.CreateProcessor("orders-queue");
 processor.ProcessMessageAsync += async args =>
 {
-    var pedido = JsonSerializer.Deserialize<Pedido>(
+    var order = JsonSerializer.Deserialize<Order>(
         args.Message.Body.ToString());
     await args.CompleteMessageAsync(args.Message);
 };
@@ -165,10 +165,10 @@ builder.Services.AddApplicationInsightsTelemetry();
 
 // Custom tracking
 var telemetry = app.Services.GetRequiredService<TelemetryClient>();
-telemetry.TrackEvent("PedidoCriado", new Dictionary<string, string>
+telemetry.TrackEvent("OrderCreated", new Dictionary<string, string>
 {
-    { "PedidoId", pedido.Id.ToString() },
-    { "Valor", pedido.Total.ToString() }
+    { "OrderId", order.Id.ToString() },
+    { "Value", order.Total.ToString() }
 });
 ```
 

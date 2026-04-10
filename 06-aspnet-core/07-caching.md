@@ -13,30 +13,30 @@ Cache in the process memory. Simple and fast, but **not shared** between instanc
 builder.Services.AddMemoryCache();
 
 // Usage
-public class ProdutoService
+public class ProductService
 {
     private readonly IMemoryCache _cache;
-    private readonly IProdutoRepository _repo;
+    private readonly IProductRepository _repo;
 
-    public async Task<Produto?> ObterAsync(int id)
+    public async Task<Product?> GetAsync(int id)
     {
-        var cacheKey = $"produto:{id}";
+        var cacheKey = $"product:{id}";
 
-        if (_cache.TryGetValue(cacheKey, out Produto? produto))
-            return produto;
+        if (_cache.TryGetValue(cacheKey, out Product? product))
+            return product;
 
-        produto = await _repo.ObterPorIdAsync(id);
+        product = await _repo.GetByIdAsync(id);
 
-        if (produto != null)
+        if (product != null)
         {
-            _cache.Set(cacheKey, produto, new MemoryCacheEntryOptions
+            _cache.Set(cacheKey, product, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
                 SlidingExpiration = TimeSpan.FromMinutes(2)
             });
         }
 
-        return produto;
+        return product;
     }
 }
 ```
@@ -44,10 +44,10 @@ public class ProdutoService
 ### GetOrCreate (more concise)
 
 ```csharp
-var produto = await _cache.GetOrCreateAsync($"produto:{id}", async entry =>
+var product = await _cache.GetOrCreateAsync($"product:{id}", async entry =>
 {
     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-    return await _repo.ObterPorIdAsync(id);
+    return await _repo.GetByIdAsync(id);
 });
 ```
 
@@ -60,35 +60,35 @@ Distributed cache across multiple instances. Survives restarts.
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = "localhost:6379";
-    options.InstanceName = "minha-app:";
+    options.InstanceName = "my-app:";
 });
 
 // Usage
-public class ProdutoService
+public class ProductService
 {
     private readonly IDistributedCache _cache;
 
-    public async Task<Produto?> ObterAsync(int id)
+    public async Task<Product?> GetAsync(int id)
     {
-        var cacheKey = $"produto:{id}";
+        var cacheKey = $"product:{id}";
         var cached = await _cache.GetStringAsync(cacheKey);
 
         if (cached != null)
-            return JsonSerializer.Deserialize<Produto>(cached);
+            return JsonSerializer.Deserialize<Product>(cached);
 
-        var produto = await _repo.ObterPorIdAsync(id);
+        var product = await _repo.GetByIdAsync(id);
 
-        if (produto != null)
+        if (product != null)
         {
             await _cache.SetStringAsync(cacheKey,
-                JsonSerializer.Serialize(produto),
+                JsonSerializer.Serialize(product),
                 new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
                 });
         }
 
-        return produto;
+        return product;
     }
 }
 ```
@@ -103,14 +103,14 @@ app.UseOutputCache();
 
 // In controller
 [OutputCache(Duration = 60)]
-[HttpGet("produtos")]
-public async Task<IActionResult> Listar()
+[HttpGet("products")]
+public async Task<IActionResult> List()
 {
-    return Ok(await _service.ListarAsync());
+    return Ok(await _service.ListAsync());
 }
 
 // In minimal API
-app.MapGet("/produtos", () => service.ListarAsync())
+app.MapGet("/products", () => service.ListAsync())
    .CacheOutput(p => p.Expire(TimeSpan.FromMinutes(1)));
 ```
 
@@ -120,10 +120,10 @@ Uses HTTP headers for caching on the **client or CDN**:
 
 ```csharp
 [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
-[HttpGet("categorias")]
-public IActionResult ListarCategorias()
+[HttpGet("categories")]
+public IActionResult ListCategories()
 {
-    return Ok(categorias);
+    return Ok(categories);
 }
 
 // Generates header: Cache-Control: public, max-age=300

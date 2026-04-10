@@ -22,7 +22,7 @@ Avoid query parameters in DELETE as much as possible. If necessary, **validate t
 
 ```
 scheme://host:port/path?query#fragment
-https://api.exemplo.com:443/v1/clientes?ativo=true#resultados
+https://api.example.com:443/v1/customers?active=true#results
 ```
 
 ### Security tips

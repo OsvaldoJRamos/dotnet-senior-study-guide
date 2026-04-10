@@ -27,7 +27,7 @@ Always grant **only** the necessary permissions:
         "s3:GetObject",
         "s3:PutObject"
       ],
-      "Resource": "arn:aws:s3:::meu-bucket/*"
+      "Resource": "arn:aws:s3:::my-bucket/*"
     }
   ]
 }
@@ -102,7 +102,7 @@ Isolated virtual network in AWS:
       "Effect": "Allow",
       "Principal": { "AWS": "arn:aws:iam::123456789:role/api-role" },
       "Action": ["s3:GetObject"],
-      "Resource": "arn:aws:s3:::meu-bucket/*"
+      "Resource": "arn:aws:s3:::my-bucket/*"
     }
   ]
 }
@@ -115,8 +115,8 @@ Temporary URLs for upload/download without exposing the bucket:
 ```csharp
 var request = new GetPreSignedUrlRequest
 {
-    BucketName = "meu-bucket",
-    Key = "relatorio.pdf",
+    BucketName = "my-bucket",
+    Key = "report.pdf",
     Expires = DateTime.UtcNow.AddMinutes(15)
 };
 string url = s3Client.GetPreSignedURL(request);
@@ -131,8 +131,8 @@ Managed message queue:
 // Send
 var sendRequest = new SendMessageRequest
 {
-    QueueUrl = "https://sqs.us-east-1.amazonaws.com/123/minha-fila",
-    MessageBody = JsonSerializer.Serialize(pedido)
+    QueueUrl = "https://sqs.us-east-1.amazonaws.com/123/my-queue",
+    MessageBody = JsonSerializer.Serialize(order)
 };
 await sqsClient.SendMessageAsync(sendRequest);
 

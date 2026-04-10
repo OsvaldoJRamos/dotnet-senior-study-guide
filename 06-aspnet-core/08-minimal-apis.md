@@ -8,33 +8,33 @@ A simplified way to create APIs in ASP.NET Core (.NET 6+) **without controllers*
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 
-app.MapGet("/produtos", async (IProdutoService service) =>
-    Results.Ok(await service.ListarAsync()));
+app.MapGet("/products", async (IProductService service) =>
+    Results.Ok(await service.ListAsync()));
 
-app.MapGet("/produtos/{id:int}", async (int id, IProdutoService service) =>
-    await service.ObterAsync(id) is Produto p
+app.MapGet("/products/{id:int}", async (int id, IProductService service) =>
+    await service.GetAsync(id) is Product p
         ? Results.Ok(p)
         : Results.NotFound());
 
-app.MapPost("/produtos", async (CriarProdutoDto dto, IProdutoService service) =>
+app.MapPost("/products", async (CreateProductDto dto, IProductService service) =>
 {
-    var produto = await service.CriarAsync(dto);
-    return Results.Created($"/produtos/{produto.Id}", produto);
+    var product = await service.CreateAsync(dto);
+    return Results.Created($"/products/{product.Id}", product);
 });
 
-app.MapPut("/produtos/{id:int}", async (int id, AtualizarProdutoDto dto, IProdutoService service) =>
+app.MapPut("/products/{id:int}", async (int id, UpdateProductDto dto, IProductService service) =>
 {
-    await service.AtualizarAsync(id, dto);
+    await service.UpdateAsync(id, dto);
     return Results.NoContent();
 });
 
-app.MapDelete("/produtos/{id:int}", async (int id, IProdutoService service) =>
+app.MapDelete("/products/{id:int}", async (int id, IProductService service) =>
 {
-    await service.RemoverAsync(id);
+    await service.RemoveAsync(id);
     return Results.NoContent();
 });
 
@@ -47,31 +47,31 @@ To avoid polluting Program.cs:
 
 ```csharp
 // Program.cs
-app.MapGroup("/api/produtos").MapProdutoEndpoints();
-app.MapGroup("/api/clientes").MapClienteEndpoints();
+app.MapGroup("/api/products").MapProductEndpoints();
+app.MapGroup("/api/customers").MapCustomerEndpoints();
 
-// Endpoints/ProdutoEndpoints.cs
-public static class ProdutoEndpoints
+// Endpoints/ProductEndpoints.cs
+public static class ProductEndpoints
 {
-    public static RouteGroupBuilder MapProdutoEndpoints(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapProductEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/", Listar);
-        group.MapGet("/{id:int}", ObterPorId);
-        group.MapPost("/", Criar);
+        group.MapGet("/", List);
+        group.MapGet("/{id:int}", GetById);
+        group.MapPost("/", Create);
         return group;
     }
 
-    private static async Task<IResult> Listar(IProdutoService service)
-        => Results.Ok(await service.ListarAsync());
+    private static async Task<IResult> List(IProductService service)
+        => Results.Ok(await service.ListAsync());
 
-    private static async Task<IResult> ObterPorId(int id, IProdutoService service)
-        => await service.ObterAsync(id) is Produto p
+    private static async Task<IResult> GetById(int id, IProductService service)
+        => await service.GetAsync(id) is Product p
             ? Results.Ok(p) : Results.NotFound();
 
-    private static async Task<IResult> Criar(CriarProdutoDto dto, IProdutoService service)
+    private static async Task<IResult> Create(CreateProductDto dto, IProductService service)
     {
-        var produto = await service.CriarAsync(dto);
-        return Results.Created($"/produtos/{produto.Id}", produto);
+        var product = await service.CreateAsync(dto);
+        return Results.Created($"/products/{product.Id}", product);
     }
 }
 ```
@@ -79,16 +79,16 @@ public static class ProdutoEndpoints
 ## Validation with Filters
 
 ```csharp
-app.MapPost("/produtos", async (CriarProdutoDto dto, IProdutoService service) =>
+app.MapPost("/products", async (CreateProductDto dto, IProductService service) =>
 {
-    var produto = await service.CriarAsync(dto);
-    return Results.Created($"/produtos/{produto.Id}", produto);
+    var product = await service.CreateAsync(dto);
+    return Results.Created($"/products/{product.Id}", product);
 })
 .AddEndpointFilter(async (context, next) =>
 {
-    var dto = context.GetArgument<CriarProdutoDto>(0);
-    if (string.IsNullOrWhiteSpace(dto.Nome))
-        return Results.BadRequest("Nome é obrigatório");
+    var dto = context.GetArgument<CreateProductDto>(0);
+    if (string.IsNullOrWhiteSpace(dto.Name))
+        return Results.BadRequest("Name is required");
     return await next(context);
 });
 ```
@@ -98,7 +98,7 @@ app.MapPost("/produtos", async (CriarProdutoDto dto, IProdutoService service) =>
 ```csharp
 app.MapGet("/admin/config", () => Results.Ok(config))
     .RequireAuthorization("AdminPolicy")
-    .WithName("ObterConfig")
+    .WithName("GetConfig")
     .WithOpenApi()
     .RequireRateLimiting("fixed");
 ```
