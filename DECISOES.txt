@@ -1,0 +1,177 @@
+DECISÕES TOMADAS NA REORGANIZAÇÃO DO MATERIAL "Estudos .NET C#"
+================================================================
+
+Data: 2026-04-09
+Fonte: Estudos .NET C#.pdf (~60 páginas)
+Destino: D:\repos\v2 (repositório Git com Markdown)
+
+================================================================
+1. ESTRUTURA GERAL
+================================================================
+
+DECISÃO: Organizar em 8 categorias temáticas com pastas numeradas.
+MOTIVO: O PDF original não tinha organização clara — tópicos de memória apareciam
+misturados com padrões de projeto, e conceitos de C# apareciam no meio de
+conteúdo de paralelismo. Agrupar por tema facilita encontrar o que precisa.
+
+DECISÃO: Cada categoria tem um README.md com índice e links para os subtópicos.
+MOTIVO: Facilita navegação tanto no GitHub quanto localmente. O leitor sempre
+sabe onde está e como voltar.
+
+DECISÃO: Links de navegação (anterior/próximo/voltar) no final de cada arquivo.
+MOTIVO: Permite leitura sequencial como um livro, sem precisar voltar ao índice
+toda vez.
+
+================================================================
+2. ORGANIZAÇÃO POR CATEGORIAS
+================================================================
+
+Os tópicos do PDF foram redistribuídos assim:
+
+01-fundamentos-csharp/
+  - Unificou: "C#, .NET, ASP.NET Core", "Conceitos Gerais C#" (namespace, CLR/IL),
+    "Double x Decimal x Float", "Modificadores Métodos/Classes/Atributos"
+  - MOTIVO: Tudo isso é fundamento da linguagem e plataforma. No PDF estavam
+    espalhados em páginas não consecutivas.
+
+02-colecoes-e-linq/
+  - Unificou: "IEnumerable vs IQueryable", "IEnumerable x List", "Yield em Loops"
+  - MOTIVO: São todos sobre coleções e formas de iterar/consultar dados.
+
+03-memoria-e-performance/
+  - Unificou: "Gestão de Memória" (Stack/Heap), "Otimização de Memória",
+    "Memory Leak em C#", e parte de "Técnicas de Otimização"
+  - MOTIVO: Todos esses tópicos tratam de como o .NET gerencia memória e como
+    otimizar uso de memória. No PDF estavam em seções separadas com conteúdo
+    duplicado (GC aparecia em 2 seções diferentes).
+
+04-concorrencia-e-paralelismo/
+  - Unificou: "Paralelismo", "Race Conditions", "Deadlocks", "Semáforo"
+  - MOTIVO: São tópicos intrinsecamente relacionados. Race conditions e deadlocks
+    são problemas de paralelismo, e SemaphoreSlim é uma solução para eles.
+
+05-arquitetura-e-padroes/
+  - Unificou: "SOLID", "Design Patterns", "YAGNI", "KISS", "DRY",
+    "Object Calisthenics", "Tell Don't Ask", "SAGA"
+  - MOTIVO: Todos são princípios e padrões de design/arquitetura de software.
+
+06-aspnet-core/
+  - Unificou: "DI, IoC, DIP e Service Locator", "Singleton x Scoped x Transient",
+    "OAuth 2.0"
+  - MOTIVO: São funcionalidades específicas do ASP.NET Core e sua infraestrutura.
+
+07-acesso-a-dados/
+  - Unificou: "ORM, Micro ORM ou ADO Puro", "Entity Framework", "Banco de Dados"
+  - MOTIVO: Todos tratam de como acessar e gerenciar dados persistidos.
+
+08-devops/
+  - Origem: "CI/CD"
+  - MOTIVO: Categoria separada para práticas de infraestrutura e entrega.
+
+================================================================
+3. CONTEÚDO NOVO ADICIONADO (não existia no PDF)
+================================================================
+
+- SOLID expandido: No PDF só havia o título "SOLID" sem conteúdo. Adicionei
+  explicação de cada princípio com exemplos em C#.
+
+- Design Patterns expandido: No PDF só havia um link para o Refactoring Guru.
+  Adicionei tabela com todos os padrões do GoF organizados por categoria
+  (criacionais, estruturais, comportamentais) e exemplos dos mais usados em .NET.
+
+- ICollection e IList: Estava na lista TODO do PDF. Adicionei hierarquia de
+  interfaces, comparação e quando usar cada uma.
+
+- Structs vs Classes: No PDF tinha uma menção superficial. Expandido com tabela
+  comparativa, exemplos práticos e records (C# 9+).
+
+- Interface vs Classe Abstrata: Estava na lista TODO do PDF. Adicionei na seção
+  de Modificadores com tabela comparativa e exemplo de código.
+
+- Equals() vs ==: Estava na lista TODO do PDF. Adicionei explicação com exemplos
+  mostrando a diferença entre comparação de referência e valor.
+
+- CI/CD expandido: No PDF tinha apenas 1 parágrafo. Expandido com exemplos de
+  GitHub Actions e Azure DevOps pipelines, e boas práticas.
+
+- Span<T>, Memory<T>, ArrayPool, Object Pooling: Técnicas avançadas de
+  otimização de memória que não existiam no PDF.
+
+- Captive Dependencies: Problema comum de DI que não era mencionado.
+
+- Erros comuns de async/await: .Result, .Wait(), async void — adicionados na
+  seção de Task/async.
+
+- Coleções thread-safe (ConcurrentBag, etc.): Adicionado na seção de Race Conditions.
+
+- yield break: Complemento ao yield return que não existia no PDF.
+
+- File-scoped namespaces: Feature do C# 10 não mencionada.
+
+- AOT (Ahead-of-Time Compilation): Não mencionado no PDF.
+
+- Primary constructors (C# 12): Forma moderna de DI.
+
+- Explicit Loading no EF: Alternativa ao Lazy/Eager que não era mencionada.
+
+- AsNoTracking: Dica de performance do EF não mencionada.
+
+================================================================
+4. CONTEÚDO CORRIGIDO
+================================================================
+
+- OAuth 2.0: O PDF afirmava que "OAuth 2.0 é um framework de autorização que
+  pode ser usado para autenticar usuários". Isso é impreciso. OAuth 2.0 é
+  estritamente sobre AUTORIZAÇÃO. Para autenticação, usa-se OpenID Connect
+  (que é uma camada em cima do OAuth 2.0). Mantive a explicação original mas
+  clarifiquei a distinção.
+
+- "Singleton x Scoped x Transient": O texto original sobre Scoped dizia que
+  "não pode ser transient" de forma confusa. Reescrevi a explicação de forma
+  mais clara, mantendo o conteúdo técnico correto.
+
+================================================================
+5. CONTEÚDO REMOVIDO
+================================================================
+
+- Lista TODO do PDF: Removida pois os itens foram incorporados ao conteúdo
+  ou são de assuntos fora do escopo (ex: "SIGNALS ANGULAR", "PERFORMANCE ANGULAR").
+
+- Links de referência inline: Mantidos apenas quando agregam valor. Links
+  quebrados ou redundantes foram removidos.
+
+================================================================
+6. IMAGENS
+================================================================
+
+- Todas as imagens contendo CÓDIGO foram transcritas como blocos de código
+  Markdown (```csharp ... ```).
+
+- Todas as imagens contendo TEXTO foram transcritas como texto Markdown normal.
+
+- Imagens contendo TABELAS foram transcritas como tabelas Markdown.
+
+- Imagens que são diagramas visuais (como o fluxo do CLR: Source Code →
+  Compiler → MSIL → JIT → Native Code) foram representadas como diagramas
+  ASCII/texto, pois o conteúdo conceitual é mais importante que o visual.
+
+- A imagem do fluxo OAuth 2.0 foi mantida como diagrama ASCII por ser mais
+  legível em Markdown.
+
+================================================================
+7. COMMITS
+================================================================
+
+Cada commit corresponde a uma categoria temática, permitindo rastrear
+a evolução do material:
+
+1. Commit inicial (README + estrutura de pastas)
+2. 01 - Fundamentos C#
+3. 02 - Coleções e LINQ
+4. 03 - Memória e Performance
+5. 04 - Concorrência e Paralelismo
+6. 05 - Arquitetura e Padrões
+7. 06 - ASP.NET Core
+8. 07 - Acesso a Dados
+9. 08 - DevOps
+10. Arquivo de decisões (este arquivo)
