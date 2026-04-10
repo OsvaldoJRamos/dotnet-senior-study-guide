@@ -15,44 +15,44 @@ A **semaphore** is a synchronization mechanism that **controls how many threads 
 
 ### Creation:
 ```csharp
-var semaforo = new SemaphoreSlim(1); // only 1 thread can enter at a time (like a lock)
+var semaphore = new SemaphoreSlim(1); // only 1 thread can enter at a time (like a lock)
 ```
 
 ### Basic usage:
 ```csharp
-await semaforo.WaitAsync(); // waits for permission to enter
+await semaphore.WaitAsync(); // waits for permission to enter
 try
 {
     // Critical region: only 1 thread at a time
 }
 finally
 {
-    semaforo.Release(); // releases permission
+    semaphore.Release(); // releases permission
 }
 ```
 
 ### Example with asynchronous parallelism:
 
 ```csharp
-private static readonly SemaphoreSlim _semaforo = new(1, 1);
+private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
-public async Task ProcessarAsync()
+public async Task ProcessAsync()
 {
-    await _semaforo.WaitAsync();
+    await _semaphore.WaitAsync();
     try
     {
-        Console.WriteLine($"Thread {Thread.CurrentThread.ManagedThreadId} entrou.");
-        await Task.Delay(1000); // simula operação
+        Console.WriteLine($"Thread {Thread.CurrentThread.ManagedThreadId} entered.");
+        await Task.Delay(1000); // simulates operation
     }
     finally
     {
-        Console.WriteLine($"Thread {Thread.CurrentThread.ManagedThreadId} saiu.");
-        _semaforo.Release();
+        Console.WriteLine($"Thread {Thread.CurrentThread.ManagedThreadId} exited.");
+        _semaphore.Release();
     }
 }
 ```
 
-If you start multiple `ProcessarAsync()` calls at the same time, only **one** will enter the critical region at a time.
+If you start multiple `ProcessAsync()` calls at the same time, only **one** will enter the critical region at a time.
 
 ## When to use SemaphoreSlim
 
@@ -70,7 +70,7 @@ If you start multiple `ProcessarAsync()` calls at the same time, only **one** wi
 // WRONG - lock with await causes deadlock
 lock (locker)
 {
-    await MetodoAsync(); // DO NOT do this
+    await MethodAsync(); // DO NOT do this
 }
 ```
 
@@ -79,14 +79,14 @@ This causes a **deadlock**, because `lock` blocks the thread while `await` waits
 ### Correct with SemaphoreSlim:
 
 ```csharp
-await _semaforo.WaitAsync();
+await _semaphore.WaitAsync();
 try
 {
-    await MetodoAsync();
+    await MethodAsync();
 }
 finally
 {
-    _semaforo.Release();
+    _semaphore.Release();
 }
 ```
 

@@ -14,15 +14,15 @@ Using **IEnumerable** is preferable because you are using an interface instead o
 ### Example with IEnumerable (deferred execution):
 
 ```csharp
-private void TesteIEnumerable()
+private void TestIEnumerable()
 {
-    var nomes = new List<string> { "Luis", "João", "Ricardo", "Alexandre" };
-    IEnumerable<string> nomesContenhamLetraO = nomes.Where(x => x.Contains("o"));
-    nomes[0] = "Marcos";
+    var names = new List<string> { "Luis", "John", "Ricardo", "Alexandre" };
+    IEnumerable<string> namesContainingLetterO = names.Where(x => x.Contains("o"));
+    names[0] = "Marcos";
 
-    foreach (var nome in nomesContenhamLetraO)
+    foreach (var name in namesContainingLetterO)
     {
-        Console.WriteLine(nome);
+        Console.WriteLine(name);
     }
 }
 ```
@@ -30,31 +30,31 @@ private void TesteIEnumerable()
 **Output:**
 ```
 Marcos
-João
+John
 Ricardo
 ```
 
-Note that even though we changed the name from "Luis" to "Marcos" **after** creating the IEnumerable object, the console displayed "Marcos". This is because the IEnumerable was only executed inside the foreach loop, and we changed the name before that.
+Note that even though we changed the name from "Luis" to "Marcos" **after** creating the IEnumerable object, the console displayed "Marcos". This is because the IEnumerable was only executed inside the `foreach` loop, and we changed the name before that.
 
 ### Example with List (immediate execution):
 
 ```csharp
-private void TesteList()
+private void TestList()
 {
-    var nomes = new List<string> { "Luis", "João", "Ricardo", "Alexandre" };
-    List<string> nomesContenhamLetraO = nomes.Where(x => x.Contains("o")).ToList();
-    nomes[0] = "Marcos";
+    var names = new List<string> { "Luis", "John", "Ricardo", "Alexandre" };
+    List<string> namesContainingLetterO = names.Where(x => x.Contains("o")).ToList();
+    names[0] = "Marcos";
 
-    foreach (var nome in nomesContenhamLetraO)
+    foreach (var name in namesContainingLetterO)
     {
-        Console.WriteLine(nome);
+        Console.WriteLine(name);
     }
 }
 ```
 
 **Output:**
 ```
-João
+John
 Ricardo
 ```
 
@@ -64,12 +64,12 @@ In this second example, the List object had already been created and stored in m
 
 ```csharp
 // IQueryable translates the LINQ expression to SQL in the database
-IQueryable<Produto> query = context.Produtos
-    .Where(p => p.Preco > 100)
-    .OrderBy(p => p.Nome);
+IQueryable<Product> query = context.Products
+    .Where(p => p.Price > 100)
+    .OrderBy(p => p.Name);
 
 // The SQL query is only executed here:
-var resultado = query.ToList();
+var result = query.ToList();
 ```
 
 The advantage is that the **filter is applied in the database**, not in the application. With IEnumerable, all records would be brought into memory and filtered there — much less efficient.

@@ -10,17 +10,17 @@ We have a BankAccount class with a BALANCE property. Instead of having a BankAcc
 
 ### Wrong (Ask):
 ```csharp
-public class ContaBancariaService
+public class BankAccountService
 {
-    public void ProcessarSaque(ContaBancaria conta, decimal valor)
+    public void ProcessWithdrawal(BankAccount account, decimal amount)
     {
-        if (conta.Saldo >= valor)
+        if (account.Balance >= amount)
         {
-            conta.Sacar(valor);
+            account.Withdraw(amount);
         }
         else
         {
-            Console.WriteLine("Saldo insuficiente!");
+            Console.WriteLine("Insufficient balance!");
         }
     }
 }
@@ -28,30 +28,30 @@ public class ContaBancariaService
 
 ### Correct (Tell):
 ```csharp
-public class ContaBancaria
+public class BankAccount
 {
-    private decimal _saldo;
-    private decimal _limiteDiario;
-    private decimal _saqueHoje;
+    private decimal _balance;
+    private decimal _dailyLimit;
+    private decimal _withdrawnToday;
 
-    public ContaBancaria(decimal saldoInicial, decimal limiteDiario)
+    public BankAccount(decimal initialBalance, decimal dailyLimit)
     {
-        _saldo = saldoInicial;
-        _limiteDiario = limiteDiario;
-        _saqueHoje = 0;
+        _balance = initialBalance;
+        _dailyLimit = dailyLimit;
+        _withdrawnToday = 0;
     }
 
-    public void Sacar(decimal valor)
+    public void Withdraw(decimal amount)
     {
-        if (_saqueHoje + valor > _limiteDiario)
-            throw new InvalidOperationException("Limite diário de saque excedido!");
-        if (_saldo < valor)
-            throw new InvalidOperationException("Saldo insuficiente!");
-        _saldo -= valor;
-        _saqueHoje += valor;
+        if (_withdrawnToday + amount > _dailyLimit)
+            throw new InvalidOperationException("Daily withdrawal limit exceeded!");
+        if (_balance < amount)
+            throw new InvalidOperationException("Insufficient balance!");
+        _balance -= amount;
+        _withdrawnToday += amount;
     }
 
-    public decimal ObterSaldo() => _saldo;
+    public decimal GetBalance() => _balance;
 }
 ```
 

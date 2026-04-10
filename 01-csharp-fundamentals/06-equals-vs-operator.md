@@ -21,32 +21,32 @@ Console.WriteLine(a.Equals(b));   // True
 `==` compares whether the **references point to the same object in memory**:
 
 ```csharp
-var obj1 = new Pessoa("Joao");
-var obj2 = new Pessoa("Joao");
+var obj1 = new Person("John");
+var obj2 = new Person("John");
 
-Console.WriteLine(obj1 == obj2);      // False (referencias diferentes)
-Console.WriteLine(obj1.Equals(obj2)); // False (Equals padrao tambem compara referencia)
+Console.WriteLine(obj1 == obj2);      // False (different references)
+Console.WriteLine(obj1.Equals(obj2)); // False (default Equals also compares reference)
 ```
 
 To compare by content, you need to override `Equals()`:
 
 ```csharp
-public class Pessoa
+public class Person
 {
-    public string Nome { get; set; }
+    public string Name { get; set; }
 
     public override bool Equals(object? obj)
     {
-        if (obj is not Pessoa outra) return false;
-        return Nome == outra.Nome;
+        if (obj is not Person other) return false;
+        return Name == other.Name;
     }
 
-    public override int GetHashCode() => Nome.GetHashCode();
+    public override int GetHashCode() => Name.GetHashCode();
 }
 
-var obj1 = new Pessoa { Nome = "Joao" };
-var obj2 = new Pessoa { Nome = "Joao" };
-Console.WriteLine(obj1.Equals(obj2)); // True (agora compara por conteudo)
+var obj1 = new Person { Name = "John" };
+var obj2 = new Person { Name = "John" };
+Console.WriteLine(obj1.Equals(obj2)); // True (now compares by content)
 ```
 
 ## Special case: string
@@ -56,7 +56,7 @@ Console.WriteLine(obj1.Equals(obj2)); // True (agora compara por conteudo)
 ```csharp
 string a = "hello";
 string b = "hello";
-Console.WriteLine(a == b);      // True (compara conteudo)
+Console.WriteLine(a == b);      // True (compares content)
 Console.WriteLine(a.Equals(b)); // True
 ```
 
@@ -65,10 +65,10 @@ Console.WriteLine(a.Equals(b)); // True
 Records automatically implement `Equals()` and `==` by value:
 
 ```csharp
-public record Pessoa(string Nome);
+public record Person(string Name);
 
-var p1 = new Pessoa("Joao");
-var p2 = new Pessoa("Joao");
+var p1 = new Person("John");
+var p2 = new Person("John");
 Console.WriteLine(p1 == p2);      // True
 Console.WriteLine(p1.Equals(p2)); // True
 ```
@@ -76,12 +76,12 @@ Console.WriteLine(p1.Equals(p2)); // True
 ## Watch out for null
 
 ```csharp
-Pessoa? p = null;
-// p.Equals(outro) -> NullReferenceException!
-// p == null        -> True (seguro)
+Person? p = null;
+// p.Equals(other) -> NullReferenceException!
+// p == null        -> True (safe)
 
-// Forma segura:
-Console.WriteLine(Equals(p, outro)); // metodo estatico, seguro com null
+// Safe approach:
+Console.WriteLine(Equals(p, other)); // static method, safe with null
 ```
 
 ## Summary

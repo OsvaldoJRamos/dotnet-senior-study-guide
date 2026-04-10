@@ -44,17 +44,17 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "MinhaApp.dll"]
+ENTRYPOINT ["dotnet", "MyApp.dll"]
 ```
 
 ### Essential commands
 
 ```bash
 # Build
-docker build -t minha-app:1.0 .
+docker build -t my-app:1.0 .
 
 # Run
-docker run -d -p 8080:8080 --name app minha-app:1.0
+docker run -d -p 8080:8080 --name app my-app:1.0
 
 # List containers
 docker ps
@@ -128,20 +128,20 @@ A **container orchestration** platform at scale. It manages deployment, scaling,
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: minha-api
+  name: my-api
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: minha-api
+      app: my-api
   template:
     metadata:
       labels:
-        app: minha-api
+        app: my-api
     spec:
       containers:
         - name: api
-          image: minha-app:1.0
+          image: my-app:1.0
           ports:
             - containerPort: 8080
           resources:
@@ -163,10 +163,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: minha-api-service
+  name: my-api-service
 spec:
   selector:
-    app: minha-api
+    app: my-api
   ports:
     - port: 80
       targetPort: 8080
@@ -179,8 +179,8 @@ spec:
 kubectl apply -f deployment.yaml      # applies configuration
 kubectl get pods                       # lists pods
 kubectl get services                   # lists services
-kubectl scale deployment minha-api --replicas=5  # scales
-kubectl rollout undo deployment minha-api        # rollback
+kubectl scale deployment my-api --replicas=5  # scales
+kubectl rollout undo deployment my-api        # rollback
 kubectl logs -f pod-name               # logs
 kubectl describe pod pod-name          # pod details
 ```
@@ -192,8 +192,8 @@ builder.Services.AddHealthChecks()
     .AddSqlServer(connectionString)
     .AddRedis("localhost:6379");
 
-app.MapHealthChecks("/health");    // liveness
-app.MapHealthChecks("/ready");     // readiness
+app.MapHealthChecks("/health");  // liveness
+app.MapHealthChecks("/ready");   // readiness
 ```
 
 ## Managed K8s services

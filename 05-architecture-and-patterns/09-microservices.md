@@ -6,11 +6,11 @@ A single application with all the code together:
 
 ```
 ┌─────────────────────────┐
-│        Monolito          │
+│        Monolith          │
 │  ┌─────┐ ┌─────┐ ┌────┐│
 │  │Users│ │Order│ │Pay ││
 │  └─────┘ └─────┘ └────┘│
-│        [1 banco]         │
+│        [1 database]      │
 └─────────────────────────┘
 ```
 
@@ -68,7 +68,7 @@ A monolith with **well-isolated modules**. Each module has its own entities and 
 │  │ Module  │ │ Module  │ │Mod ││
 │  │(schema1)│ │(schema2)│ │(s3)││
 │  └─────────┘ └─────────┘ └────┘│
-│         [1 banco, N schemas]     │
+│         [1 database, N schemas]  │
 └─────────────────────────────────┘
 ```
 
@@ -91,7 +91,7 @@ Service A  ──HTTP/gRPC──→  Service B
 ### Asynchronous (events/messages)
 
 ```
-Service A  ──publica evento──→  Message Broker  ──entrega──→  Service B
+Service A  ──publishes event──→  Message Broker  ──delivers──→  Service B
 ```
 
 - RabbitMQ, Kafka, Azure Service Bus, SQS
@@ -103,7 +103,7 @@ Service A  ──publica evento──→  Message Broker  ──entrega──→
 Single entry point that routes to microservices:
 
 ```
-Cliente → [API Gateway] → Users Service
+Client → [API Gateway] → Users Service
                         → Orders Service
                         → Payment Service
 ```

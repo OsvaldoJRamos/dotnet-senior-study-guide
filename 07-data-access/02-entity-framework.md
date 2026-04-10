@@ -45,7 +45,7 @@ dotnet add package Microsoft.EntityFrameworkCore.Proxies
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 {
     optionsBuilder
-        .UseSqlServer("sua-connection-string")
+        .UseSqlServer("your-connection-string")
         .UseLazyLoadingProxies();
 }
 ```
@@ -110,7 +110,7 @@ context.Entry(blog)
 - Prefer **Eager Loading** in most API scenarios
 - Use **AsNoTracking()** for read queries (better performance):
 ```csharp
-var produtos = context.Produtos.AsNoTracking().ToList();
+var products = context.Products.AsNoTracking().ToList();
 ```
 - Avoid **Select N+1** — always check the generated queries in the log
 

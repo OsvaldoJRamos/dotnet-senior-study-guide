@@ -102,20 +102,20 @@ It is the foundation of everything: classes like `SqlConnection`, `SqlCommand`, 
 
 ### Example:
 ```csharp
-var clientes = new List<Cliente>();
+var customers = new List<Customer>();
 
 using var conn = new SqlConnection(connectionString);
 conn.Open();
 
-var cmd = new SqlCommand("SELECT * FROM Clientes WHERE Ativo = 1", conn);
+var cmd = new SqlCommand("SELECT * FROM Customers WHERE Active = 1", conn);
 using var reader = cmd.ExecuteReader();
 
 while (reader.Read())
 {
-    clientes.Add(new Cliente
+    customers.Add(new Customer
     {
         Id = (int)reader["Id"],
-        Nome = reader["Nome"].ToString()
+        Name = reader["Name"].ToString()
     });
 }
 ```

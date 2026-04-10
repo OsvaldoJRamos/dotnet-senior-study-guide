@@ -79,35 +79,35 @@ private protected    | ✅          | ✅                             | ❌     
 **Rule of thumb:** you can only extend one class (abstract or not), but you can implement multiple interfaces.
 
 ```csharp
-// Interface - contrato
-public interface INotificavel
+// Interface - contract
+public interface INotifiable
 {
-    void Notificar(string mensagem);
+    void Notify(string message);
 }
 
-// Classe abstrata - comportamento compartilhado
-public abstract class EntidadeBase
+// Abstract class - shared behavior
+public abstract class EntityBase
 {
     public Guid Id { get; } = Guid.NewGuid();
-    public DateTime CriadoEm { get; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; } = DateTime.UtcNow;
     
-    public abstract void Validar();
+    public abstract void Validate();
 }
 
-// Pode herdar de uma classe E implementar múltiplas interfaces
-public class Usuario : EntidadeBase, INotificavel
+// Can inherit from a class AND implement multiple interfaces
+public class User : EntityBase, INotifiable
 {
-    public string Nome { get; set; }
+    public string Name { get; set; }
     
-    public override void Validar()
+    public override void Validate()
     {
-        if (string.IsNullOrEmpty(Nome))
-            throw new InvalidOperationException("Nome é obrigatório");
+        if (string.IsNullOrEmpty(Name))
+            throw new InvalidOperationException("Name is required");
     }
     
-    public void Notificar(string mensagem)
+    public void Notify(string message)
     {
-        Console.WriteLine($"Notificação para {Nome}: {mensagem}");
+        Console.WriteLine($"Notification for {Name}: {message}");
     }
 }
 ```
@@ -125,19 +125,19 @@ public class Usuario : EntidadeBase, INotificavel
 - By default in structs: compares values field by field (but with reflection -- slow).
 
 ```csharp
-var a = new Pessoa("João");
-var b = new Pessoa("João");
+var a = new Person("John");
+var b = new Person("John");
 
-Console.WriteLine(a == b);      // False (referências diferentes)
-Console.WriteLine(a.Equals(b)); // False (por padrão, compara referência)
+Console.WriteLine(a == b);      // False (different references)
+Console.WriteLine(a.Equals(b)); // False (by default, compares reference)
 
-// Após sobrescrever Equals:
+// After overriding Equals:
 public override bool Equals(object obj)
 {
-    return obj is Pessoa p && p.Nome == Nome;
+    return obj is Person p && p.Name == Name;
 }
 
-Console.WriteLine(a.Equals(b)); // True (agora compara por valor)
+Console.WriteLine(a.Equals(b)); // True (now compares by value)
 ```
 
 **Best practice:** when overriding `Equals`, always override `GetHashCode` as well.

@@ -30,26 +30,26 @@ The innermost layer. **Does not depend on anything external**. Contains:
 - Domain Enums and Exceptions
 
 ```csharp
-// Domain/Entities/Pedido.cs
-public class Pedido
+// Domain/Entities/Order.cs
+public class Order
 {
     public Guid Id { get; private set; }
     public decimal Total { get; private set; }
-    public StatusPedido Status { get; private set; }
+    public OrderStatus Status { get; private set; }
 
-    public void Aprovar()
+    public void Approve()
     {
-        if (Status != StatusPedido.Pendente)
-            throw new DomainException("Só é possível aprovar pedidos pendentes");
-        Status = StatusPedido.Aprovado;
+        if (Status != OrderStatus.Pending)
+            throw new DomainException("Only pending orders can be approved");
+        Status = OrderStatus.Approved;
     }
 }
 
-// Domain/Interfaces/IPedidoRepository.cs
-public interface IPedidoRepository
+// Domain/Interfaces/IOrderRepository.cs
+public interface IOrderRepository
 {
-    Task<Pedido?> ObterPorIdAsync(Guid id);
-    Task SalvarAsync(Pedido pedido);
+    Task<Order?> GetByIdAsync(Guid id);
+    Task SaveAsync(Order order);
 }
 ```
 
@@ -64,27 +64,27 @@ Orchestrates the flow. Contains:
 - DTO to entity mapping
 
 ```csharp
-// Application/UseCases/AprovarPedidoUseCase.cs
-public class AprovarPedidoUseCase
+// Application/UseCases/ApproveOrderUseCase.cs
+public class ApproveOrderUseCase
 {
-    private readonly IPedidoRepository _repo;
-    private readonly INotificacaoService _notificacao;
+    private readonly IOrderRepository _repo;
+    private readonly INotificationService _notification;
 
-    public AprovarPedidoUseCase(IPedidoRepository repo, INotificacaoService notificacao)
+    public ApproveOrderUseCase(IOrderRepository repo, INotificationService notification)
     {
         _repo = repo;
-        _notificacao = notificacao;
+        _notification = notification;
     }
 
-    public async Task ExecutarAsync(Guid pedidoId)
+    public async Task ExecuteAsync(Guid orderId)
     {
-        var pedido = await _repo.ObterPorIdAsync(pedidoId)
-            ?? throw new NotFoundException("Pedido não encontrado");
+        var order = await _repo.GetByIdAsync(orderId)
+            ?? throw new NotFoundException("Order not found");
 
-        pedido.Aprovar(); // regra de negocio no dominio
+        order.Approve(); // business rule in the domain
 
-        await _repo.SalvarAsync(pedido);
-        await _notificacao.EnviarAsync($"Pedido {pedidoId} aprovado");
+        await _repo.SaveAsync(order);
+        await _notification.SendAsync($"Order {orderId} approved");
     }
 }
 ```
@@ -99,17 +99,17 @@ Concrete implementations. Contains:
 - ORM mappings
 
 ```csharp
-// Infrastructure/Repositories/PedidoRepository.cs
-public class PedidoRepository : IPedidoRepository
+// Infrastructure/Repositories/OrderRepository.cs
+public class OrderRepository : IOrderRepository
 {
     private readonly AppDbContext _context;
 
-    public async Task<Pedido?> ObterPorIdAsync(Guid id)
-        => await _context.Pedidos.FindAsync(id);
+    public async Task<Order?> GetByIdAsync(Guid id)
+        => await _context.Orders.FindAsync(id);
 
-    public async Task SalvarAsync(Pedido pedido)
+    public async Task SaveAsync(Order order)
     {
-        _context.Pedidos.Update(pedido);
+        _context.Orders.Update(order);
         await _context.SaveChangesAsync();
     }
 }

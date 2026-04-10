@@ -12,27 +12,27 @@ Namespaces serve two main purposes:
 When you create classes and other types inside a namespace, the namespace actually becomes part of that class's name.
 
 ```csharp
-namespace EspacoNomes { public class MinhaClasse { } }
+namespace MyNamespace { public class MyClass { } }
 ```
 
-The actual full name of this class is `EspacoNomes.MinhaClasse`.
+The actual full name of this class is `MyNamespace.MyClass`.
 
 ## Using classes without specifying the full name
 
-The full class name can be shortened to just `MinhaClasse` by using `using` directives at the top of the file or at the beginning of the namespace:
+The full class name can be shortened to just `MyClass` by using `using` directives at the top of the file or at the beginning of the namespace:
 
 ```csharp
-using EspacoNomes; // allows all classes within the namespace to be
+using MyNamespace; // allows all classes within the namespace to be
 // referred to by just the final class name
 ```
 
 It is also possible to completely rename a class with a using:
 
 ```csharp
-using NovoNome = EspacoNomes.MinhaClasse;
+using NewName = MyNamespace.MyClass;
 ```
 
-Now you can reference `EspacoNomes.MinhaClasse` by simply using `NovoNome`.
+Now you can reference `MyNamespace.MyClass` by simply using `NewName`.
 
 ## Direct reference within the same namespace
 
@@ -43,11 +43,11 @@ When code is inside a namespace, it can directly reference everything that is di
 Starting with C# 10, you can declare the namespace without braces, applying it to the entire file:
 
 ```csharp
-namespace MeuProjeto.Services;
+namespace MyProject.Services;
 
-public class MeuServico
+public class MyService
 {
-    // The entire file belongs to the MeuProjeto.Services namespace
+    // The entire file belongs to the MyProject.Services namespace
 }
 ```
 

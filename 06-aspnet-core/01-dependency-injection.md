@@ -18,19 +18,19 @@ Instead of instantiating things inside my class, I externalize that responsibili
 
 ```csharp
 // WITHOUT DI - class creates its dependency
-public class PedidoService
+public class OrderService
 {
-    private readonly PedidoRepository _repo = new PedidoRepository();
+    private readonly OrderRepository _repo = new OrderRepository();
 }
 
 // WITH DI - dependency is injected
-public class PedidoService
+public class OrderService
 {
-    private readonly IPedidoRepository _repo;
+    private readonly IOrderRepository _repo;
 
-    public PedidoService(IPedidoRepository repo)
+    public OrderService(IOrderRepository repo)
     {
-        _repo = repo; // recebida de fora
+        _repo = repo; // received from the outside
     }
 }
 ```
@@ -43,7 +43,7 @@ To configure this we should go to the startup and define it as singleton, scoped
 
 ```csharp
 // Program.cs / Startup.cs
-builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IEmailService, SmtpEmailService>();
 builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 ```
@@ -52,26 +52,26 @@ builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 
 ### 1. Constructor Injection (recommended)
 ```csharp
-public class PedidoService
+public class OrderService
 {
-    private readonly IPedidoRepository _repo;
-    public PedidoService(IPedidoRepository repo) => _repo = repo;
+    private readonly IOrderRepository _repo;
+    public OrderService(IOrderRepository repo) => _repo = repo;
 }
 ```
 
 ### 2. Method Injection
 ```csharp
-public void Processar([FromServices] IPedidoRepository repo)
+public void Process([FromServices] IOrderRepository repo)
 {
-    // usado em controllers, minimal APIs
+    // used in controllers, minimal APIs
 }
 ```
 
 ### 3. Primary Constructor (C# 12)
 ```csharp
-public class PedidoService(IPedidoRepository repo)
+public class OrderService(IOrderRepository repo)
 {
-    public void Criar() => repo.Salvar(new Pedido());
+    public void Create() => repo.Save(new Order());
 }
 ```
 

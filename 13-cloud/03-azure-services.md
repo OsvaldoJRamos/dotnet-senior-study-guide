@@ -214,4 +214,4 @@ CDN + WAF + Global Load Balancer:
 
 ---
 
-[← Previous: AWS In Depth](02-aws-in-depth.md) | [Back to index](README.md)
+[← Previous: AWS In Depth](02-aws-in-depth.md) | [Next: AWS EC2 and Compute →](04-aws-ec2-and-compute.md) | [Back to index](README.md)

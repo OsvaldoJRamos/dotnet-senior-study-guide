@@ -36,24 +36,24 @@ Always avoid duplicated code. Write reusable, modular, and abstract enough code 
 
 ```csharp
 // DRY violated - duplicated validation
-public void CriarUsuario(string email)
+public void CreateUser(string email)
 {
-    if (!email.Contains("@")) throw new Exception("Email inválido");
+    if (!email.Contains("@")) throw new Exception("Invalid email");
     // ...
 }
 
-public void AtualizarEmail(string email)
+public void UpdateEmail(string email)
 {
-    if (!email.Contains("@")) throw new Exception("Email inválido");
+    if (!email.Contains("@")) throw new Exception("Invalid email");
     // ...
 }
 
 // DRY applied - centralized validation
 public static class EmailValidator
 {
-    public static void Validar(string email)
+    public static void Validate(string email)
     {
-        if (!email.Contains("@")) throw new Exception("Email inválido");
+        if (!email.Contains("@")) throw new Exception("Invalid email");
     }
 }
 ```

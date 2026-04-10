@@ -49,7 +49,7 @@ Header.Payload.Signature
 ```
 
 ```csharp
-// En ASP.NET Core, configurar autenticação JWT:
+// In ASP.NET Core, configure JWT authentication:
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -58,10 +58,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
-            ValidIssuer = "sua-api",
-            ValidAudience = "seu-client",
+            ValidIssuer = "your-api",
+            ValidAudience = "your-client",
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("sua-chave-secreta"))
+                Encoding.UTF8.GetBytes("your-secret-key"))
         };
     });
 ```

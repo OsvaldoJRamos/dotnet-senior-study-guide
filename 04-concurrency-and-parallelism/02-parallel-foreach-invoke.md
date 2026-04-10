@@ -33,9 +33,9 @@ Executes multiple methods simultaneously:
 
 ```csharp
 Parallel.Invoke(
-    () => Metodo1(),
-    () => Metodo2(),
-    () => Metodo3()
+    () => Method1(),
+    () => Method2(),
+    () => Method3()
 );
 ```
 

@@ -20,23 +20,23 @@ IEnumerable<T>          → Allows iteration (foreach)
 
 ```csharp
 // Use IEnumerable when the consumer will only iterate
-public IEnumerable<Produto> BuscarAtivos()
+public IEnumerable<Product> GetActive()
 {
-    return _context.Produtos.Where(p => p.Ativo);
+    return _context.Products.Where(p => p.Active);
 }
 
 // Use ICollection when you need to expose Add/Remove
-public class Pedido
+public class Order
 {
-    public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
+    public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 }
 
 // Use IList when you need index-based access
-public void ProcessarPorOrdem(IList<Tarefa> tarefas)
+public void ProcessByOrder(IList<Task> tasks)
 {
-    for (int i = 0; i < tarefas.Count; i++)
+    for (int i = 0; i < tasks.Count; i++)
     {
-        tarefas[i].Ordem = i + 1;
+        tasks[i].Order = i + 1;
     }
 }
 ```
@@ -55,8 +55,8 @@ Avoid exposing `List<T>` directly — exposing the concrete implementation coupl
 For collections that should not be modified by the consumer:
 
 ```csharp
-public IReadOnlyCollection<Produto> Produtos => _produtos.AsReadOnly();
-public IReadOnlyList<Produto> ProdutosOrdenados => _produtos.OrderBy(p => p.Nome).ToList();
+public IReadOnlyCollection<Product> Products => _products.AsReadOnly();
+public IReadOnlyList<Product> SortedProducts => _products.OrderBy(p => p.Name).ToList();
 ```
 
 ---

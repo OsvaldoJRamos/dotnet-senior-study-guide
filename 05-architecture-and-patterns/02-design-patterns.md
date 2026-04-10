@@ -41,25 +41,25 @@ Design patterns from the GoF (Gang of Four) are reusable solutions to common pro
 
 ### Singleton
 ```csharp
-// No .NET moderno, use DI com AddSingleton
-builder.Services.AddSingleton<IMeuServico, MeuServico>();
+// In modern .NET, use DI with AddSingleton
+builder.Services.AddSingleton<IMyService, MyService>();
 ```
 
 ### Strategy
 ```csharp
-public interface ICalculoFrete
+public interface IShippingCalculator
 {
-    decimal Calcular(Pedido pedido);
+    decimal Calculate(Order order);
 }
 
-public class FreteCorreios : ICalculoFrete { ... }
-public class FreteSedex : ICalculoFrete { ... }
+public class StandardShipping : IShippingCalculator { ... }
+public class ExpressShipping : IShippingCalculator { ... }
 
-// Uso via DI - a estratégia é injetada
-public class PedidoService
+// Usage via DI - the strategy is injected
+public class OrderService
 {
-    private readonly ICalculoFrete _frete;
-    public PedidoService(ICalculoFrete frete) => _frete = frete;
+    private readonly IShippingCalculator _shipping;
+    public OrderService(IShippingCalculator shipping) => _shipping = shipping;
 }
 ```
 

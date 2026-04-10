@@ -5,40 +5,40 @@
 Generics allow you to create classes, interfaces, and methods that work with **any type**, without losing type safety. They avoid code duplication and unnecessary boxing/unboxing.
 
 ```csharp
-// Sem generics: precisa de cast, sem type safety
-ArrayList lista = new ArrayList();
-lista.Add(42);
-int valor = (int)lista[0]; // cast manual, risco de InvalidCastException
+// Without generics: needs cast, no type safety
+ArrayList list = new ArrayList();
+list.Add(42);
+int value = (int)list[0]; // manual cast, risk of InvalidCastException
 
-// Com generics: type-safe, sem cast
-List<int> lista = new List<int>();
-lista.Add(42);
-int valor = lista[0]; // sem cast
+// With generics: type-safe, no cast
+List<int> list = new List<int>();
+list.Add(42);
+int value = list[0]; // no cast
 ```
 
 ## Generic classes and methods
 
 ```csharp
-// Classe generica
-public class Repositorio<T> where T : class
+// Generic class
+public class Repository<T> where T : class
 {
     private readonly List<T> _items = new();
 
-    public void Adicionar(T item) => _items.Add(item);
-    public T? ObterPorIndice(int index) => _items.ElementAtOrDefault(index);
-    public IReadOnlyList<T> ObterTodos() => _items.AsReadOnly();
+    public void Add(T item) => _items.Add(item);
+    public T? GetByIndex(int index) => _items.ElementAtOrDefault(index);
+    public IReadOnlyList<T> GetAll() => _items.AsReadOnly();
 }
 
-// Metodo generico
-public T? Deserializar<T>(string json)
+// Generic method
+public T? Deserialize<T>(string json)
 {
     return JsonSerializer.Deserialize<T>(json);
 }
 
-// Uso
-var repo = new Repositorio<Produto>();
-repo.Adicionar(new Produto("Notebook"));
-var produto = repo.ObterPorIndice(0);
+// Usage
+var repo = new Repository<Product>();
+repo.Add(new Product("Notebook"));
+var product = repo.GetByIndex(0);
 ```
 
 ## Constraints (restrictions)
@@ -46,10 +46,10 @@ var produto = repo.ObterPorIndice(0);
 Constraints limit which types can be used as a generic argument:
 
 ```csharp
-public class Servico<T> where T : class, IEntidade, new()
+public class Service<T> where T : class, IEntity, new()
 //                        ↑         ↑           ↑
 //                   reference type  implements   has parameterless
-//                                  IEntidade     constructor
+//                                  IEntity       constructor
 ```
 
 | Constraint | Meaning |
@@ -57,7 +57,7 @@ public class Servico<T> where T : class, IEntidade, new()
 | `where T : class` | Must be a reference type |
 | `where T : struct` | Must be a value type |
 | `where T : new()` | Must have a parameterless constructor |
-| `where T : IEntidade` | Must implement the interface |
+| `where T : IEntity` | Must implement the interface |
 | `where T : BaseClass` | Must inherit from the class |
 | `where T : notnull` | Cannot be null |
 | `where T : unmanaged` | Must be an unmanaged type (int, float, struct without refs) |
@@ -65,12 +65,12 @@ public class Servico<T> where T : class, IEntidade, new()
 ### Multiple constraints
 
 ```csharp
-public class Repositorio<T> where T : class, IEntidade, new()
+public class Repository<T> where T : class, IEntity, new()
 {
-    public T CriarNovo()
+    public T CreateNew()
     {
-        var item = new T(); // possivel por causa de new()
-        item.Id = Guid.NewGuid(); // possivel por causa de IEntidade
+        var item = new T(); // possible because of new()
+        item.Id = Guid.NewGuid(); // possible because of IEntity
         return item;
     }
 }
@@ -81,21 +81,21 @@ public class Repositorio<T> where T : class, IEntidade, new()
 ### Covariance (`out`) -- "can return a more specific type"
 
 ```csharp
-// IEnumerable<out T> e covariante
+// IEnumerable<out T> is covariant
 IEnumerable<string> strings = new List<string> { "a", "b" };
-IEnumerable<object> objects = strings; // OK! string herda de object
+IEnumerable<object> objects = strings; // OK! string inherits from object
 
-// Funciona porque IEnumerable so RETORNA T, nunca recebe
+// Works because IEnumerable only RETURNS T, never receives
 ```
 
 ### Contravariance (`in`) -- "can accept a more generic type"
 
 ```csharp
-// Action<in T> e contravariante
+// Action<in T> is contravariant
 Action<object> printObject = obj => Console.WriteLine(obj);
 Action<string> printString = printObject; // OK!
 
-// Funciona porque Action so RECEBE T, nunca retorna
+// Works because Action only RECEIVES T, never returns
 ```
 
 ### Practical rule
@@ -104,9 +104,9 @@ Action<string> printString = printObject; // OK!
 - `in T` = T only appears as a **parameter** (contravariant)
 
 ```csharp
-public interface IConvertedor<in TEntrada, out TSaida>
+public interface IConverter<in TInput, out TOutput>
 {
-    TSaida Converter(TEntrada entrada);
+    TOutput Convert(TInput input);
 }
 ```
 

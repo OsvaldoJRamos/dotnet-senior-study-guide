@@ -42,12 +42,12 @@ Infrastructure component:
 
 ```hcl
 resource "azurerm_resource_group" "main" {
-  name     = "rg-minha-app-prod"
+  name     = "rg-my-app-prod"
   location = "eastus2"
 }
 
 resource "azurerm_app_service_plan" "main" {
-  name                = "asp-minha-app"
+  name                = "asp-my-app"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   os_type             = "Linux"
@@ -55,7 +55,7 @@ resource "azurerm_app_service_plan" "main" {
 }
 
 resource "azurerm_linux_web_app" "api" {
-  name                = "app-minha-api-prod"
+  name                = "app-my-api-prod"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   service_plan_id     = azurerm_app_service_plan.main.id
@@ -81,12 +81,12 @@ variable "environment" {
 variable "db_password" {
   description = "Database password"
   type        = string
-  sensitive   = true  # nao aparece nos logs
+  sensitive   = true  # does not appear in logs
 }
 
-# Uso
+# Usage
 resource "azurerm_resource_group" "main" {
-  name = "rg-minha-app-${var.environment}"
+  name = "rg-my-app-${var.environment}"
 }
 ```
 
@@ -117,7 +117,7 @@ terraform {
     resource_group_name  = "rg-terraform"
     storage_account_name = "stterraformstate"
     container_name       = "tfstate"
-    key                  = "minha-app.tfstate"
+    key                  = "my-app.tfstate"
   }
 }
 ```

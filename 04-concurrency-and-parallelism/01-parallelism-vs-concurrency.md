@@ -19,7 +19,7 @@ You can limit it with `ParallelOptions`:
 
 ```csharp
 var options = new ParallelOptions { MaxDegreeOfParallelism = 4 };
-Parallel.ForEach(lista, options, item => Processar(item));
+Parallel.ForEach(list, options, item => Process(item));
 ```
 
 ---

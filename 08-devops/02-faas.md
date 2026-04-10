@@ -38,17 +38,17 @@ Event (HTTP, SQS, etc.) --> Container spins up --> Function executes --> Contain
 ## Example with Azure Functions (C#)
 
 ```csharp
-public class ProcessarPedidoFunction
+public class ProcessOrderFunction
 {
-    [FunctionName("ProcessarPedido")]
+    [FunctionName("ProcessOrder")]
     public async Task Run(
-        [QueueTrigger("pedidos-queue")] string pedidoJson,
+        [QueueTrigger("orders-queue")] string orderJson,
         ILogger log)
     {
-        var pedido = JsonSerializer.Deserialize<Pedido>(pedidoJson);
-        log.LogInformation($"Processando pedido {pedido.Id}");
+        var order = JsonSerializer.Deserialize<Order>(orderJson);
+        log.LogInformation($"Processing order {order.Id}");
         
-        // processa o pedido...
+        // process the order...
     }
 }
 ```

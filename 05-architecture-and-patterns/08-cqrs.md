@@ -9,13 +9,13 @@ Separating **read** (Query) and **write** (Command) operations into different mo
 
 ```
 ┌─────────┐    Command    ┌──────────────┐    ┌──────────────┐
-│ Cliente  │ ───────────→ │ Command Side │ ──→│  Write DB    │
-│          │              │ (validacao,  │    │ (normalizado)│
-│          │    Query     │  regras)     │    └──────────────┘
+│ Client   │ ───────────→ │ Command Side │ ──→│  Write DB    │
+│          │              │ (validation, │    │ (normalized) │
+│          │    Query     │  rules)      │    └──────────────┘
 │          │ ───────────→ ├──────────────┤           │ sync
 │          │ ←─────────── │  Query Side  │ ←─ ┌──────────────┐
-└─────────┘              │ (projecoes)  │    │  Read DB     │
-                          └──────────────┘    │(desnormaliz.)│
+└─────────┘              │ (projections)│    │  Read DB     │
+                          └──────────────┘    │(denormalized)│
                                               └──────────────┘
 ```
 
@@ -32,32 +32,32 @@ You don't need two databases. The most basic level is to separate **handlers**:
 
 ```csharp
 // Command
-public record CriarPedidoCommand(string ClienteId, List<ItemDto> Itens);
+public record CreateOrderCommand(string CustomerId, List<ItemDto> Items);
 
-public class CriarPedidoHandler
+public class CreateOrderHandler
 {
-    private readonly IPedidoRepository _repo;
+    private readonly IOrderRepository _repo;
 
-    public async Task<Guid> Handle(CriarPedidoCommand cmd)
+    public async Task<Guid> Handle(CreateOrderCommand cmd)
     {
-        var pedido = new Pedido(cmd.ClienteId, cmd.Itens);
-        await _repo.SalvarAsync(pedido);
-        return pedido.Id;
+        var order = new Order(cmd.CustomerId, cmd.Items);
+        await _repo.SaveAsync(order);
+        return order.Id;
     }
 }
 
 // Query
-public record ObterPedidoQuery(Guid PedidoId);
+public record GetOrderQuery(Guid OrderId);
 
-public class ObterPedidoHandler
+public class GetOrderHandler
 {
-    private readonly IDbConnection _db; // Dapper, leitura direta
+    private readonly IDbConnection _db; // Dapper, direct read
 
-    public async Task<PedidoDto?> Handle(ObterPedidoQuery query)
+    public async Task<OrderDto?> Handle(GetOrderQuery query)
     {
-        return await _db.QueryFirstOrDefaultAsync<PedidoDto>(
-            "SELECT Id, ClienteNome, Total, Status FROM vw_Pedidos WHERE Id = @Id",
-            new { Id = query.PedidoId });
+        return await _db.QueryFirstOrDefaultAsync<OrderDto>(
+            "SELECT Id, CustomerName, Total, Status FROM vw_Orders WHERE Id = @Id",
+            new { Id = query.OrderId });
     }
 }
 ```
@@ -66,33 +66,33 @@ public class ObterPedidoHandler
 
 ```csharp
 // Command
-public record CriarPedidoCommand(string ClienteId) : IRequest<Guid>;
+public record CreateOrderCommand(string CustomerId) : IRequest<Guid>;
 
-public class CriarPedidoHandler : IRequestHandler<CriarPedidoCommand, Guid>
+public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Guid>
 {
-    public async Task<Guid> Handle(CriarPedidoCommand cmd, CancellationToken ct)
+    public async Task<Guid> Handle(CreateOrderCommand cmd, CancellationToken ct)
     {
-        // ... escrita
+        // ... write
     }
 }
 
 // Query
-public record ObterPedidoQuery(Guid Id) : IRequest<PedidoDto?>;
+public record GetOrderQuery(Guid Id) : IRequest<OrderDto?>;
 
-public class ObterPedidoHandler : IRequestHandler<ObterPedidoQuery, PedidoDto?>
+public class GetOrderHandler : IRequestHandler<GetOrderQuery, OrderDto?>
 {
-    public async Task<PedidoDto?> Handle(ObterPedidoQuery query, CancellationToken ct)
+    public async Task<OrderDto?> Handle(GetOrderQuery query, CancellationToken ct)
     {
-        // ... leitura otimizada
+        // ... optimized read
     }
 }
 
 // Controller
 [HttpPost]
-public async Task<IActionResult> Criar(CriarPedidoDto dto)
+public async Task<IActionResult> Create(CreateOrderDto dto)
 {
-    var id = await _mediator.Send(new CriarPedidoCommand(dto.ClienteId));
-    return CreatedAtAction(nameof(Obter), new { id }, null);
+    var id = await _mediator.Send(new CreateOrderCommand(dto.CustomerId));
+    return CreatedAtAction(nameof(Get), new { id }, null);
 }
 ```
 
@@ -101,14 +101,14 @@ public async Task<IActionResult> Criar(CriarPedidoDto dto)
 Instead of saving the **current state**, it saves all the **events** that led to the state:
 
 ```csharp
-// Eventos
-public record PedidoCriado(Guid PedidoId, string ClienteId, DateTime Data);
-public record ItemAdicionado(Guid PedidoId, string Produto, int Quantidade);
-public record PedidoAprovado(Guid PedidoId, DateTime Data);
+// Events
+public record OrderCreated(Guid OrderId, string CustomerId, DateTime Date);
+public record ItemAdded(Guid OrderId, string Product, int Quantity);
+public record OrderApproved(Guid OrderId, DateTime Date);
 
-// O estado e reconstruido "replaying" os eventos:
-// PedidoCriado → ItemAdicionado → ItemAdicionado → PedidoAprovado
-// Resultado: Pedido com 2 itens, status Aprovado
+// The state is reconstructed by "replaying" the events:
+// OrderCreated → ItemAdded → ItemAdded → OrderApproved
+// Result: Order with 2 items, status Approved
 ```
 
 ### Event Sourcing Advantages

@@ -42,16 +42,16 @@ public struct Point
 }
 
 // Class - good for business entities (identity, inheritance)
-public class Cliente
+public class Customer
 {
     public Guid Id { get; }
-    public string Nome { get; set; }
+    public string Name { get; set; }
     public string Email { get; set; }
     
-    public Cliente(string nome, string email)
+    public Customer(string name, string email)
     {
         Id = Guid.NewGuid();
-        Nome = nome;
+        Name = name;
         Email = email;
     }
 }
@@ -63,10 +63,10 @@ For scenarios where you want **immutability** and **value equality** without usi
 
 ```csharp
 // record class - allocated on the heap but with value equality
-public record Endereco(string Rua, string Cidade, string Estado);
+public record Address(string Street, string City, string State);
 
 // record struct (C# 10) - allocated on the stack with value equality
-public readonly record struct Coordenada(double Lat, double Lon);
+public readonly record struct Coordinate(double Lat, double Lon);
 ```
 
 ---

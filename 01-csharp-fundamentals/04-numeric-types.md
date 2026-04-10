@@ -23,11 +23,11 @@ When using `double` and `float`, the number's value is stored in memory using a 
 ## Practical example
 
 ```csharp
-// Problema de precisão com double
+// Precision problem with double
 double a = 0.1 + 0.2;
-Console.WriteLine(a == 0.3); // False! (resultado: 0.30000000000000004)
+Console.WriteLine(a == 0.3); // False! (result: 0.30000000000000004)
 
-// Decimal é preciso para valores monetários
+// Decimal is precise for monetary values
 decimal b = 0.1m + 0.2m;
 Console.WriteLine(b == 0.3m); // True
 ```
@@ -35,9 +35,9 @@ Console.WriteLine(b == 0.3m); // True
 ## Literal suffixes
 
 ```csharp
-float f = 3.14f;     // sufixo 'f'
-double d = 3.14;     // padrão, sem sufixo (ou 'd')
-decimal m = 3.14m;   // sufixo 'm'
+float f = 3.14f;     // suffix 'f'
+double d = 3.14;     // default, no suffix (or 'd')
+decimal m = 3.14m;   // suffix 'm'
 ```
 
 ---

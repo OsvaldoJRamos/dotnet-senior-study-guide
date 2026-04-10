@@ -5,18 +5,18 @@
 A delegate is a **type-safe pointer to a method**. It defines the signature (parameters and return type) that the method must have.
 
 ```csharp
-// Declaracao do delegate
-public delegate int Operacao(int a, int b);
+// Delegate declaration
+public delegate int Operation(int a, int b);
 
-// Metodos que combinam com a assinatura
-int Somar(int a, int b) => a + b;
-int Multiplicar(int a, int b) => a * b;
+// Methods that match the signature
+int Add(int a, int b) => a + b;
+int Multiply(int a, int b) => a * b;
 
-// Uso
-Operacao op = Somar;
+// Usage
+Operation op = Add;
 Console.WriteLine(op(3, 4)); // 7
 
-op = Multiplicar;
+op = Multiply;
 Console.WriteLine(op(3, 4)); // 12
 ```
 
@@ -31,35 +31,35 @@ Ready-made generic delegates from .NET -- **avoid creating custom delegates**:
 | `Predicate<T>` | Returns bool | `bool method(T param)` |
 
 ```csharp
-// Func: recebe int, retorna string
-Func<int, string> converter = numero => $"Valor: {numero}";
-Console.WriteLine(converter(42)); // "Valor: 42"
+// Func: receives int, returns string
+Func<int, string> convert = number => $"Value: {number}";
+Console.WriteLine(convert(42)); // "Value: 42"
 
-// Action: recebe string, nao retorna nada
-Action<string> logar = msg => Console.WriteLine($"[LOG] {msg}");
-logar("Iniciando..."); // "[LOG] Iniciando..."
+// Action: receives string, returns nothing
+Action<string> log = msg => Console.WriteLine($"[LOG] {msg}");
+log("Starting..."); // "[LOG] Starting..."
 
-// Predicate: recebe int, retorna bool
-Predicate<int> ehPar = n => n % 2 == 0;
-Console.WriteLine(ehPar(4)); // True
+// Predicate: receives int, returns bool
+Predicate<int> isEven = n => n % 2 == 0;
+Console.WriteLine(isEven(4)); // True
 
-// Func com multiplos parametros
-Func<int, int, int> somar = (a, b) => a + b;
+// Func with multiple parameters
+Func<int, int, int> add = (a, b) => a + b;
 ```
 
 ### Practical usage with LINQ
 
 ```csharp
-var numeros = new List<int> { 1, 2, 3, 4, 5 };
+var numbers = new List<int> { 1, 2, 3, 4, 5 };
 
-// Where recebe Func<int, bool>
-var pares = numeros.Where(n => n % 2 == 0);
+// Where receives Func<int, bool>
+var evens = numbers.Where(n => n % 2 == 0);
 
-// Select recebe Func<int, string>
-var textos = numeros.Select(n => $"Numero {n}");
+// Select receives Func<int, string>
+var texts = numbers.Select(n => $"Number {n}");
 
-// ForEach recebe Action<int>
-numeros.ForEach(n => Console.WriteLine(n));
+// ForEach receives Action<int>
+numbers.ForEach(n => Console.WriteLine(n));
 ```
 
 ## Events
@@ -67,52 +67,52 @@ numeros.ForEach(n => Console.WriteLine(n));
 Events are an **encapsulation layer** over delegates. They implement the **Observer** pattern -- they allow objects to be notified when something happens.
 
 ```csharp
-public class PedidoService
+public class OrderService
 {
-    // Declaracao do evento
-    public event EventHandler<Pedido>? PedidoCriado;
+    // Event declaration
+    public event EventHandler<Order>? OrderCreated;
 
-    public void CriarPedido(Pedido pedido)
+    public void CreateOrder(Order order)
     {
-        // ... logica de criacao ...
+        // ... creation logic ...
 
-        // Dispara o evento
-        PedidoCriado?.Invoke(this, pedido);
+        // Fires the event
+        OrderCreated?.Invoke(this, order);
     }
 }
 
-// Assinantes
-var service = new PedidoService();
+// Subscribers
+var service = new OrderService();
 
-service.PedidoCriado += (sender, pedido) =>
-    Console.WriteLine($"Email enviado para pedido {pedido.Id}");
+service.OrderCreated += (sender, order) =>
+    Console.WriteLine($"Email sent for order {order.Id}");
 
-service.PedidoCriado += (sender, pedido) =>
-    Console.WriteLine($"Log registrado para pedido {pedido.Id}");
+service.OrderCreated += (sender, order) =>
+    Console.WriteLine($"Log recorded for order {order.Id}");
 
-service.CriarPedido(new Pedido(1));
-// "Email enviado para pedido 1"
-// "Log registrado para pedido 1"
+service.CreateOrder(new Order(1));
+// "Email sent for order 1"
+// "Log recorded for order 1"
 ```
 
 ### Event vs Delegate -- why use event?
 
 ```csharp
-// COM delegate publico: qualquer um pode invocar ou sobrescrever
-public Action<string>? OnMensagem;
+// WITH public delegate: anyone can invoke or overwrite
+public Action<string>? OnMessage;
 
-// Problema 1: codigo externo pode disparar
-obj.OnMensagem?.Invoke("falso!"); // qualquer um invoca
+// Problem 1: external code can fire
+obj.OnMessage?.Invoke("fake!"); // anyone can invoke
 
-// Problema 2: codigo externo pode sobrescrever todos os handlers
-obj.OnMensagem = novoHandler; // apaga todos os anteriores
+// Problem 2: external code can overwrite all handlers
+obj.OnMessage = newHandler; // erases all previous ones
 
-// COM event: so a classe dona pode invocar
-public event Action<string>? OnMensagem;
+// WITH event: only the owning class can invoke
+public event Action<string>? OnMessage;
 
-// obj.OnMensagem?.Invoke("falso!"); // ERRO de compilacao
-// obj.OnMensagem = novoHandler;     // ERRO de compilacao
-obj.OnMensagem += meuHandler;        // OK, so pode += e -=
+// obj.OnMessage?.Invoke("fake!"); // COMPILE ERROR
+// obj.OnMessage = newHandler;     // COMPILE ERROR
+obj.OnMessage += myHandler;        // OK, can only use += and -=
 ```
 
 ## EventHandler pattern
@@ -120,27 +120,27 @@ obj.OnMensagem += meuHandler;        // OK, so pode += e -=
 The pattern recommended by Microsoft:
 
 ```csharp
-// Argumentos customizados
-public class PedidoEventArgs : EventArgs
+// Custom event arguments
+public class OrderEventArgs : EventArgs
 {
-    public int PedidoId { get; }
-    public decimal Valor { get; }
+    public int OrderId { get; }
+    public decimal Value { get; }
 
-    public PedidoEventArgs(int pedidoId, decimal valor)
+    public OrderEventArgs(int orderId, decimal value)
     {
-        PedidoId = pedidoId;
-        Valor = valor;
+        OrderId = orderId;
+        Value = value;
     }
 }
 
-// Classe que publica o evento
-public class PedidoService
+// Class that publishes the event
+public class OrderService
 {
-    public event EventHandler<PedidoEventArgs>? PedidoCriado;
+    public event EventHandler<OrderEventArgs>? OrderCreated;
 
-    protected virtual void OnPedidoCriado(PedidoEventArgs e)
+    protected virtual void OnOrderCreated(OrderEventArgs e)
     {
-        PedidoCriado?.Invoke(this, e);
+        OrderCreated?.Invoke(this, e);
     }
 }
 ```
@@ -148,22 +148,22 @@ public class PedidoService
 ## Delegates as Strategy Pattern
 
 ```csharp
-public class Validador
+public class Validator
 {
-    private readonly List<Func<string, bool>> _regras = new();
+    private readonly List<Func<string, bool>> _rules = new();
 
-    public void AdicionarRegra(Func<string, bool> regra) => _regras.Add(regra);
+    public void AddRule(Func<string, bool> rule) => _rules.Add(rule);
 
-    public bool Validar(string valor) => _regras.All(regra => regra(valor));
+    public bool Validate(string value) => _rules.All(rule => rule(value));
 }
 
-var validador = new Validador();
-validador.AdicionarRegra(s => !string.IsNullOrEmpty(s));
-validador.AdicionarRegra(s => s.Length >= 3);
-validador.AdicionarRegra(s => s.All(char.IsLetterOrDigit));
+var validator = new Validator();
+validator.AddRule(s => !string.IsNullOrEmpty(s));
+validator.AddRule(s => s.Length >= 3);
+validator.AddRule(s => s.All(char.IsLetterOrDigit));
 
-Console.WriteLine(validador.Validar("abc123")); // True
-Console.WriteLine(validador.Validar("ab"));      // False
+Console.WriteLine(validator.Validate("abc123")); // True
+Console.WriteLine(validator.Validate("ab"));      // False
 ```
 
 ## Summary

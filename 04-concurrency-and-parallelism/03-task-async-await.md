@@ -5,14 +5,14 @@
 Ideal for **asynchronous concurrency**, but can also be used for parallelism with `Task.WhenAll`:
 
 ```csharp
-var tarefas = new[]
+var tasks = new[]
 {
-    Task.Run(() => Calcular(1)),
-    Task.Run(() => Calcular(2)),
-    Task.Run(() => Calcular(3))
+    Task.Run(() => Calculate(1)),
+    Task.Run(() => Calculate(2)),
+    Task.Run(() => Calculate(3))
 };
 
-await Task.WhenAll(tarefas);
+await Task.WhenAll(tasks);
 ```
 
 ### Practical example with I/O:
@@ -27,9 +27,9 @@ var cepList = await Task.WhenAll(cepTaskList);
 Allows parallelizing LINQ queries:
 
 ```csharp
-var resultado = lista
+var result = list
     .AsParallel()
-    .Where(x => Processar(x))
+    .Where(x => Process(x))
     .ToList();
 ```
 
@@ -48,20 +48,20 @@ var resultado = lista
 
 ```csharp
 // WRONG - can cause deadlock
-var result = MinhaOperacaoAsync().Result;
+var result = MyOperationAsync().Result;
 
 // CORRECT - use await
-var result = await MinhaOperacaoAsync();
+var result = await MyOperationAsync();
 ```
 
 ### async void — avoid it
 
 ```csharp
 // WRONG - exceptions cannot be caught
-async void ProcessarDados() { ... }
+async void ProcessData() { ... }
 
 // CORRECT - use async Task
-async Task ProcessarDados() { ... }
+async Task ProcessData() { ... }
 ```
 
 The only exception for `async void` is UI event handlers.

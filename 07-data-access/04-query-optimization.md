@@ -41,10 +41,10 @@ Classic symptom: query runs fast in SSMS (local SQL) and **hangs** when running 
 ### Solution: OPTION (RECOMPILE)
 
 ```sql
-SELECT * FROM Pedidos
-WHERE ClienteId = @ClienteId
-AND DataCriacao BETWEEN @DataInicio AND @DataFim
-OPTION (RECOMPILE)  -- forca novo plano a cada execucao
+SELECT * FROM Orders
+WHERE CustomerId = @CustomerId
+AND CreatedDate BETWEEN @StartDate AND @EndDate
+OPTION (RECOMPILE)  -- forces a new plan on each execution
 ```
 
 ### Trade-off
@@ -66,27 +66,27 @@ A query is **sargable** (Search ARGument ABLE) when the optimizer can use indexe
 ```sql
 -- NON-SARGABLE (function on column prevents index usage)
 WHERE ISNUMERIC(Quantity) = 1
-WHERE YEAR(DataCriacao) = 2024
-WHERE UPPER(Nome) = 'JOAO'
+WHERE YEAR(CreatedDate) = 2024
+WHERE UPPER(Name) = 'JOAO'
 
 -- SARGABLE (index can be used)
 WHERE Quantity IS NOT NULL AND Quantity > 0
-WHERE DataCriacao >= '2024-01-01' AND DataCriacao < '2025-01-01'
-WHERE Nome = 'JOAO'  -- com collation case-insensitive
+WHERE CreatedDate >= '2024-01-01' AND CreatedDate < '2025-01-01'
+WHERE Name = 'JOAO'  -- with case-insensitive collation
 ```
 
 ### Real-world example
 
 ```sql
--- Problematico: ISNUMERIC() impede uso de indice
+-- Problematic: ISNUMERIC() prevents index usage
 SELECT SUM(CAST(RemainingQuantity AS decimal))
 FROM OrderProductDetails opd WITH (NOLOCK)
 WHERE opd.OrderId = os1.Id
   AND opd.Quantity != ''
-  AND ISNUMERIC(opd.Quantity) = 1  -- nao-sargavel!
+  AND ISNUMERIC(opd.Quantity) = 1  -- non-sargable!
 
--- Plano bom: processa apenas as rows necessarias
--- Plano ruim: calcula ISNUMERIC() para TODAS as rows
+-- Good plan: processes only necessary rows
+-- Bad plan: calculates ISNUMERIC() for ALL rows
 ```
 
 **Solution**: use a computed column with an index or fix the data type in the database.

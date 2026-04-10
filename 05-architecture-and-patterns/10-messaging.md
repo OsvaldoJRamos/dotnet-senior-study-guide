@@ -5,7 +5,7 @@
 Messaging is the **asynchronous** communication pattern between services using an intermediary (broker). The producer sends the message and **does not wait** for a response.
 
 ```
-[Produtor] ──publica──→ [Broker] ──entrega──→ [Consumidor]
+[Producer] ──publishes──→ [Broker] ──delivers──→ [Consumer]
 ```
 
 ## Why use it
@@ -61,16 +61,16 @@ The most popular message broker for .NET applications. Based on the **AMQP** pro
 |------|------------|
 | **Direct** | Exact routing key |
 | **Fanout** | All queues (broadcast) |
-| **Topic** | Routing key with wildcards (`pedido.*`, `#.erro`) |
+| **Topic** | Routing key with wildcards (`order.*`, `#.error`) |
 | **Headers** | Message headers |
 
 ### Example with MassTransit (.NET)
 
 ```csharp
-// Configuracao
+// Configuration
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<PedidoCriadoConsumer>();
+    x.AddConsumer<OrderCreatedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -79,25 +79,25 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-// Publicar evento
-public class PedidoService
+// Publish event
+public class OrderService
 {
     private readonly IPublishEndpoint _publish;
 
-    public async Task CriarPedido(Pedido pedido)
+    public async Task CreateOrder(Order order)
     {
-        // ... salva pedido ...
-        await _publish.Publish(new PedidoCriadoEvent(pedido.Id, pedido.Total));
+        // ... save order ...
+        await _publish.Publish(new OrderCreatedEvent(order.Id, order.Total));
     }
 }
 
-// Consumir evento
-public class PedidoCriadoConsumer : IConsumer<PedidoCriadoEvent>
+// Consume event
+public class OrderCreatedConsumer : IConsumer<OrderCreatedEvent>
 {
-    public async Task Consume(ConsumeContext<PedidoCriadoEvent> context)
+    public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
     {
-        var evento = context.Message;
-        // ... envia email, atualiza estoque, etc.
+        var message = context.Message;
+        // ... send email, update inventory, etc.
     }
 }
 ```
@@ -134,18 +134,18 @@ An **event streaming** platform. Different from traditional queues:
 Microsoft's managed service. Supports **queues** and **topics/subscriptions**:
 
 ```csharp
-// Enviar mensagem
+// Send message
 var client = new ServiceBusClient(connectionString);
-var sender = client.CreateSender("pedidos-queue");
+var sender = client.CreateSender("orders-queue");
 
 await sender.SendMessageAsync(new ServiceBusMessage(
-    JsonSerializer.Serialize(pedido)));
+    JsonSerializer.Serialize(order)));
 
-// Receber mensagem
-var processor = client.CreateProcessor("pedidos-queue");
+// Receive message
+var processor = client.CreateProcessor("orders-queue");
 processor.ProcessMessageAsync += async args =>
 {
-    var pedido = JsonSerializer.Deserialize<Pedido>(args.Message.Body.ToString());
+    var order = JsonSerializer.Deserialize<Order>(args.Message.Body.ToString());
     await args.CompleteMessageAsync(args.Message);
 };
 await processor.StartProcessingAsync();

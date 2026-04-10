@@ -10,27 +10,27 @@ Each class should have a single responsibility. If a class does too many things,
 
 ```csharp
 // WRONG - class with multiple responsibilities
-public class Pedido
+public class Order
 {
-    public void CalcularTotal() { }
-    public void SalvarNoBanco() { }
-    public void EnviarEmail() { }
+    public void CalculateTotal() { }
+    public void SaveToDatabase() { }
+    public void SendEmail() { }
 }
 
 // CORRECT - each class with one responsibility
-public class Pedido
+public class Order
 {
-    public decimal CalcularTotal() { ... }
+    public decimal CalculateTotal() { ... }
 }
 
-public class PedidoRepository
+public class OrderRepository
 {
-    public void Salvar(Pedido pedido) { ... }
+    public void Save(Order order) { ... }
 }
 
-public class NotificacaoService
+public class NotificationService
 {
-    public void EnviarConfirmacao(Pedido pedido) { ... }
+    public void SendConfirmation(Order order) { ... }
 }
 ```
 
@@ -42,30 +42,30 @@ You should be able to add new behaviors without changing existing code.
 
 ```csharp
 // WRONG - need to modify the class for each new type
-public class CalculadoraDesconto
+public class DiscountCalculator
 {
-    public decimal Calcular(string tipo, decimal valor)
+    public decimal Calculate(string type, decimal value)
     {
-        if (tipo == "VIP") return valor * 0.2m;
-        if (tipo == "Premium") return valor * 0.1m;
+        if (type == "VIP") return value * 0.2m;
+        if (type == "Premium") return value * 0.1m;
         return 0;
     }
 }
 
 // CORRECT - extensible via new implementations
-public interface IDesconto
+public interface IDiscount
 {
-    decimal Calcular(decimal valor);
+    decimal Calculate(decimal value);
 }
 
-public class DescontoVip : IDesconto
+public class VipDiscount : IDiscount
 {
-    public decimal Calcular(decimal valor) => valor * 0.2m;
+    public decimal Calculate(decimal value) => value * 0.2m;
 }
 
-public class DescontoPremium : IDesconto
+public class PremiumDiscount : IDiscount
 {
-    public decimal Calcular(decimal valor) => valor * 0.1m;
+    public decimal Calculate(decimal value) => value * 0.1m;
 }
 ```
 
@@ -76,30 +76,30 @@ public class DescontoPremium : IDesconto
 If class B inherits from A, then B should work anywhere that A works.
 
 ```csharp
-// WRONG - Pinguim inherits from Ave but doesn't fly
-public class Ave
+// WRONG - Penguin inherits from Bird but doesn't fly
+public class Bird
 {
-    public virtual void Voar() { Console.WriteLine("Voando..."); }
+    public virtual void Fly() { Console.WriteLine("Flying..."); }
 }
 
-public class Pinguim : Ave
+public class Penguin : Bird
 {
-    public override void Voar() { throw new Exception("Não voa!"); } // violates LSP
+    public override void Fly() { throw new Exception("Can't fly!"); } // violates LSP
 }
 
 // CORRECT - separate contracts
-public interface IAve { }
-public interface IAveVoadora : IAve
+public interface IBird { }
+public interface IFlyingBird : IBird
 {
-    void Voar();
+    void Fly();
 }
 
-public class Aguia : IAveVoadora
+public class Eagle : IFlyingBird
 {
-    public void Voar() { Console.WriteLine("Voando..."); }
+    public void Fly() { Console.WriteLine("Flying..."); }
 }
 
-public class Pinguim : IAve { } // does not implement Voar
+public class Penguin : IBird { } // does not implement Fly
 ```
 
 ## I - Interface Segregation Principle (ISP)
@@ -112,21 +112,21 @@ Prefer several small, specific interfaces over one large, generic interface.
 // WRONG - interface too large
 public interface IWorker
 {
-    void Trabalhar();
-    void Comer();
-    void Dormir();
+    void Work();
+    void Eat();
+    void Sleep();
 }
 
 // CORRECT - segregated interfaces
-public interface ITrabalhador
+public interface IWorker
 {
-    void Trabalhar();
+    void Work();
 }
 
-public interface ISerVivo
+public interface ILivingBeing
 {
-    void Comer();
-    void Dormir();
+    void Eat();
+    void Sleep();
 }
 ```
 
@@ -138,17 +138,17 @@ High-level modules should not depend on low-level modules. Both should depend on
 
 ```csharp
 // WRONG - depends on concrete implementation
-public class PedidoService
+public class OrderService
 {
-    private readonly SqlPedidoRepository _repo = new SqlPedidoRepository();
+    private readonly SqlOrderRepository _repo = new SqlOrderRepository();
 }
 
 // CORRECT - depends on abstraction
-public class PedidoService
+public class OrderService
 {
-    private readonly IPedidoRepository _repo;
+    private readonly IOrderRepository _repo;
 
-    public PedidoService(IPedidoRepository repo)
+    public OrderService(IOrderRepository repo)
     {
         _repo = repo;
     }

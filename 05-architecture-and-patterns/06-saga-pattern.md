@@ -16,9 +16,9 @@ Each microservice processes a request, saves to its own database, and then passe
 A central service (orchestrator) coordinates all saga steps and decides what to do in case of failure.
 
 ```
-Orquestrador → Serviço A → Serviço B → Serviço C
+Orchestrator → Service A → Service B → Service C
                   ↑                        |
-                  └──── Compensação ←──────┘ (se falhar)
+                  └──── Compensation ←─────┘ (if it fails)
 ```
 
 **Advantages:** easy to understand, centralized logic
@@ -28,9 +28,9 @@ Orquestrador → Serviço A → Serviço B → Serviço C
 Each service knows what to do when it receives an event. There is no central coordinator.
 
 ```
-Serviço A → Evento → Serviço B → Evento → Serviço C
+Service A → Event → Service B → Event → Service C
                                                |
-Serviço A ← Evento compensatório ←────────────┘ (se falhar)
+Service A ← Compensating event ←───────────────┘ (if it fails)
 ```
 
 **Advantages:** decoupled, each service is autonomous

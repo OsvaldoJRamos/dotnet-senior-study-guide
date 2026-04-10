@@ -84,7 +84,7 @@ With yield, you can get elements one by one and start displaying them to the use
 Used to terminate the iteration early:
 
 ```csharp
-IEnumerable<int> NumerosPares(int max)
+IEnumerable<int> EvenNumbers(int max)
 {
     for (int i = 0; i <= max; i++)
     {

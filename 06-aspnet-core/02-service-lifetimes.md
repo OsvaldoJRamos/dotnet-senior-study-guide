@@ -40,7 +40,7 @@ Classes that will be created **every time** they are requested. Perfect for shor
 
 ```csharp
 builder.Services.AddTransient<IEmailService, SmtpEmailService>();
-builder.Services.AddTransient<IValidator<Pedido>, PedidoValidator>();
+builder.Services.AddTransient<IValidator<Order>, OrderValidator>();
 ```
 
 ## Important rule: Captive Dependencies
@@ -49,13 +49,13 @@ Never inject a service with a **shorter lifetime** into a service with a **longe
 
 ```csharp
 // WRONG - Scoped inside Singleton = Captive Dependency
-builder.Services.AddSingleton<MeuSingleton>();  // vive pra sempre
-builder.Services.AddScoped<MeuScoped>();         // deveria morrer por request
+builder.Services.AddSingleton<MySingleton>();  // lives forever
+builder.Services.AddScoped<MyScoped>();         // should die per request
 
-public class MeuSingleton
+public class MySingleton
 {
-    // MeuScoped vai ficar preso no Singleton e nunca ser descartado!
-    public MeuSingleton(MeuScoped scoped) { }
+    // MyScoped will be trapped in the Singleton and never disposed!
+    public MySingleton(MyScoped scoped) { }
 }
 ```
 
