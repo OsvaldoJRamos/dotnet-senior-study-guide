@@ -43,35 +43,26 @@ public void Method2()
 
 `Method1` and `Method2` acquire locks `lock1` and `lock2` **in the same order**, ensuring there is no circular wait.
 
-### 3. Avoid `lock` on external resources (e.g., I/O, database)
-
-Do not use `lock` in `async` methods, as it can block threads from the pool:
+### 3. Do not mix `lock` with `await`
 
 ```csharp
-// DO NOT do this
+// DOES NOT COMPILE - CS1996
 lock (locker)
 {
-    await database.SaveAsync(); // dangerous: can freeze
+    await database.SaveAsync();
 }
 ```
 
-**Solution:** use asynchronous synchronization mechanisms (`SemaphoreSlim`).
+Two facts to remember:
 
-### 4. Use the Task Parallel Library (TPL)
+1. **`await` inside a `lock` block is a C# compile error (CS1996).** The compiler forbids it outright.
+2. Even if it compiled, `Monitor` (what `lock` uses under the hood) is **thread-affine**: only the thread that acquired the lock may release it. After an `await`, the continuation can resume on a different thread, which would then fail to release the monitor.
 
-The TPL is a powerful concurrency framework in .NET that can help prevent deadlocks. It manages concurrency automatically and ensures that tasks do not interfere with each other.
+**Solution:** use `SemaphoreSlim.WaitAsync()` for async mutual exclusion.
 
-```csharp
-Task.Run(() =>
-{
-    // Access the resources
-});
+### 4. TPL does NOT prevent deadlocks
 
-Task.Run(() =>
-{
-    // Access the resources
-});
-```
+The Task Parallel Library helps you avoid manual thread management (`Thread.Start`, manual pools), but it does **not** eliminate deadlocks or race conditions. Any shared state accessed from `Task.Run` still needs synchronization — that responsibility is yours. Do not assume using `Task` makes concurrent code safe.
 
 ### 5. Use timeouts
 
