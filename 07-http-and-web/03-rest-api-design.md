@@ -43,8 +43,15 @@ GET /api/customers/5/orders/42      # order 42 for customer 5
 | Code | Meaning | When to use |
 |------|---------|-------------|
 | **200** | OK | Successful GET, PUT, PATCH |
-| **201** | Created | POST that created a resource |
+| **201** | Created | POST that created a resource. **Must** include a `Location` header with the new resource URI |
+| **202** | Accepted | Request accepted for **asynchronous** processing (return a status URL the client can poll) |
 | **204** | No Content | DELETE or PUT with no response body |
+
+### Redirection
+
+| Code | Meaning | When to use |
+|------|---------|-------------|
+| **304** | Not Modified | Conditional GET (`If-None-Match` / `If-Modified-Since`) — the client's cached copy is still valid |
 
 ### Client error
 
@@ -55,7 +62,10 @@ GET /api/customers/5/orders/42      # order 42 for customer 5
 | **403** | Forbidden | Authenticated but without permission |
 | **404** | Not Found | Resource does not exist |
 | **409** | Conflict | Conflict (e.g., duplicate, concurrency) |
-| **422** | Unprocessable Entity | Semantically invalid |
+| **410** | Gone | Resource existed but was intentionally removed and will not come back |
+| **415** | Unsupported Media Type | Server does not accept the request's `Content-Type` |
+| **422** | Unprocessable Entity | Syntactically valid but semantically invalid |
+| **429** | Too Many Requests | Rate limit hit. Include a `Retry-After` header |
 
 ### Server error
 
@@ -141,6 +151,33 @@ builder.Services.AddProblemDetails();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 ```
+
+## Idempotency Keys
+
+`POST` is not idempotent, but retries are unavoidable (network timeouts, mobile clients, queue consumers). **Idempotency keys** make retries safe without creating duplicate resources.
+
+**How it works:**
+
+1. The **client** generates a unique key (usually a UUID) per logical operation.
+2. The client sends it in the `Idempotency-Key` HTTP header.
+3. The **server** stores the response keyed by `(client, key)` for a TTL (e.g., 24h).
+4. If the same key arrives again, the server returns the **cached response** instead of executing the operation again.
+
+```http
+POST /api/payments HTTP/1.1
+Idempotency-Key: 8c1b0e2a-5f4d-4b3a-9d2e-1f0b3a4c5d6e
+Content-Type: application/json
+
+{ "orderId": 42, "amount": 150.00 }
+```
+
+```
+First request  → 201 Created, charges the card, stores response under the key
+Retry (same key) → 201 Created, returns the stored response (no new charge)
+Different key  → treated as a new operation
+```
+
+> Popularized by Stripe. Standard pattern for payment, order, and money-movement APIs.
 
 ## HATEOAS (hyperlinks in the response)
 
