@@ -6,11 +6,13 @@
 |---|---|---|---|---|
 | `float` | 1.5x10^-45 / 3.4x10^38 | 7 | 2^24 | 4 bytes |
 | `double` | 5.0x10^-324 / 1.7x10^308 | 15-16 | 2^53 | 8 bytes |
-| `decimal` | 1.0x10^-28 / 7.9x10^28 | 28-29 | 2^113 | 16 bytes |
+| `decimal` | 1.0x10^-28 / 7.9x10^28 | 28-29 | 2^96 - 1 (~7.9x10^28) | 16 bytes |
 
 ## How they are stored in memory
 
 When using `double` and `float`, the number's value is stored in memory using a type of "scientific notation" (like in math, 13x10^3) to save space. By using this approach to store values, **some decimals cannot be represented exactly in memory**.
+
+This loss happens because `float` and `double` are **base-2** (binary), so common base-10 fractions like `0.1` have no finite binary representation; `decimal` uses **base-10** internally and avoids this issue.
 
 ## When to use each one
 

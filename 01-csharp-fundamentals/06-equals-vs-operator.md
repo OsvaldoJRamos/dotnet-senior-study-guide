@@ -51,7 +51,7 @@ Console.WriteLine(obj1.Equals(obj2)); // True (now compares by content)
 
 ## Special case: string
 
-`string` is a reference type, but `==` has been **overridden** to compare by content:
+`string` is a reference type, but `==` has been **overloaded** to compare by content:
 
 ```csharp
 string a = "hello";
@@ -79,6 +79,8 @@ Console.WriteLine(p1.Equals(p2)); // True
 Person? p = null;
 // p.Equals(other) -> NullReferenceException!
 // p == null        -> True (safe)
+
+// Safest form: `p is null` bypasses any user-defined `==` overload and never throws.
 
 // Safe approach:
 Console.WriteLine(Equals(p, other)); // static method, safe with null
