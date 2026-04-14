@@ -29,16 +29,74 @@ OAuth 2.0 is about **AUTHORIZATION**, not AUTHENTICATION. It is an authorization
 6. Client ←─── Protected resource ── Resource Server
 ```
 
-## Practical example
+## Practical example: Authorization Code + PKCE with Google
 
-Let's say you want to build a calendar application that uses Google Calendar:
+Suppose you're building a calendar app that reads Google Calendar on behalf of the user. The client **never generates its own token for Google** — it obtains one issued by Google via the Authorization Code + PKCE flow:
 
-1. The third-party application obtains an access token from Google, using OAuth 2.0 to authenticate with Google
-2. Google issues an access token to the application
-3. The application takes that access token and generates its own JWT
-4. The application sends the JWT to Google, allowing Google to validate the JWT and grant access to the application
+1. **Authorization request** — the client generates a random `code_verifier`, derives `code_challenge = SHA256(code_verifier)`, and redirects the user's browser to Google's authorization endpoint:
 
-When we log in with Google on a third-party site, when a third-party site can manipulate Google Calendar, all of this is done through an access token. This way, the user's password and login are not needed.
+   ```
+   GET https://accounts.google.com/o/oauth2/v2/auth
+     ?client_id=...
+     &redirect_uri=https://myapp.com/callback
+     &response_type=code
+     &scope=openid%20email%20https://www.googleapis.com/auth/calendar.readonly
+     &code_challenge=<derived>
+     &code_challenge_method=S256
+     &state=<csrf-token>
+   ```
+
+2. **User authenticates** — Google authenticates the user and asks them to consent to the requested scopes.
+
+3. **Authorization code returned** — Google redirects back to `redirect_uri` with a short-lived `code` (and the original `state`):
+
+   ```
+   https://myapp.com/callback?code=<auth-code>&state=<csrf-token>
+   ```
+
+4. **Token exchange** — the client's **backend** POSTs the code and the original `code_verifier` to Google's token endpoint:
+
+   ```
+   POST https://oauth2.googleapis.com/token
+     grant_type=authorization_code
+     code=<auth-code>
+     code_verifier=<original-verifier>
+     client_id=...
+     redirect_uri=https://myapp.com/callback
+   ```
+
+5. **Tokens returned** — Google responds with an `access_token`, optional `id_token` (if the `openid` scope was requested — OIDC), and a `refresh_token` (if `access_type=offline` / `offline_access` was requested).
+
+6. **Calling Google APIs** — the client uses the **Google-issued** `access_token` as a bearer token on every Google API call:
+
+   ```
+   GET https://www.googleapis.com/calendar/v3/calendars/primary/events
+   Authorization: Bearer <access_token>
+   ```
+
+> PKCE (RFC 7636) prevents authorization code interception — even if an attacker steals the `code`, they can't exchange it without the original `code_verifier`. PKCE is now required for **all** clients (public and confidential).
+
+## OIDC vs OAuth 2.0
+
+| Aspect | OAuth 2.0 | OpenID Connect (OIDC) |
+|---|---|---|
+| Purpose | **Authorization** — delegated API access | **Authentication** — identifying the user |
+| Token | `access_token` (opaque or JWT) | `id_token` (always a JWT with user claims) |
+| Answers | "Can this client call this API?" | "Who is the end user?" |
+| Built on | — | OAuth 2.0 (it's a layer on top) |
+
+Use **OIDC** when your app needs to **know who the user is** (sign-in). Use **OAuth 2.0 alone** when you only need delegated access to a resource API. In practice most "Sign in with Google/Microsoft/…" flows are OIDC (request the `openid` scope).
+
+## Grant types (flows)
+
+| Flow | Use for | Notes |
+|---|---|---|
+| **Authorization Code + PKCE** | Web apps, SPAs, mobile, desktop | The default for any interactive user. PKCE mandatory. |
+| **Client Credentials** | Service-to-service (no user) | Daemon/backend calling another API under its own identity. |
+| **Device Code** | TVs, CLIs, IoT without a browser | User completes auth on a second device. |
+| **Refresh Token** | Renewing access tokens | Paired with other flows; never used standalone. |
+| ~~Implicit~~ | — | **Deprecated** (OAuth 2.1). Use Auth Code + PKCE. |
+| ~~Resource Owner Password (ROPC)~~ | — | **Deprecated**. Client handles the user's password — avoid. |
 
 ## JWT (JSON Web Token)
 
@@ -61,10 +119,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = "your-api",
             ValidAudience = "your-client",
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("your-secret-key"))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SigningKey"]!))
         };
     });
 ```
+
+> **Key management matters.** HS256 (symmetric) requires a key of at least **256 bits** (32 bytes) of real entropy — short passwords will be rejected by `Microsoft.IdentityModel` on recent versions. For any **distributed** system (multiple services validating tokens), prefer **asymmetric** algorithms like **RS256** or **ES256**: sign with a private key, distribute only the public key (typically via a JWKS endpoint). Never hardcode keys — load them from **configuration**, **environment variables**, or a secret store like **Azure Key Vault** / **AWS Secrets Manager**, and rotate them.
 
 ---
 

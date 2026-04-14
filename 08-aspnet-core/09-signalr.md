@@ -139,6 +139,24 @@ builder.Services.AddSignalR()
     });
 ```
 
+## Sticky Sessions (session affinity)
+
+When you scale SignalR behind a load balancer, whether you need **sticky sessions** depends on the transport:
+
+| Transport | Sticky sessions required? | Why |
+|---|---|---|
+| **WebSockets only** | No | One long-lived TCP connection — all frames land on the same instance naturally. |
+| **Server-Sent Events** | **Yes** | Negotiation and the SSE stream are separate HTTP requests; they must hit the same backend. |
+| **Long Polling** | **Yes** | Every poll is a new HTTP request; without affinity, polls get routed to different instances and the connection breaks. |
+
+If you can guarantee WebSockets end-to-end (browser, LB, and server all support it and nothing strips the upgrade), you can skip sticky sessions. Otherwise — and by default SignalR negotiates down to SSE/Long Polling on unsupported networks — **enable session affinity** on your load balancer (e.g., `ARRAffinity` cookie on Azure App Service, `stickiness.enabled=true` on AWS ALB target groups).
+
+> The **Redis backplane** solves *cross-instance message fan-out* (so a message published on instance A reaches clients connected to instance B). It does **NOT** remove the sticky-session requirement for non-WebSocket transports — those still need the client's requests pinned to one instance.
+
+### Azure SignalR Service
+
+If you don't want to run and scale your own backplane, **[Azure SignalR Service](https://learn.microsoft.com/azure/azure-signalr/)** is a managed alternative: it terminates client connections in the service itself, so your app servers stay stateless and you don't need sticky sessions or a backplane. Swap `AddSignalR()` with `AddSignalR().AddAzureSignalR(connectionString)`.
+
 ## Transports
 
 | Transport | Description |

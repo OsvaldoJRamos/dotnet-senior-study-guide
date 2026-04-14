@@ -18,6 +18,32 @@ In distributed systems (microservices, external integrations, cloud):
 
 Without resilience, a small failure becomes a **domino effect**.
 
+## Modern .NET 8+: use `Microsoft.Extensions.Http.Resilience`
+
+> **Start here on .NET 8+.** The recommended API today is `Microsoft.Extensions.Http.Resilience` (built on **Polly v8 pipelines**), not the Polly v7 extension methods shown later in this file. It wires retry + circuit breaker + timeout + rate limiter + hedging into a single opinionated pipeline with one call.
+
+```csharp
+// dotnet add package Microsoft.Extensions.Http.Resilience
+builder.Services
+    .AddHttpClient<PaymentClient>(c => c.BaseAddress = new Uri("https://api.payment.com"))
+    .AddStandardResilienceHandler(); // retry + circuit breaker + timeouts + rate limiter
+```
+
+You can customize the pipeline options if needed:
+
+```csharp
+builder.Services
+    .AddHttpClient<PaymentClient>()
+    .AddStandardResilienceHandler(options =>
+    {
+        options.Retry.MaxRetryAttempts = 5;
+        options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);   // per attempt
+        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30); // whole operation
+    });
+```
+
+The Polly v7 examples below still work and remain useful for understanding each pattern individually, but new code should prefer the handler above.
+
 ## Resilience patterns
 
 ### 1. Retry (automatic retries)
@@ -45,6 +71,8 @@ builder.Services.AddHttpClient("api")
 ```
 
 Prevents stuck threads and pool exhaustion.
+
+> **Per-attempt vs total-operation timeout.** A `Timeout` policy *outside* a `Retry` caps the **whole operation** (including all retries + waits); *inside* a `Retry` it caps **each attempt**. Combine both: a short per-attempt timeout to fail fast + a longer total timeout to bound the overall request.
 
 ### 3. Circuit Breaker
 

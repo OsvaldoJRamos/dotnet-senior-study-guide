@@ -51,6 +51,12 @@ var product = await _cache.GetOrCreateAsync($"product:{id}", async entry =>
 });
 ```
 
+> **`GetOrCreate` / `GetOrCreateAsync` are NOT thread-safe against cache stampede.** If N concurrent requests miss the same key at the same time, the factory delegate runs **N times in parallel** (they each hit the database), and whichever finishes last wins the cache slot. `IMemoryCache` itself is thread-safe for get/set operations, but it does **not** coalesce concurrent factory invocations. Mitigations:
+>
+> - A `SemaphoreSlim` (or `Lazy<Task<T>>`) **per cache key** to serialize factory execution.
+> - The **[LazyCache](https://github.com/alastairtree/LazyCache)** NuGet package — wraps `IMemoryCache` with per-key locking.
+> - **HybridCache** (.NET 9+, see below) — solves stampede natively via request coalescing.
+
 ## IDistributedCache (Redis)
 
 Distributed cache across multiple instances. Survives restarts.
@@ -92,6 +98,47 @@ public class ProductService
     }
 }
 ```
+
+## HybridCache (.NET 9+)
+
+`HybridCache` (from `Microsoft.Extensions.Caching.Hybrid`) is the **recommended caching API going forward**. It unifies in-memory (L1) and distributed (L2) caches behind a single interface and fixes the long-standing gaps in `IMemoryCache` / `IDistributedCache`:
+
+- **L1 + L2 together** — hot reads served from in-process memory; L2 (Redis, SQL, etc.) shares state across instances and survives restarts.
+- **Stampede protection** — concurrent requests for the same key share **one** factory execution (request coalescing), no manual locking.
+- **Serialization built in** — configurable serializers (JSON by default, MessagePack, Protobuf, etc.).
+- **Tag-based invalidation** — `RemoveByTagAsync("products")` invalidates groups of entries.
+
+```csharp
+// dotnet add package Microsoft.Extensions.Caching.Hybrid
+builder.Services.AddHybridCache(options =>
+{
+    options.DefaultEntryOptions = new HybridCacheEntryOptions
+    {
+        Expiration = TimeSpan.FromMinutes(30),      // L2 TTL
+        LocalCacheExpiration = TimeSpan.FromMinutes(5) // L1 TTL
+    };
+});
+
+// Optional: register a distributed L2 (Redis) — HybridCache picks it up automatically
+builder.Services.AddStackExchangeRedisCache(o => o.Configuration = "localhost:6379");
+```
+
+```csharp
+public class ProductService(HybridCache cache, IProductRepository repo)
+{
+    public Task<Product?> GetAsync(int id, CancellationToken ct) =>
+        cache.GetOrCreateAsync(
+            $"product:{id}",
+            async token => await repo.GetByIdAsync(id, token),
+            tags: ["products"],
+            cancellationToken: ct);
+
+    public Task InvalidateAllAsync(CancellationToken ct) =>
+        cache.RemoveByTagAsync("products", ct).AsTask();
+}
+```
+
+> Use `HybridCache` for new code on .NET 9+. It replaces most manual `IMemoryCache` + `IDistributedCache` + lock-per-key patterns.
 
 ## Output Caching (.NET 7+)
 
@@ -155,7 +202,7 @@ public IActionResult ListCategories()
 2. **Always set a TTL** — cache without expiration is a memory leak
 3. **Use cache-aside** as the default pattern
 4. **Monitor hit rate** — cache with low hit rate doesn't help
-5. **Cache stampede**: when cache expires and N requests hit the database simultaneously. Solution: lock or `GetOrCreate` with factory
+5. **Cache stampede**: when cache expires and N requests hit the database simultaneously. Solution: per-key locking (`SemaphoreSlim`), `LazyCache`, or — preferred on .NET 9+ — `HybridCache`, which coalesces concurrent factory calls automatically
 
 ---
 
