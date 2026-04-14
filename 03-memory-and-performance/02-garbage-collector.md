@@ -28,6 +28,8 @@ The GC uses a concept of **generations** to make the process more efficient.
 - These are long-lived objects (e.g., static data, large objects used throughout the application's lifetime)
 - Gen 2 is collected less frequently because it is assumed these objects will remain for a long time
 
+> The **Large Object Heap (LOH)** is a separate physical heap, not a generation; it is collected together with Gen 2 collections. Objects larger than ~85,000 bytes are allocated there directly.
+
 ### Why generations?
 
 The reason for dividing memory into generations is to **optimize the collection process**. Short-lived objects (Gen 0) are collected frequently, while long-lived objects (Gen 2) are left alone unless absolutely necessary.
@@ -70,6 +72,8 @@ class MyObject
     }
 }
 ```
+
+> Avoid `GC.Collect()` in production code — forcing collections defeats the GC's adaptive heuristics and almost always makes performance worse. The calls above are for demonstration only.
 
 ## Best practices
 

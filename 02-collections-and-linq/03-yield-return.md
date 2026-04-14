@@ -53,11 +53,11 @@ foreach(var itm in GetAllItems())
 
 ### With yield — loads on demand:
 ```csharp
-// Returns each item on each call
-IEnumerable<object> IterateOverItems()
+// Returns each item lazily; the source is itself streamed (e.g., IEnumerable<Customer>)
+IEnumerable<Customer> IterateOverItems()
 {
-    for (int i = 0; i < database.Customers.Count(); ++i)
-        yield return database.Customers[i];
+    foreach (var customer in database.Customers)
+        yield return customer;
 }
 
 // Call
@@ -68,10 +68,10 @@ foreach(var itm in IterateOverItems())
     if (num == 5)
         break;
 }
-// Only executes for 5 items out of one million existing
+// Only 5 items are pulled from the source; the remaining ~999,995 are never materialized
 ```
 
-For this scenario, using yield would be **much more performant**.
+The contrast is **eager vs lazy**: the first version forces the entire result set into memory before returning, while the yield version streams items one at a time and stops as soon as the consumer stops asking. For this scenario, using yield would be **much more performant**.
 
 ## Example 2: Responsive interface
 
