@@ -4,7 +4,9 @@ Indexes are the single biggest lever for query performance. Without them, the da
 
 ## What an index actually is
 
-Most indexes are **B-trees** — balanced trees where leaf pages contain pointers (or the rows themselves) sorted by the indexed columns. Lookup cost is `O(log n)` instead of `O(n)`.
+Most relational indexes are **B+ trees** — balanced trees where internal pages hold only routing keys and the **leaf pages** hold either pointers to rows or the rows themselves, sorted by the indexed columns. Lookup cost is `O(log n)` instead of `O(n)`.
+
+> **Heap** = a table with **no clustered index**. Rows have no guaranteed physical order and are addressed by a RID (file:page:slot). Non-clustered indexes on a heap store RIDs as row locators.
 
 ```
            [ M ]
@@ -14,7 +16,9 @@ Most indexes are **B-trees** — balanced trees where leaf pages contain pointer
    A-E  G-L M-R  T-Z ...
 ```
 
-## Types of indexes (SQL Server terminology, similar in Postgres/MySQL)
+## Types of indexes (SQL Server terminology)
+
+> **Note on other engines**: MySQL InnoDB is similar (clustered by primary key, B+ trees). PostgreSQL indexes are B-tree **by default** but it also ships **Hash**, **GIN** (inverted, for JSONB/full-text/arrays), **GiST** (geometry, range types), **SP-GiST**, and **BRIN** (huge sorted tables). Postgres has no "clustered index" — `CLUSTER` is a one-time rewrite operation.
 
 ### Clustered index
 
@@ -102,9 +106,10 @@ When you read an execution plan, you will see these three operators. Understandi
 
 | Operator | What it does | Cost | When you see it |
 |---|---|---|---|
-| **Index Seek** | Navigates the B-tree to fetch only matching rows | Low | Sargable predicate on an indexed column |
-| **Index Scan** | Reads every leaf page of the index | Medium | Predicate not usable by the index, or optimizer estimates lots of rows |
-| **Table Scan** (heap) / **Clustered Index Scan** | Reads every row of the table | High | No usable index at all |
+| **Index Seek** | Navigates the B+ tree to fetch only matching rows | Low | Sargable predicate on an indexed column with good selectivity |
+| **Index Scan** | Reads every leaf page of a non-clustered index | Medium | Predicate isn't seekable, or the optimizer estimates too many rows to bother seeking |
+| **Clustered Index Scan** | Reads every row of the table (the clustered index *is* the table) | High | No selective non-clustered index covers the query, or the optimizer decides scanning is cheaper than seeking + key lookups |
+| **Table Scan** | Reads every row of a **heap** (table with no clustered index) | High | Same as above, but for heaps |
 
 ### Why a scan happens even when an index exists
 
@@ -137,6 +142,10 @@ Every index:
 - Consumes **memory** in the buffer pool.
 
 > Rule of thumb: index columns that appear frequently in `WHERE`, `JOIN`, `ORDER BY`, or `GROUP BY`. Avoid indexing low-selectivity columns (e.g., boolean flags). Remove unused indexes — check `sys.dm_db_index_usage_stats`.
+
+### Selectivity
+
+**Selectivity** = how well an indexed column narrows down the rows. A column where almost every value is unique (e.g., `Email`, `OrderId`) is **highly selective** — an index seek jumps straight to a handful of rows. A column with few distinct values (e.g., `Status` with 3 options, `IsActive`) is **low-selectivity** — even after the seek, the database still has to read a large chunk, so the optimizer often prefers a scan. Indexes only pay off on selective columns or as part of a composite/filtered index.
 
 ## When NOT to index
 

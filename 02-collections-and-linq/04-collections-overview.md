@@ -26,7 +26,7 @@ The default choice for most code. Type-safe and allocation-friendly.
 | Collection | Characteristics | Typical complexity |
 |---|---|---|
 | `List<T>` | Dynamic array, ordered, allows duplicates | Access O(1), Add amortized O(1), Insert/Remove O(n) |
-| `Dictionary<TKey, TValue>` | Hash table, unordered | Lookup/Add/Remove O(1) average |
+| `Dictionary<TKey, TValue>` | Hash table; no ordering guarantee (in practice preserves insertion order since .NET Core 2.0) | Lookup/Add/Remove O(1) average |
 | `HashSet<T>` | Hash-based set of unique values | Contains/Add/Remove O(1) average |
 | `Queue<T>` | FIFO | Enqueue/Dequeue O(1) |
 | `Stack<T>` | LIFO | Push/Pop O(1) |
@@ -59,7 +59,7 @@ Thread-safe by design. Use these instead of wrapping a non-concurrent collection
 
 ```csharp
 var cache = new ConcurrentDictionary<string, User>();
-var user = cache.GetOrAdd(id, id => LoadUser(id));
+var user = cache.GetOrAdd(id, key => LoadUser(key));
 ```
 
 ## 3. Immutable collections (`System.Collections.Immutable`)
@@ -90,11 +90,13 @@ These are **views**, not copies — if the underlying list changes, the view ref
 
 ## 5. Specialized / niche
 
-- `Memory<T>` / `ReadOnlyMemory<T>` — heap-friendly slice of contiguous memory, usable in async code
-- `Span<T>` / `ReadOnlySpan<T>` — stack-only slice, hot-path allocation-free
-- `ArraySegment<T>` — older API for slicing arrays
-- `PriorityQueue<TElement, TPriority>` (.NET 6+) — min-heap priority queue
-- `Collection<T>` / `KeyedCollection<TKey, TItem>` — extensible base classes used in frameworks
+- `Span<T>` / `ReadOnlySpan<T>` — stack-only slice (`ref struct`), hot-path, allocation-free. Cannot be stored in fields or used across `await`.
+- `Memory<T>` / `ReadOnlyMemory<T>` — handle to a slice of memory (array, native, or pinned) that **can** live on the heap and be used inside `async` methods. The less restrictive cousin of `Span<T>`.
+- `ArraySegment<T>` — older API for slicing arrays; mostly superseded by `Span<T>` / `Memory<T>`.
+- `PriorityQueue<TElement, TPriority>` (.NET 6+) — min-heap priority queue.
+- `FrozenDictionary<TKey, TValue>` / `FrozenSet<T>` (.NET 8+) — immutable, **read-optimized** lookups. Creation is slower than `Dictionary`, but reads are noticeably faster. Great for static lookup tables populated at startup.
+- `ObservableCollection<T>` (`System.Collections.ObjectModel`) — raises `CollectionChanged` on mutations. Used in XAML/MVVM data binding.
+- `Collection<T>` / `KeyedCollection<TKey, TItem>` — extensible base classes for building custom collections.
 
 ## Non-generic collections
 
@@ -110,7 +112,7 @@ The `System.Collections` namespace (`ArrayList`, `Hashtable`, `Queue`, `Stack`, 
 4. **Ordered by index, mutable?** → `List<T>`
 5. **Multi-threaded writes?** → `ConcurrentDictionary<TKey, TValue>` or `Channel<T>`
 6. **Need sorted iteration?** → `SortedDictionary<TKey, TValue>` or `SortedSet<T>`
-7. **Need ultra-fast reads on a snapshot?** → `ImmutableArray<T>` or `FrozenDictionary<TKey, TValue>` (.NET 8+)
+7. **Need ultra-fast reads on a snapshot?** → `ImmutableArray<T>` or `FrozenDictionary<TKey, TValue>` / `FrozenSet<T>` (.NET 8+)
 
 ---
 
