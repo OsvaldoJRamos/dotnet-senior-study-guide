@@ -65,14 +65,29 @@ A query is **sargable** (Search ARGument ABLE) when the optimizer can use indexe
 
 ```sql
 -- NON-SARGABLE (function on column prevents index usage)
-WHERE ISNUMERIC(Quantity) = 1
 WHERE YEAR(CreatedDate) = 2024
 WHERE UPPER(Name) = 'JOAO'
+WHERE CAST(OrderId AS varchar) = '123'
 
 -- SARGABLE (index can be used)
-WHERE Quantity IS NOT NULL AND Quantity > 0
 WHERE CreatedDate >= '2024-01-01' AND CreatedDate < '2025-01-01'
 WHERE Name = 'JOAO'  -- with case-insensitive collation
+WHERE OrderId = 123
+```
+
+### String-column coercion (separate case)
+
+If `Quantity` is a **string** column storing numeric text, `ISNUMERIC(Quantity) = 1` is non-sargable and scans every row. The real fix is to repair the data model (store it as `int`/`decimal`) or add a persisted computed column with an index:
+
+```sql
+-- Non-sargable: function on column
+WHERE ISNUMERIC(Quantity) = 1
+
+-- Better: persisted computed column + index
+ALTER TABLE Orders ADD QuantityNum AS TRY_CAST(Quantity AS decimal(18,2)) PERSISTED;
+CREATE INDEX IX_Orders_QuantityNum ON Orders(QuantityNum) WHERE QuantityNum IS NOT NULL;
+
+WHERE QuantityNum IS NOT NULL AND QuantityNum > 0
 ```
 
 ### Real-world example
@@ -98,7 +113,7 @@ WHERE opd.OrderId = os1.Id
 3. **Use pagination** (OFFSET/FETCH or keyset pagination)
 4. **Update statistics** on the database regularly
 5. **Use NOLOCK with caution** - can cause dirty reads
-6. **Prefer EXISTS over IN** for subqueries with many results
+6. **EXISTS vs IN** — in modern optimizers (SQL Server 2016+, PostgreSQL, etc.) they are usually treated **equivalently** for non-nullable columns. The real difference shows up with NULLs: `IN` can return unexpected results when the subquery returns NULLs, while `EXISTS` handles NULLs more predictably. Use `EXISTS` for correctness with nullable data, not as a blanket performance rule
 7. **Avoid cursors** - use set-based operations
 
 ---

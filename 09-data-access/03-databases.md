@@ -22,23 +22,70 @@ Multiple connections writing at the same time cannot step on each other's toes �
 
 ## 1. MongoDB
 
-It is a NoSQL database. All operations are done in RAM, which is what guarantees its performance. But this means that if the machine crashes before RAM has a chance to flush to disk, **you can lose data**.
+It is a NoSQL document database. It is **not** an in-memory database — it uses the **WiredTiger** storage engine with memory-mapped files and a working-set cache, so hot data is served from RAM while the full dataset lives on disk.
 
-You can configure it to guarantee more durability. For example, today when you send a write to Mongo it returns OK before having actually written. Mongo's OK is more like "alright, I received the order to write, I'll write when I can." This is different from a relational database that only returns OK if the data was guaranteed to be written.
+### Write concerns
 
-You can configure Mongo to return OK only if a replica master instance has guaranteed to receive the data. But then you lose the performance that was precisely why you chose Mongo in the first place.
+What `OK` means on a write is configurable via **write concerns**:
+
+| Write concern | Meaning |
+|---|---|
+| `w: 0` | Fire-and-forget — no acknowledgement, fastest, weakest durability |
+| `w: 1` (default) | **Primary** acknowledged the write in memory |
+| `w: "majority"` | A majority of the replica set acknowledged — safe against primary failure |
+| `j: true` | Written to the on-disk **journal** before ack (durable across crash) |
+
+Combine them: `{ w: "majority", j: true }` gives strong durability (slower); `{ w: 1 }` is the typical default (fast, primary-only). Stronger concerns trade latency for safety — pick per operation based on criticality.
+
+Since MongoDB 5.0 the replica-set roles are **primary** and **secondary** (the old "master/slave" terminology is gone). You can require reads/writes to go through the primary, or route reads to secondaries with `readPreference`.
 
 ## 2. Cassandra
 
-A NoSQL wide column store. Despite having surface-level similarities with relational databases — especially in schemas and CQL which is similar to SQL — it has absolutely nothing in common. They are like **multi-dimensional key-value stores with column families** and were built to be highly distributed databases, with multiple nodes in a cluster, preferably across multiple different regions.
+A NoSQL **wide-column store**. Despite surface-level similarities with relational databases — schemas and CQL which looks like SQL — the data model is different. It organizes data into **tables** with a **partition key** (which node owns the row) and **clustering columns** (sort order within the partition). It was built to be highly distributed, with multiple nodes in a cluster, preferably across multiple regions.
 
 Cassandra **was not made to be used on a single instance**, like a blog database. Its sweet spot is running in a cluster, with multiple nodes, and with heavy writes.
+
+### Tunable consistency
+
+Cassandra is eventually consistent by default, but lets you pick a **consistency level per operation**:
+
+| Level | Meaning |
+|---|---|
+| `ONE` | One replica responds — fastest, weakest |
+| `QUORUM` | Majority of replicas across the cluster respond |
+| `LOCAL_QUORUM` | Majority within the **local datacenter** — common for multi-region |
+| `ALL` | Every replica responds — strongest, slowest, fragile |
+
+Pairing writes and reads at `QUORUM` gives read-your-writes consistency at the cost of latency. There are **no joins and no multi-row transactions** (only lightweight transactions on a single partition via Paxos) — the model is optimized for write-heavy, append-style workloads.
 
 ## 3. Redis
 
 In practice most of us will always end up using a **combination of a relational database with a cache**, using something like Redis. In this configuration Redis can be a bit more relaxed because the right approach is to have data queried from Redis and whatever isn't there you load from the relational database and write to Redis as needed.
 
 Therefore Redis can be rebuilt from scratch even if there's a crash and you need to tear everything down. And you use Redis to keep things that are expensive to calculate and write in a relational database like **aggregations**, things with counters, averages, and other metrics that aggregate multiple rows from the database.
+
+### Persistence modes
+
+Redis is in-memory but can persist to disk:
+
+- **RDB (snapshots):** periodic point-in-time dumps of the dataset. Compact, fast restore, but you can lose the seconds between snapshots on crash.
+- **AOF (append-only file):** every write is appended to a log. Safer (configurable fsync: `always`, `everysec`, `no`) but larger files and slower restore.
+- **Both together:** most durable; Redis prefers the AOF on restart.
+
+### Eviction policies
+
+When `maxmemory` is hit, Redis evicts based on `maxmemory-policy`:
+
+| Policy | Behavior |
+|---|---|
+| `noeviction` | Return errors on writes (default) |
+| `allkeys-lru` | Evict least-recently-used across all keys — typical cache setting |
+| `allkeys-lfu` | Evict least-frequently-used |
+| `volatile-lru` / `volatile-lfu` | Same, but only on keys with a TTL |
+| `volatile-ttl` | Evict keys with the shortest remaining TTL first |
+| `allkeys-random` / `volatile-random` | Random eviction |
+
+For a pure cache use `allkeys-lru` (or `allkeys-lfu` for skewed access patterns); for a key-value store where losing untagged keys is unacceptable, stick with `volatile-*` and always set TTLs.
 
 ## Performance Tips
 
