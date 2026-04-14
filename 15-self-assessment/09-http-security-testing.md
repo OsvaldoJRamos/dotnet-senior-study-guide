@@ -130,7 +130,7 @@ A JWT has three Base64URL-encoded parts separated by dots: `header.payload.signa
 
 1. **Header** -- algorithm (`alg`: HS256, RS256) and token type (`typ`: JWT).
 2. **Payload** -- claims: `sub` (subject), `exp` (expiration), `iss` (issuer), `aud` (audience), plus custom claims.
-3. **Signature** -- `HMACSHA256(base64(header) + "." + base64(payload), secret)` -- proves the token wasn't tampered with.
+3. **Signature** -- `HMACSHA256(base64(header) + "." + base64(payload), secret)` -- proves the token wasn't tampered with. (For HS256 (symmetric); RS256/ES256 use RSA/ECDSA signatures over the same input. Asymmetric is preferred for distributed services so verifiers don't need the signing key.)
 
 **Important**: the payload is **encoded, not encrypted**. Anyone can read it. Never put secrets in a JWT.
 

@@ -389,7 +389,7 @@ Deep dive: [KISS, DRY, YAGNI](../06-architecture-and-patterns/03-kiss-dry-yagni.
 | Model | Message broker (push) | Event log (pull) |
 | Message retention | Deleted after consumption | Retained for a configurable period |
 | Ordering | Per queue | Per partition |
-| Throughput | Moderate (thousands/sec) | Very high (millions/sec) |
+| Throughput | Tens to hundreds of thousands/sec typical; higher with quorum queues and Streams | Very high (millions/sec) |
 | Replay | Not supported (message is gone) | Supported (consumers can rewind) |
 | Use case | Task queues, RPC, routing | Event streaming, event sourcing, analytics |
 

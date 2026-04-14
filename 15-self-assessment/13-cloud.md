@@ -67,8 +67,8 @@ Deep dive: [AWS Load Balancers](../12-cloud/05-aws-load-balancers.md)
 |-------|---------------|------|-----------|
 | **S3 Standard** | Frequent | Highest storage | Free |
 | **S3 Intelligent-Tiering** | Unknown/changing | Auto-moves between tiers | Free |
-| **S3 Standard-IA** | Infrequent (monthly) | Lower storage, per-GB retrieval | Minutes |
-| **S3 One Zone-IA** | Infrequent, non-critical | Cheapest IA | Minutes |
+| **S3 Standard-IA** | Infrequent (monthly) | Lower storage, per-GB retrieval | Milliseconds (immediate) |
+| **S3 One Zone-IA** | Infrequent, non-critical | Cheapest IA | Milliseconds (immediate) |
 | **S3 Glacier Instant** | Quarterly, immediate access | Very low | Milliseconds |
 | **S3 Glacier Flexible** | 1-2 times/year | Very low | Minutes to hours |
 | **S3 Glacier Deep Archive** | Rarely (compliance) | Lowest | 12-48 hours |
@@ -130,7 +130,7 @@ A **VPC (Virtual Private Cloud)** is your isolated network in AWS. You define th
 | State | **Stateful** (return traffic auto-allowed) | **Stateless** (must allow return traffic explicitly) |
 | Rules | Allow only | Allow and Deny |
 | Evaluation | All rules evaluated | Rules evaluated in order (lowest number first) |
-| Default | Deny all inbound, allow all outbound | Allow all |
+| Default | Deny all inbound, allow all outbound | Default NACL allows all; custom NACLs default to deny all (you must add allow rules) |
 
 **Best practice**: use Security Groups as your primary firewall (per-instance, stateful). Use NACLs as an additional layer for subnet-wide rules (e.g., blocking known malicious IPs).
 
@@ -149,7 +149,7 @@ Deep dive: [AWS In Depth](../12-cloud/02-aws-in-depth.md)
 |--------|---------------------------|----------------------------------|
 | Pattern | **Queue** (point-to-point) | **Pub/Sub** (fan-out) |
 | Consumers | One consumer processes each message | Multiple subscribers get every message |
-| Persistence | Messages stored until processed (up to 14 days) | No persistence (deliver and forget) |
+| Persistence | Messages stored until processed (up to 14 days) | No long-term persistence, but SNS has retry policies and supports DLQs to capture undeliverable messages |
 | Delivery | Pull-based (consumer polls) | Push-based (SNS pushes to subscribers) |
 
 **Use SQS** for: decoupling services, work queues, buffering writes, ensuring each task is processed exactly once (FIFO queue).

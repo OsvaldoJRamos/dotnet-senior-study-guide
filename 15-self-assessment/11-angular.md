@@ -221,6 +221,8 @@ this.hubConnection.on('ReceiveMessage', (msg) => {
 });
 ```
 
+In **zoneless Angular (17+)** with signals, prefer updating signals inside the callback (no `NgZone.run()` needed); zone-based change detection is being phased out.
+
 2. **Reconnection** -- connections drop due to network issues. Use the built-in reconnection with `withAutomaticReconnect()`:
 
 ```typescript

@@ -225,13 +225,15 @@ Deep dive: [ORM vs Micro ORM vs ADO.NET](../09-data-access/01-orm-vs-microorm-vs
 | Isolation Level | Dirty Read | Non-repeatable Read | Phantom Read |
 |----------------|-----------|-------------------|-------------|
 | Read Uncommitted | Possible | Possible | Possible |
-| **Read Committed** (default) | Prevented | Possible | Possible |
+| **Read Committed** | Prevented | Possible | Possible |
 | Repeatable Read | Prevented | Prevented | Possible |
 | Serializable | Prevented | Prevented | Prevented |
 
 - **Dirty read** -- reading uncommitted changes from another transaction.
 - **Non-repeatable read** -- re-reading a row yields different values because another transaction modified it.
 - **Phantom read** -- re-running a query returns new rows inserted by another transaction.
+
+**Defaults vary by engine**: Read Committed is the default in SQL Server and PostgreSQL. **MySQL InnoDB defaults to Repeatable Read** (with gap locks that also prevent phantoms). Oracle defaults to Read Committed and has no Read Uncommitted level.
 
 Higher isolation = more correctness but more locking and lower throughput.
 
