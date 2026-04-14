@@ -392,12 +392,20 @@ Dictionary<string, int> Dijkstra(
     distances[start] = 0;
     pq.Enqueue(start, 0);
 
-    while (pq.Count > 0)
+    while (pq.TryDequeue(out var current, out var dist))
     {
-        var current = pq.Dequeue();
+        // Staleness check: skip entries left over from before a shorter path was found
+        if (dist > distances[current]) continue;
 
-        foreach (var (neighbor, weight) in graph[current])
+        // Sink nodes may not appear as keys in the adjacency list
+        if (!graph.TryGetValue(current, out var neighbors) || neighbors is null)
+            continue;
+
+        foreach (var (neighbor, weight) in neighbors)
         {
+            // Guard against overflow when distances[current] is still int.MaxValue
+            if (distances[current] == int.MaxValue) continue;
+
             int newDist = distances[current] + weight;
 
             if (newDist < distances[neighbor])
@@ -429,6 +437,54 @@ var distances = Dijkstra(graph, "A");
 - **Limitation:** Does not work with negative edge weights (use Bellman-Ford instead)
 
 > **Interview tip:** Dijkstra is greedy — it always processes the node with the smallest known distance next. This works because all edge weights are non-negative, so a shorter path can never be found later through a longer intermediate route.
+
+> **A\*:** A\* is essentially Dijkstra plus a **heuristic estimate** of the remaining distance to the goal; it is optimal as long as the heuristic is **admissible** (never overestimates the true remaining cost).
+
+## Topological Sort — Kahn's algorithm
+
+For a **Directed Acyclic Graph (DAG)**, a topological sort produces a linear ordering of vertices such that for every edge `u → v`, `u` comes before `v`. Useful for build systems, task scheduling, and dependency resolution.
+
+**Kahn's algorithm:**
+
+1. Compute the **in-degree** (number of incoming edges) of every node
+2. Enqueue all nodes with **in-degree 0** (no dependencies)
+3. Dequeue a node, append it to the result, and **decrement** the in-degree of each neighbor; if a neighbor's in-degree drops to 0, enqueue it
+4. Repeat until the queue is empty
+
+```csharp
+List<string> TopologicalSort(Dictionary<string, List<string>> graph)
+{
+    var inDegree = graph.Keys.ToDictionary(k => k, _ => 0);
+
+    foreach (var neighbors in graph.Values)
+        foreach (var n in neighbors)
+            inDegree[n] = inDegree.GetValueOrDefault(n) + 1;
+
+    var queue = new Queue<string>(inDegree.Where(kv => kv.Value == 0).Select(kv => kv.Key));
+    var result = new List<string>();
+
+    while (queue.Count > 0)
+    {
+        var node = queue.Dequeue();
+        result.Add(node);
+
+        foreach (var neighbor in graph.GetValueOrDefault(node, new()))
+        {
+            if (--inDegree[neighbor] == 0)
+                queue.Enqueue(neighbor);
+        }
+    }
+
+    // Cycle detection: if not every node was visited, a cycle exists
+    if (result.Count != inDegree.Count)
+        throw new InvalidOperationException("Graph has a cycle — no topological order exists");
+
+    return result;
+}
+```
+
+- **Time:** O(V + E)
+- **Cycle detection:** if the final result count != node count, the graph has a cycle
 
 ## .NET collections for tree/graph problems
 

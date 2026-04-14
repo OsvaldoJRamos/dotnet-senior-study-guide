@@ -8,7 +8,7 @@ A hash table stores key-value pairs using a **hash function** to compute an inde
 2. **Index:** Map to a bucket: `index = hashCode % bucketCount`
 3. **Store/Retrieve:** Place or find the entry in that bucket
 
-When two keys map to the same bucket, a **collision** occurs. .NET handles collisions using chaining (linked list per bucket).
+When two keys map to the same bucket, a **collision** occurs. .NET's `Dictionary<TKey, TValue>` handles collisions using **separate chaining via an entries array with next-index pointers** — the `buckets[]` array stores indices into a flat `entries[]` array, and each entry has a `next` field pointing to the next entry in the same bucket. This avoids per-node heap allocations that a traditional `LinkedList<T>`-based chain would incur.
 
 ```
 Key "Alice" → GetHashCode() → 4821736 → % 8 → bucket 0
@@ -182,7 +182,7 @@ public class CaseInsensitiveComparer : IEqualityComparer<string>
         => string.Equals(x, y, StringComparison.OrdinalIgnoreCase);
 
     public int GetHashCode(string obj)
-        => obj.ToUpperInvariant().GetHashCode();
+        => StringComparer.OrdinalIgnoreCase.GetHashCode(obj);
 }
 
 var dict = new Dictionary<string, int>(new CaseInsensitiveComparer());
@@ -192,6 +192,16 @@ bool found = dict.ContainsKey("hello"); // true
 // Shortcut — .NET provides built-in comparers
 var dict2 = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 ```
+
+> **Consistency requirement:** `Equals` and `GetHashCode` MUST be aligned. If `Equals` treats two keys as equal, `GetHashCode` must return the same hash for both. Mixing (e.g., `Equals` using `OrdinalIgnoreCase` but `GetHashCode` using a case-sensitive hash like `obj.ToUpperInvariant().GetHashCode()`, which also allocates a new string on every call) silently breaks lookups.
+
+## Load factor and rehashing
+
+`Dictionary<TKey, TValue>` tracks a **load factor** (count / bucket count). When the count exceeds the current capacity, it **grows** — roughly doubling the bucket count and picking the next **prime** number (primes reduce clustering for poor hash distributions).
+
+- Rehashing recomputes the bucket for every existing entry — **O(n)** for a single rehash
+- Amortized over many inserts, `Add` remains **O(1)**
+- If you know the final size, pass it to the constructor (`new Dictionary<K,V>(capacity)`) to avoid intermediate rehashes
 
 ## FrozenDictionary and FrozenSet (.NET 8+)
 

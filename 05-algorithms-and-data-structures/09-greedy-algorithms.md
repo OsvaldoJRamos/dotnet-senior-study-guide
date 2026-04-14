@@ -32,6 +32,8 @@ List<(int start, int end)> ActivitySelection(List<(int start, int end)> activiti
 
     for (int i = 1; i < sorted.Count; i++)
     {
+        // Convention: half-open intervals [start, end) — an activity starting exactly
+        // at lastEnd is considered non-overlapping (`>=`).
         if (sorted[i].start >= lastEnd)
         {
             selected.Add(sorted[i]);
@@ -157,7 +159,14 @@ public class HuffmanNode : IComparable<HuffmanNode>
     public HuffmanNode? Left { get; set; }
     public HuffmanNode? Right { get; set; }
 
-    public int CompareTo(HuffmanNode? other) => Frequency.CompareTo(other?.Frequency ?? 0);
+    public int CompareTo(HuffmanNode? other)
+    {
+        // IComparable.CompareTo contract: throw on null, do NOT substitute a default.
+        // Returning a comparison against 0 here would break transitivity
+        // (e.g. nodes with Frequency == 0 would compare equal to null).
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        return Frequency.CompareTo(other.Frequency);
+    }
 }
 
 HuffmanNode BuildHuffmanTree(Dictionary<char, int> frequencies)
@@ -216,6 +225,8 @@ List<(int start, int end)> MergeIntervals(List<(int start, int end)> intervals)
     {
         var last = merged[^1];
 
+        // Convention: closed intervals [start, end] — intervals that touch at a point
+        // (e.g. [1,3] and [3,5]) are considered overlapping and are merged (`<=`).
         if (sorted[i].start <= last.end)
         {
             // Overlapping — merge
@@ -253,7 +264,7 @@ List<(int start, int end)> MergeIntervals(List<(int start, int end)> intervals)
 | 0/1 knapsack | No | Yes |
 | Coin change (standard coins) | Yes | Also works |
 | Coin change (arbitrary coins) | No | Yes |
-| Shortest path (non-negative weights) | Yes (Dijkstra) | Also works (Floyd-Warshall) |
+| Shortest path (non-negative weights) | Yes (Dijkstra, single-source) | Floyd-Warshall solves a different problem: **all-pairs shortest path**. Use it when you need every pairwise distance, not as a drop-in replacement for Dijkstra. |
 | Shortest path (negative weights) | No | Yes (Bellman-Ford) |
 | Huffman coding | Yes | Overkill |
 

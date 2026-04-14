@@ -176,7 +176,19 @@ QuickSort(data, 0, data.Length - 1);
 - **Space:** O(log n) — recursive call stack
 - **Not stable**
 
-> **Mitigation:** Use median-of-three or random pivot selection to avoid worst case. .NET's IntroSort does this automatically.
+### Why Quick Sort degrades to O(n²)
+
+With a poor pivot choice (e.g., always the smallest or always the largest element), each partition splits the array into sub-arrays of size **n-1** and **0** instead of roughly **n/2** and **n/2**. That produces **n recursion levels** instead of `log n`, and since each level still does O(n) work scanning elements, total work becomes `n × n = O(n²)`. Picking a **median-of-three** pivot or a **randomized** pivot makes the worst case statistically improbable and restores the expected `O(n log n)` behavior. .NET's IntroSort does this automatically.
+
+## Heap Sort — O(n log n)
+
+Heap Sort treats the array as a **binary heap** and repeatedly extracts the max.
+
+1. **Build a max-heap** from the input array — `O(n)` using the bottom-up "heapify" technique
+2. **Repeatedly extract the max**: swap the root with the last element, shrink the heap by one, and sift down the new root — each extract is `O(log n)`
+3. Total: **O(n log n)**, **in-place** (O(1) extra space), and **not stable**
+
+> **.NET detail:** IntroSort (used by `Array.Sort` / `List<T>.Sort`) starts with Quick Sort and **falls back to Heap Sort** when recursion depth exceeds `2 * log₂(n)`, guaranteeing O(n log n) even on adversarial inputs.
 
 ## .NET's built-in sorting — IntroSort
 
@@ -202,7 +214,7 @@ var desc = data.OrderByDescending(x => x).ToList();  // stable sort
 |--------|-----------|--------|----------|
 | `Array.Sort()` | IntroSort | No | Yes |
 | `List<T>.Sort()` | IntroSort | No | Yes |
-| `LINQ OrderBy()` | Stable QuickSort variant | Yes | No (allocates) |
+| `LINQ OrderBy()` | Stable sort (originally a quicksort with index tiebreakers; treat as "stable, O(n log n)") | Yes | No (allocates) |
 
 > **Practical tip:** If you need a stable sort, use LINQ `OrderBy`. If you need maximum performance and don't care about stability, use `Array.Sort()` or `List<T>.Sort()`.
 
