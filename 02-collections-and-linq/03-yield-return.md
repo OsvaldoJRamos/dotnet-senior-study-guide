@@ -99,4 +99,4 @@ IEnumerable<int> EvenNumbers(int max)
 
 ---
 
-[← Previous: ICollection and IList](02-icollection-ilist.md) | [Back to index](README.md)
+[← Previous: ICollection and IList](02-icollection-ilist.md) | [Back to index](README.md) | [Next: Collections Overview →](04-collections-overview.md)
