@@ -90,16 +90,29 @@ Globally distributed multi-model NoSQL database:
 - Multi-region with configurable consistency levels
 - Expensive — use only when you need global scale
 
+#### Cosmos DB consistency levels
+
+From strongest (safest, most expensive/latent) to weakest (cheapest, fastest):
+
+| Level | Guarantee |
+|-------|-----------|
+| **Strong** | Linearizable — reads always see the latest committed write. Single-region-write only or constrained multi-region setups. |
+| **Bounded Staleness** | Reads lag writes by at most K versions **or** T time. Predictable staleness window. |
+| **Session** (default) | Within a single client session: read-your-writes, monotonic reads/writes, consistent prefix. The sensible default for most apps. |
+| **Consistent Prefix** | Reads never see writes out of order (no gaps), but may lag. |
+| **Eventual** | Cheapest, lowest latency, no ordering guarantees — eventually converges. |
+
+> Pick the weakest level that still satisfies your correctness requirements — it directly affects RU cost and latency.
+
 ## Messaging
 
 ### Azure Service Bus
 
-Enterprise message broker:
+Enterprise message broker (queues + topics, sessions, dead-letter, scheduled delivery). Different from RabbitMQ in protocol (AMQP 1.0 vs RabbitMQ's AMQP 0.9.1) and feature set — Service Bus has no concept of RabbitMQ's flexible exchange types, while it adds first-class sessions, duplicate detection, and transactions.
 
 - **Queues**: point-to-point
-- **Topics/Subscriptions**: pub/sub
-- Supports transactions, sessions, dead-letter queue
-- Equivalent to managed RabbitMQ
+- **Topics/Subscriptions**: pub/sub with filter rules per subscription
+- Supports transactions, sessions (FIFO per session), dead-letter queue, scheduled delivery, duplicate detection
 
 ```csharp
 // Send
@@ -189,12 +202,32 @@ Managed API Gateway:
 - Request/response transformation
 - Developer portal
 
+### Azure Application Gateway
+
+**Regional** Layer 7 load balancer with integrated WAF:
+- Path-based and host-based routing, URL rewrite, redirects
+- WAF (OWASP rule sets) at the regional edge
+- SSL termination, end-to-end TLS, autoscaling
+- Scoped to a single region / VNet — use for backend routing inside one region
+
 ### Azure Front Door
 
-CDN + WAF + Global Load Balancer:
-- Global content distribution
-- DDoS protection
-- SSL offloading
+**Global** Layer 7 entry point with CDN + WAF:
+- Global content distribution and anycast routing to the nearest PoP
+- Global WAF + DDoS protection
+- SSL offloading, caching, global failover between regional backends
+
+#### Application Gateway vs Front Door
+
+| Aspect | Application Gateway | Front Door |
+|--------|---------------------|-----------|
+| Scope | Regional | Global |
+| Layer | L7 (HTTP/HTTPS) | L7 (HTTP/HTTPS) |
+| CDN | No | Yes |
+| WAF | Yes (regional) | Yes (global edge) |
+| Typical use | Route inside a region (to AKS, App Service, VMs) | Global front door for multi-region apps, CDN, DDoS |
+
+> Common pattern: **Front Door** at the edge → **Application Gateway** inside each region → backends.
 
 ## Typical Azure Architecture
 
