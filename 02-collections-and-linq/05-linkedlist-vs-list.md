@@ -9,6 +9,8 @@
 
 **99% of the time, `List<T>` wins**, even for scenarios that textbooks suggest a linked list. Use `LinkedList<T>` only when you have a measured need for O(1) insertion/removal in the middle and you already hold a reference to the node.
 
+> `LinkedList<T>` does **not** implement `IList<T>` — there is no indexer (`list[i]`). If you need index access, this is the wrong collection.
+
 ## How they are stored
 
 ### `List<T>` — contiguous array
@@ -73,8 +75,8 @@ void Access(string key, string value)
     }
     else
     {
-        var node = list.AddFirst((key, value)); // O(1)
-        index[key] = node;
+        var newNode = list.AddFirst((key, value)); // O(1)
+        index[key] = newNode;
     }
 }
 ```

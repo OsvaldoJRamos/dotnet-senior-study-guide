@@ -75,7 +75,7 @@ Git has several "undo" commands — picking the right one matters.
 | Undo a commit that was already pushed | `git revert <sha>` | Creates a new commit that reverses `<sha>` |
 | Discard unstaged changes in a file | `git restore <file>` (or `git checkout -- <file>`) | File reverts to HEAD |
 | Unstage a file | `git restore --staged <file>` (or `git reset <file>`) | File leaves the index |
-| Remove untracked files | `git clean -fd` | Deletes untracked files and directories |
+| Remove untracked files | `git clean -fd` (preview first with `git clean -nd`) | Deletes untracked files and directories |
 
 > `reset` rewrites history — never use it on commits that have been pushed and pulled by others. Use `revert` instead.
 
@@ -90,6 +90,23 @@ git revert abc1234       # creates a new commit that inverts abc1234
 ```
 
 Safe for public history because it **adds** a new commit instead of rewriting old ones.
+
+## `git switch` and `git restore` — the modern alternatives to `checkout`
+
+`git checkout` was historically overloaded — it changed branches **and** restored files, which was a common source of confusion and destructive mistakes. Git 2.23 split its responsibilities:
+
+```bash
+# Change branches
+git switch main                     # replaces: git checkout main
+git switch -c feat/pricing          # replaces: git checkout -b feat/pricing
+
+# Restore files
+git restore <file>                  # replaces: git checkout -- <file>
+git restore --staged <file>         # replaces: git reset <file>
+git restore --source=HEAD~3 <file>  # bring a file back from a past commit
+```
+
+`checkout` still works — but `switch`/`restore` make your intent explicit and are harder to misuse.
 
 ## Interactive rebase — cleaning up history
 
@@ -119,6 +136,34 @@ Change keywords:
 - `edit` → pause the rebase to amend that commit
 
 **Typical cleanup before opening a PR**: squash "fix typo" and "WIP" commits into meaningful units with clear messages.
+
+### `git rebase --onto` — transplanting a branch
+
+Use when you need to move a range of commits onto a different base — e.g., you branched `feat/pricing` off `feat/invoices`, but `feat/invoices` got abandoned and you want your commits to sit on `main` instead.
+
+```bash
+# Move commits that are on feat/pricing but not on feat/invoices, onto main
+git rebase --onto main feat/invoices feat/pricing
+```
+
+Reads as: "Take everything between `feat/invoices` (exclusive) and `feat/pricing` (inclusive) and replay it on top of `main`."
+
+## `git fetch` vs `git pull`
+
+- **`git fetch`** — downloads commits, branches, and tags from the remote into your local **remote-tracking branches** (`origin/main`, etc.) but **does not touch your working branch**. Safe; nothing is merged into your code.
+- **`git pull`** — runs `git fetch` **and then** integrates the fetched changes into your current branch. By default this is a merge; with `git pull --rebase`, it's a rebase.
+
+```bash
+git fetch origin                    # see what's on the server, no merge
+git log HEAD..origin/main           # what's new upstream
+git merge origin/main               # apply when you are ready
+
+# Or in one shot
+git pull                            # fetch + merge
+git pull --rebase                   # fetch + rebase (cleaner linear history)
+```
+
+**Rule of thumb**: `fetch` before making decisions (inspect, compare), `pull` when you just want to update a clean branch. Set `pull.rebase = true` globally if you prefer linear history by default.
 
 ## Cherry-pick
 
@@ -244,11 +289,30 @@ git branch -d feat/pricing
 git fetch -p                     # prune deleted remote branches
 ```
 
-## What to read in an execution plan, err, a diff
+## Tags — annotated vs lightweight
+
+Tags mark a specific commit (typically a release). Two flavors:
+
+```bash
+# Lightweight — just a named pointer to a commit
+git tag v1.2.0
+
+# Annotated — full object with tagger, date, message, signable with GPG
+git tag -a v1.2.0 -m "Release 1.2.0"
+git tag -s v1.2.0 -m "Release 1.2.0"   # signed
+
+# Tags are NOT pushed by default
+git push origin v1.2.0
+git push origin --tags                  # push all tags
+```
+
+**Rule of thumb**: use **annotated tags for releases** — they carry metadata and can be signed. Use lightweight tags for ephemeral markers (CI checkpoints, personal bookmarks).
+
+## Reading diffs and history
 
 - `git diff` — working tree vs index
 - `git diff --staged` — index vs HEAD
-- `git diff main...feature` — commits on `feature` not in `main` (three dots = since divergence)
+- `git diff main...feature` — changes introduced on `feature` since it diverged from `main` (three dots in `diff` = "since divergence")
 - `git log --oneline --graph --all` — visualize all branches
 - `git blame <file>` — who last changed each line
 - `git bisect` — binary search commits to find the one that introduced a bug

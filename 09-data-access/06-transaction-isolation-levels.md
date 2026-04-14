@@ -13,15 +13,23 @@ Isolation levels define **what a transaction can see** when other transactions a
 
 ## The four ANSI isolation levels
 
+Columns show whether each anomaly is **prevented** at that level.
+
 | Level | Dirty Read | Non-repeatable Read | Phantom Read | Typical locking |
 |---|---|---|---|---|
-| **Read Uncommitted** | ✅ possible | ✅ possible | ✅ possible | Almost no locks |
-| **Read Committed** (default in SQL Server) | ❌ prevented | ✅ possible | ✅ possible | Short-lived shared locks on reads |
-| **Repeatable Read** | ❌ | ❌ prevented | ✅ possible | Shared locks held until commit |
-| **Serializable** | ❌ | ❌ | ❌ prevented | Range locks; transactions effectively serialized |
+| **Read Uncommitted** | No | No | No | Almost no locks |
+| **Read Committed** | **Yes** | No | No | Short-lived shared locks on reads |
+| **Repeatable Read** | **Yes** | **Yes** | No | Shared locks held until commit |
+| **Serializable** | **Yes** | **Yes** | **Yes** | Range locks; transactions effectively serialized |
 
-✅ = the anomaly can still happen at this level
-❌ = prevented
+### Defaults across databases
+
+| Engine | Default level | Notes |
+|---|---|---|
+| **SQL Server** | Read Committed | With `READ_COMMITTED_SNAPSHOT ON`, reads use row versions (MVCC) instead of shared locks |
+| **PostgreSQL** | Read Committed | Always MVCC; `SERIALIZABLE` is actually Serializable Snapshot Isolation (SSI) |
+| **MySQL (InnoDB)** | Repeatable Read | Uses next-key locks, which **also prevent phantoms** — stricter than the ANSI definition |
+| **Oracle** | Read Committed | Always MVCC; no "dirty read" level exists at all |
 
 ## Each level in detail
 
@@ -37,7 +45,7 @@ SELECT * FROM Orders WHERE CustomerId = 42;
 
 > Avoid in business logic. People still reach for `WITH (NOLOCK)` for "performance", but you risk reading phantoms, missing rows, and even duplicate rows because of page splits mid-scan.
 
-### Read Committed (SQL Server default)
+### Read Committed
 
 You only see committed data. Locks on reads are released as soon as the row is read.
 
@@ -73,8 +81,20 @@ COMMIT
 ```
 
 - No reader/writer blocking.
-- Writers still conflict: a **update conflict** error is raised if two snapshot transactions try to modify the same row.
+- Writers still conflict: an **update conflict** error is raised if two snapshot transactions try to modify the same row.
 - Cost: version store in `tempdb`.
+
+### Write skew — the snapshot gotcha
+
+Snapshot isolation prevents dirty/non-repeatable/phantom reads, **but not write skew**. Write skew happens when two transactions each read a set of rows, make decisions based on that read, and write results that together violate an invariant that neither violated alone.
+
+Classic example: a hospital rule says "at least one doctor must be on call". Two on-call doctors both read `count >= 2`, each decide it's safe to go off call, and both update their status in parallel. Under snapshot isolation, both commits succeed — and now **nobody is on call**.
+
+- **SQL Server Snapshot** → allows write skew.
+- **PostgreSQL Serializable (SSI)** → detects and aborts one of the transactions.
+- **SQL Server Serializable** → also prevents it (via range locks).
+
+If your invariant spans multiple rows, use `SERIALIZABLE` or add application-level locking (e.g., `SELECT ... FOR UPDATE` on a sentinel row).
 
 ## Setting the isolation level
 
