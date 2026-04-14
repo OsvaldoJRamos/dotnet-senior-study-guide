@@ -68,10 +68,10 @@ Pure vector search finds semantically similar content but **can miss exact match
 **Hybrid search combines both** using Reciprocal Rank Fusion (RRF):
 
 ```
-User: "What's the status of PED-98765?"
+User: "What's the status of ORD-98765?"
 
 Vector search → chunks about orders in general (semantic match)
-Keyword search → chunk mentioning PED-98765 specifically (exact match)
+Keyword search → chunk mentioning ORD-98765 specifically (exact match)
 Hybrid → both, ranked by combined relevance
 ```
 
@@ -87,6 +87,8 @@ Azure AI Search supports hybrid search natively.
 ```
 
 ### Implementation with Semantic Kernel
+
+> **API note:** The current Semantic Kernel abstraction is `Microsoft.Extensions.VectorData` (`IVectorStore`, `VectorStoreRecordCollection<TKey, TRecord>`). The example below uses the legacy `Microsoft.SemanticKernel.Memory` API (`MemoryRecord`) — kept for clarity; new code should use the new `VectorData` abstraction.
 
 ```csharp
 // Ingestion (background job)
@@ -123,11 +125,17 @@ var prompt = $"""
 | Dimension | Metric | Description |
 |-----------|--------|-------------|
 | **Retrieval** | Precision@K | How many of the top K results are relevant? |
-| **Retrieval** | Recall | Did we find all relevant chunks? |
+| **Retrieval** | Recall@K | Of all relevant chunks, how many appear in the top K? |
+| **Retrieval** | MRR (Mean Reciprocal Rank) | Average of `1 / rank` of the first relevant result — rewards getting the best answer at position 1 |
+| **Retrieval** | nDCG | Normalized Discounted Cumulative Gain — considers both relevance and position; handles graded relevance (not just binary) |
 | **Generation** | Faithfulness | Is the answer faithful to the context? (no hallucinations) |
+| **Generation** | Answer relevancy | Does the answer actually address the question? |
+| **Generation** | Context precision | Are retrieved chunks actually useful for the answer? |
 | **Generation** | Completeness | Does the response cover everything relevant? |
 
 Build a **golden test set** of questions with expected answers and source chunks, then run regular evaluations.
+
+> **RAGAS** is the de-facto Python library for end-to-end RAG evaluation — it scores **faithfulness**, **answer relevancy**, and **context precision / recall** using an LLM-as-judge, so you don't need human labels for every sample.
 
 ## Multi-Tenant RAG
 

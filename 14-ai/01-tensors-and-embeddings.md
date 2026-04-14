@@ -53,9 +53,37 @@ var kernel = Kernel.CreateBuilder()
     .Build();
 
 var embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-var embedding = await embeddingService.GenerateEmbeddingAsync("texto para converter");
+var embedding = await embeddingService.GenerateEmbeddingAsync("text to convert");
 // embedding = float[] with hundreds of dimensions
 ```
+
+### The `dimensions` parameter (OpenAI `text-embedding-3-*`)
+
+OpenAI's `text-embedding-3-small` (default 1536 dims) and `text-embedding-3-large` (default 3072 dims) support a **`dimensions`** parameter that **truncates** the output vector to a smaller size. This uses **Matryoshka Representation Learning** — the model is trained so that the first N dimensions are still a useful embedding on their own.
+
+```csharp
+// Request a shorter, cheaper vector — useful to reduce storage, memory, and search latency
+var response = await openAiClient.GetEmbeddingsAsync(new EmbeddingsOptions
+{
+    DeploymentName = "text-embedding-3-large",
+    Input = { "text to convert" },
+    Dimensions = 512 // truncate from 3072 -> 512
+});
+```
+
+> Use a smaller `dimensions` to trade a small amount of retrieval quality for big wins in cost and latency (typical sweet spots: 512, 768, 1024). This parameter is **not available** on older `text-embedding-ada-002`.
+
+## Similarity formulas
+
+Once you have two embeddings, you need to measure **how close** they are. The three formulas every senior engineer should recognize:
+
+| Metric | Formula | Range | Notes |
+|--------|---------|-------|-------|
+| **Cosine similarity** | `(A · B) / (‖A‖ · ‖B‖)` | -1 to 1 (1 = identical direction) | Ignores magnitude. Default for semantic search. |
+| **Dot product** | `A · B = Σ aᵢ · bᵢ` | Unbounded | Cheapest to compute. Sensitive to magnitude. |
+| **Euclidean distance** | `√Σ (aᵢ - bᵢ)²` | 0 to ∞ (0 = identical) | Actual geometric distance. Lower = more similar. |
+
+> **Important:** OpenAI's `text-embedding-3-*` vectors are **L2-normalized** (unit length). When vectors are normalized, **cosine similarity equals dot product** — so vector databases can use the cheaper dot-product path and get the same ranking.
 
 ---
 

@@ -37,7 +37,7 @@ public class OrderPlugin
     [KernelFunction("get_order_status")]
     [Description("Gets the current status of an order by order number")]
     public async Task<OrderStatus> GetOrderStatus(
-        [Description("The order number, e.g. PED-12345")] string orderNumber)
+        [Description("The order number, e.g. ORD-12345")] string orderNumber)
     {
         return await _orderService.GetStatusAsync(orderNumber);
     }
@@ -82,6 +82,8 @@ Lets the LLM decide **when** to invoke external functions and with **what parame
 
 > The model **never executes anything** — it only decides what to call and with what parameters.
 
+> **Terminology note:** OpenAI renamed `functions` → `tools` in mid-2024. The older `function_call` / `functions` fields are deprecated; the current API uses `tool_calls` / `tools`. In SK, `FunctionChoiceBehavior` (e.g. `Auto()`, `Required()`, `None()`) maps to the new tools API.
+
 ### Auto function calling in SK
 
 ```csharp
@@ -90,7 +92,7 @@ var settings = new OpenAIPromptExecutionSettings
     FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() // SK handles the entire loop
 };
 
-var result = await kernel.InvokePromptAsync("What is the status of order PED-456?", 
+var result = await kernel.InvokePromptAsync("What is the status of order ORD-456?", 
     new KernelArguments(settings));
 ```
 
