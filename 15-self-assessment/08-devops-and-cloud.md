@@ -310,3 +310,116 @@ Deep dive: [AWS - In Depth](../12-cloud/02-aws-in-depth.md)
 </details>
 
 ---
+
+### 17. What is the difference between `git merge` and `git rebase`? When do you use each?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **`git merge`** creates a **merge commit** that joins two histories. Original commits are preserved unchanged. Non-destructive but adds "railroad" structure to the graph.
+- **`git rebase`** moves your branch commits to sit **on top of** another branch. Commits are **replaced** with new SHAs, producing a **linear** history. Requires `--force-with-lease` when pushing an already-published branch.
+
+| Use case | Choose |
+|----------|--------|
+| Integrating a finished feature into main | **Merge** (or squash merge) |
+| Keeping a feature branch up to date with main | **Rebase** |
+| Cleaning up local commits before opening a PR | **Interactive rebase** |
+| Shared public branch others have pulled | **Never rebase** — use merge |
+
+**Golden rule**: never rebase commits that other people have already pulled.
+
+Deep dive: [Git Essentials](../11-devops/06-git-essentials.md)
+
+</details>
+
+---
+
+### 18. How do you undo a commit? What's the difference between reset, revert, and amend?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Command | Effect | Safe on pushed commits? |
+|---------|--------|-------------------------|
+| `git commit --amend` | Rewrites the last commit (new SHA) | ❌ requires force-push |
+| `git reset --soft HEAD~1` | Undo commit, keep changes **staged** | ❌ rewrites history |
+| `git reset --mixed HEAD~1` | Undo commit, keep changes **unstaged** (default) | ❌ rewrites history |
+| `git reset --hard HEAD~1` | Undo commit and **discard** changes | ❌ rewrites history and deletes work |
+| `git revert <sha>` | Creates a **new** commit that inverts `<sha>` | ✅ safe — adds history instead of rewriting |
+
+Rule of thumb: **`revert` on shared history, `reset`/`amend` only on local commits.** If you must update a pushed branch after an amend or rebase, use `git push --force-with-lease` to avoid overwriting others' work.
+
+Deep dive: [Git Essentials](../11-devops/06-git-essentials.md)
+
+</details>
+
+---
+
+### 19. What does interactive rebase do, and when would you use it?
+
+<details>
+<summary>Reveal answer</summary>
+
+`git rebase -i HEAD~N` opens an editor listing the last N commits, letting you rewrite them:
+
+- `pick` — keep as-is
+- `reword` — change commit message
+- `squash` / `fixup` — merge into previous commit (fixup drops the message)
+- `edit` — pause the rebase to amend that commit
+- `drop` — delete the commit
+- Reorder lines to reorder commits
+
+Typical use: **clean up local history before opening a PR** — squash "fix typo"/"WIP" noise into meaningful commits, reword bad messages, drop dead-end experiments. Never do this on commits others have already pulled.
+
+Deep dive: [Git Essentials](../11-devops/06-git-essentials.md)
+
+</details>
+
+---
+
+### 20. What is `git reflog` and why is it your safety net?
+
+<details>
+<summary>Reveal answer</summary>
+
+`git reflog` records **every change `HEAD` has made locally** — including changes made by reset, rebase, amend, and branch switches. Even commits that look "deleted" after a hard reset are still in the reflog for ~90 days (default GC window).
+
+```bash
+git reflog
+# e3f1a2b HEAD@{0}: reset: moving to HEAD~5
+# 7a9c4d0 HEAD@{1}: commit: important work
+
+git reset --hard 7a9c4d0   # recover the "lost" state
+```
+
+Any time you panic after a destructive Git operation, check the reflog first before assuming the work is gone.
+
+Deep dive: [Git Essentials](../11-devops/06-git-essentials.md)
+
+</details>
+
+---
+
+### 21. What is `git cherry-pick` and when would you use it?
+
+<details>
+<summary>Reveal answer</summary>
+
+`git cherry-pick <sha>` applies a specific commit from another branch onto the current one, creating a new commit with the same content.
+
+```bash
+git cherry-pick abc1234
+git cherry-pick abc1234..def5678   # a range
+```
+
+Common scenarios:
+- Port a bug fix from `main` onto a release branch.
+- Grab a single commit from a feature branch without merging the whole thing.
+
+If it conflicts, resolve, `git add`, then `git cherry-pick --continue` (or `--abort` to bail out).
+
+Deep dive: [Git Essentials](../11-devops/06-git-essentials.md)
+
+</details>
+
+---

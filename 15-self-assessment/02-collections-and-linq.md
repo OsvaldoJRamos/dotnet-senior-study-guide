@@ -281,4 +281,54 @@ Deep dive: [Memory Optimization](../03-memory-and-performance/03-memory-optimiza
 
 ---
 
+### 12. What is the difference between `List<T>` and `LinkedList<T>`? When would you actually pick the linked list?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Operation | `List<T>` | `LinkedList<T>` |
+|-----------|-----------|-----------------|
+| Memory layout | Contiguous array | Heap-allocated nodes with prev/next pointers |
+| Access by index | O(1) | O(n) (no direct indexer) |
+| Insert/remove at known node | O(n) — shifts elements | O(1) — pointer updates |
+| Iteration speed | Very fast (cache-friendly) | Slow (pointer chasing, cache misses) |
+| Memory overhead per item | ~`sizeof(T)` | `sizeof(T)` + 2 pointers + object header |
+
+Even when Big-O suggests `LinkedList<T>`, `List<T>` usually wins in practice because modern CPUs love contiguous memory. Pick `LinkedList<T>` only when you already **hold a node reference** and need O(1) insert/remove — e.g., an LRU cache with a dictionary of nodes.
+
+Deep dive: [LinkedList vs List](../02-collections-and-linq/05-linkedlist-vs-list.md)
+
+</details>
+
+---
+
+### 13. How do you pick the right collection in .NET for a given job?
+
+<details>
+<summary>Reveal answer</summary>
+
+Follow the intent, not the default:
+
+| Need | Use |
+|------|-----|
+| Ordered, index-accessible, mutable | `List<T>` |
+| Key → value lookup | `Dictionary<TKey, TValue>` |
+| Unique values + fast membership | `HashSet<T>` |
+| FIFO | `Queue<T>` · LIFO | `Stack<T>` |
+| Ordered by key (sorted) | `SortedDictionary<TKey, TValue>` / `SortedSet<T>` |
+| Thread-safe key/value | `ConcurrentDictionary<TKey, TValue>` |
+| Thread-safe producer/consumer | `Channel<T>` (async) or `BlockingCollection<T>` |
+| Immutable snapshot | `ImmutableList<T>`, `ImmutableDictionary<TKey, TValue>` |
+| Read-only view | `IReadOnlyList<T>`, `IReadOnlyDictionary<TKey, TValue>` |
+| Priority processing | `PriorityQueue<TElement, TPriority>` (.NET 6+) |
+| Hot-path, stack-allocated | `Span<T>` / `stackalloc` |
+
+Avoid the pre-generics `System.Collections` types (`ArrayList`, `Hashtable`) — they exist only for legacy compatibility.
+
+Deep dive: [Collections Overview](../02-collections-and-linq/04-collections-overview.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

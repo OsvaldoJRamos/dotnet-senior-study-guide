@@ -7,6 +7,7 @@
 3. [Docker and Kubernetes](03-docker-and-kubernetes.md) - Containers, Dockerfile, K8s, deployments
 4. [Terraform](04-terraform.md) - Infrastructure as Code, providers, state, modules
 5. [Azure Pipelines](05-azure-pipelines.md) - CI/CD YAML, multi-stage, templates
+6. [Git Essentials](06-git-essentials.md) - Merge vs rebase, undo, interactive rebase, conflicts, reflog
 
 ---
 

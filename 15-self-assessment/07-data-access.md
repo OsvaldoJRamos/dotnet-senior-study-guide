@@ -235,7 +235,110 @@ Deep dive: [ORM vs Micro ORM vs ADO.NET](../09-data-access/01-orm-vs-microorm-vs
 
 Higher isolation = more correctness but more locking and lower throughput.
 
-Deep dive: [Databases](../09-data-access/03-databases.md)
+Deep dive: [Transaction Isolation Levels](../09-data-access/06-transaction-isolation-levels.md)
+
+</details>
+
+---
+
+### 13. What is the difference between a clustered and a non-clustered index?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Clustered index** — defines the **physical order** of rows. The leaf pages of the index *are* the table rows. A table can have **only one**. The primary key becomes the clustered index by default.
+- **Non-clustered index** — a separate structure whose leaf pages store the indexed columns and a **pointer to the row** (the clustered key, or the RID if the table is a heap). A table can have **many**.
+
+When a non-clustered index doesn't contain all columns the query needs, a **key lookup** occurs — extra I/O to fetch missing columns from the clustered index. A **covering index** (using `INCLUDE`) eliminates this by storing the extra columns at the leaf level.
+
+Deep dive: [SQL Indexes](../09-data-access/05-sql-indexes.md)
+
+</details>
+
+---
+
+### 14. What's the difference between an Index Seek, an Index Scan, and a Table Scan?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Operator | Cost | What happens |
+|----------|------|--------------|
+| **Index Seek** | Low | B-tree navigation jumps straight to matching rows |
+| **Index Scan** | Medium | Reads every leaf page of the index (predicate isn't usable or too many rows estimated) |
+| **Table Scan** / **Clustered Index Scan** | High | Reads every row of the table |
+
+Common causes of an unexpected scan despite an index existing:
+- **Non-sargable predicate**: `WHERE YEAR(CreatedAt) = 2026` — function on the column disables the seek.
+- **Implicit type conversion**: `varchar` column compared against `nvarchar` parameter.
+- **Leading column not in the WHERE** for a composite index.
+- **Stale statistics** causing bad cardinality estimates.
+- `SELECT *` forcing many key lookups, making a scan look cheaper to the optimizer.
+
+Deep dive: [SQL Indexes](../09-data-access/05-sql-indexes.md)
+
+</details>
+
+---
+
+### 15. What is a covering index and when is it worth creating one?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **covering index** contains every column the query reads — either as index keys or via `INCLUDE`. The query is served entirely from the index, with no key lookup into the clustered index.
+
+```sql
+CREATE NONCLUSTERED INDEX IX_Orders_Customer_Covering
+ON Orders(CustomerId)
+INCLUDE (OrderDate, Total);
+
+-- No key lookup needed
+SELECT OrderDate, Total FROM Orders WHERE CustomerId = 42;
+```
+
+Create one when:
+- A hot query runs frequently and shows a **key lookup** as a significant cost in the execution plan.
+- The extra included columns aren't huge (covering indexes bloat the index size and slow writes).
+
+Don't add `INCLUDE` blindly — monitor `sys.dm_db_index_usage_stats` and remove unused covering indexes.
+
+Deep dive: [SQL Indexes](../09-data-access/05-sql-indexes.md)
+
+</details>
+
+---
+
+### 16. What is Snapshot isolation and how is it different from Serializable?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Snapshot** is a **row-versioning** (MVCC) model, not a locking one. Each transaction sees a consistent picture of the database as of the moment it started. Writers don't block readers and vice versa; writer-vs-writer conflicts surface as **update conflict** errors (3960 in SQL Server).
+
+**Serializable** uses **range locks** to make transactions behave as if they ran one at a time — preventing all anomalies (dirty, non-repeatable, phantoms) but increasing blocking and deadlock risk.
+
+Use snapshot when readers are being blocked by writers and you can tolerate retries on update conflicts. Use serializable when you need strict "nothing new can appear" semantics in short, focused transactions.
+
+Deep dive: [Transaction Isolation Levels](../09-data-access/06-transaction-isolation-levels.md)
+
+</details>
+
+---
+
+### 17. How do you prevent lost updates in a concurrent system?
+
+<details>
+<summary>Reveal answer</summary>
+
+Higher isolation levels reduce lost updates but don't eliminate them across transactions. Two proven strategies:
+
+- **Optimistic concurrency** (preferred): add a `RowVersion`/`timestamp` column; on update, include it in the `WHERE`. If 0 rows are affected, the row changed under you — retry or surface a conflict. EF Core throws `DbUpdateConcurrencyException`.
+- **Pessimistic locking**: lock the row when reading (`SELECT ... WITH (UPDLOCK, ROWLOCK)`). Safe but causes blocking and is the biggest source of deadlocks — use sparingly.
+
+Optimistic concurrency scales better in web apps; pessimistic is reserved for short critical sections where conflicts are expected and retries are expensive.
+
+Deep dive: [Transaction Isolation Levels](../09-data-access/06-transaction-isolation-levels.md)
 
 </details>
 
