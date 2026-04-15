@@ -130,9 +130,21 @@ public record OrderApproved(Guid OrderId, DateTime Date);
 | 1 | Separate read and write handlers | Low |
 | 2 | Different models for read and write | Medium |
 | 3 | Different databases (write DB + read DB) | High |
-| 4 | Event Sourcing + projections | Very high |
 
 > Start at level 1. Only move up if there is a real need.
+
+> **Note:** CQRS and Event Sourcing are **independent patterns**; they are often combined but neither requires the other. You can do CQRS with a single relational database and no events, and you can do Event Sourcing without splitting commands and queries.
+
+## Eventual consistency between write and read DBs
+
+Once you move to level 3 (separate write DB and read DB with async projections), the read side is updated **after** the command commits — typically milliseconds to seconds later, but the window is non-zero. A client who issues a command and immediately queries may not see their own write yet. Design choices:
+
+- **Return the result synchronously from the command** — the command handler returns the new state (or the generated ID) so the UI can render without waiting for the projection.
+- **Show a "pending" state** — the UI reflects that the change is in flight and will refresh when the projection catches up.
+- **Read-your-writes via the write model** — for the immediate response only, query the write-side store; fall back to the read model afterwards.
+- **Wait for the projection** — the command handler blocks (or polls) until the read model has caught up; simple but couples latency to projection speed.
+
+Make the consistency model explicit in the API contract so clients are not surprised.
 
 ## When to use
 

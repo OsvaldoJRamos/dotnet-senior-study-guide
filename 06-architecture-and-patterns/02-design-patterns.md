@@ -43,9 +43,9 @@ Design patterns from the GoF (Gang of Four) are reusable solutions to common pro
 
 ### Factory Method
 
-The Factory Method pattern defines an interface for creating objects but lets subclasses decide which class to instantiate. This promotes loose coupling by eliminating the need to bind application-specific classes into your code.
+The Factory Method pattern defines an interface for creating objects but lets **subclasses decide** which class to instantiate. The key is a **Creator** base class that contains shared workflow logic and exposes an abstract `CreateXxx()` method which each subclass overrides. The Creator calls its own factory method without knowing the concrete product type.
 
-**When to use:** When a class cannot anticipate the type of objects it needs to create, or when you want subclasses to specify the objects they create.
+**When to use:** When a class cannot anticipate the type of objects it needs to create, or when you want subclasses to specify the objects they create while reusing the surrounding workflow.
 
 ```csharp
 // 1. Product interface
@@ -79,46 +79,42 @@ public class PushNotification : INotification
     }
 }
 
-// 3. Factory interface
-public interface INotificationFactory
+// 3. Creator base class — defines the factory method and the shared workflow
+public abstract class NotificationCreator
 {
-    INotification Create();
-}
+    // The factory method — subclasses decide which product to instantiate
+    protected abstract INotification CreateNotification();
 
-// 4. Concrete factories
-public class EmailNotificationFactory : INotificationFactory
-{
-    public INotification Create() => new EmailNotification();
-}
-
-public class SmsNotificationFactory : INotificationFactory
-{
-    public INotification Create() => new SmsNotification();
-}
-
-// 5. Usage — the consumer does not know which concrete class is created
-public class AlertService
-{
-    private readonly INotificationFactory _factory;
-
-    public AlertService(INotificationFactory factory)
+    // Shared workflow that uses the factory method
+    public void Notify(string recipient, string message)
     {
-        _factory = factory;
-    }
-
-    public void SendAlert(string recipient, string message)
-    {
-        INotification notification = _factory.Create();
+        INotification notification = CreateNotification();
         notification.Send(recipient, message);
     }
 }
 
-// Registration in DI
-builder.Services.AddScoped<INotificationFactory, EmailNotificationFactory>();
-builder.Services.AddScoped<AlertService>();
+// 4. Concrete creators — each overrides the factory method
+public class EmailCreator : NotificationCreator
+{
+    protected override INotification CreateNotification() => new EmailNotification();
+}
+
+public class SmsCreator : NotificationCreator
+{
+    protected override INotification CreateNotification() => new SmsNotification();
+}
+
+public class PushCreator : NotificationCreator
+{
+    protected override INotification CreateNotification() => new PushNotification();
+}
+
+// 5. Usage — the caller picks a creator; the workflow stays the same
+NotificationCreator creator = new EmailCreator();
+creator.Notify("user@example.com", "Welcome!");
 ```
 
-> **Tip:** In .NET, you often do not need a full factory class. A `Func<T>` delegate or a simple static method can serve as a lightweight factory when the creation logic is trivial.
+> **Tip:** In .NET, you often do not need a full factory hierarchy. A `Func<T>` delegate or a simple static method can serve as a lightweight factory when the creation logic is trivial. The variant shown in many tutorials — an `INotificationFactory` interface with `EmailNotificationFactory` / `SmsNotificationFactory` classes — is closer to **Simple Factory** or **Abstract Factory**; the defining trait of GoF Factory Method is the abstract method on a Creator base class that subclasses override.
 
 ### Builder
 
@@ -937,6 +933,8 @@ builder.Services.AddMediatR(cfg =>
 ```
 
 > **Tip:** MediatR pipeline behaviors are themselves an implementation of the **Chain of Responsibility** pattern — each behavior can process the request, pass it to the next behavior, and then process the response.
+
+> **Licensing note:** In **April 2025**, Jimmy Bogard announced MediatR was going commercial; it launched in **July 2025** under **Lucky Penny Software** and now requires license key registration (current version **v14.1.0** as of early 2026). In-process mediator alternatives include hand-rolled `IRequest`/`IRequestHandler` patterns (a few interfaces + a dispatcher resolving handlers via DI) or community forks. Evaluate licensing terms before adopting in new projects.
 
 ### Template Method
 

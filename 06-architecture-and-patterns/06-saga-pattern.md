@@ -8,7 +8,7 @@ Multiple microservices that can present data inconsistencies.
 
 ## Solution
 
-Each microservice processes a request, saves to its own database, and then passes the transaction along to the others. If any failure occurs, compensating actions (e.g., rollback) are executed on all services that have already been processed.
+A saga is a sequence of local transactions: each step is a local transaction in its own service; subsequent steps are triggered via messages (choreography) or commands from an orchestrator. Sagas do **not** propagate a distributed transaction — there is no global commit. If any step fails, previously completed steps are undone by running **compensating transactions**, which are business-level reversals (e.g., "issue refund", "release reserved stock"), not raw database rollbacks. Compensations must be **idempotent**, since messages may be retried or redelivered.
 
 ## Approaches
 
@@ -41,6 +41,27 @@ Service A ← Compensating event ←──────────────�
 - Distributed transactions across multiple microservices
 - When traditional ACID transactions (single database) are not possible
 - Operations that need rollback in case of partial failure
+
+## Outbox Pattern (companion to sagas)
+
+Sagas depend on reliable messaging between steps, which exposes the **dual-write problem**: a service must both persist its local change and publish a message, but writing to the DB and writing to the broker cannot share a single transaction. A crash between the two leaves the system inconsistent.
+
+The **Outbox pattern** solves this:
+
+1. In the same DB transaction that persists the domain change, also insert the outgoing message into an `Outbox` table in the same database.
+2. A separate publisher process (a background worker or CDC/log-tail tool like Debezium) reads unpublished rows from the `Outbox` and dispatches them to the broker.
+3. Once the broker acknowledges, the publisher marks the row as sent (or deletes it).
+
+```
+[Service] ── single DB transaction ──▶ [Domain table] + [Outbox table]
+                                                           │
+                                                           ▼
+                                               [Publisher] ──▶ [Broker]
+```
+
+This guarantees **at-least-once** delivery of the message whenever the domain change is committed, and never delivers a message for a change that was rolled back. Consumers must therefore be idempotent (dedup by message ID).
+
+A symmetric **Inbox** pattern on the consumer side records processed message IDs to deduplicate redeliveries.
 
 ---
 

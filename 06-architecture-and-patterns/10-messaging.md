@@ -122,12 +122,14 @@ An **event streaming** platform. Different from traditional queues:
 | Aspect | RabbitMQ | Kafka |
 |---------|----------|-------|
 | Model | Message broker (queues) | Event streaming (log) |
-| Consumed message | Removed from queue | Stays in the log |
-| Re-read messages | No | Yes (by offset) |
+| Consumed message | Removed from queue (classic); retained in log (Streams) | Stays in the log |
+| Replay full history | No for classic queues; Yes with RabbitMQ Streams (since 3.9, July 2021) | Yes (by offset) |
 | Throughput | Medium-high | Very high |
 | Latency | Lower | Higher |
 | Ideal use | Async tasks, RPC | Event sourcing, analytics, high scale |
 | Complexity | Lower | Higher |
+
+> **On "re-reading" in RabbitMQ:** classic queues do support **requeue via `nack`**, **dead-letter exchanges**, and consumer retries — what they don't support is replaying the full history after a message has been acknowledged. For that use case, **RabbitMQ Streams** (since 3.9, July 2021) provide a Kafka-like append-only log with persistent, offset-based replay.
 
 ## Azure Service Bus
 
@@ -160,6 +162,20 @@ await processor.StartProcessingAsync();
 | **Exactly-once** | Never loses, never duplicates | Financial transactions (expensive/complex) |
 
 > In practice, use **at-least-once** with **idempotent consumers**.
+
+> **On "exactly-once":** true end-to-end exactly-once delivery is **impossible** in a distributed system (the Two Generals Problem). What is achievable is **effectively-once** processing: at-least-once delivery combined with idempotent consumers (idempotency keys on commands, dedup tables on message IDs, or upserts on natural keys). Kafka's "exactly-once semantics" (EOS) is **within-cluster transactional processing** — it covers `consume → process → produce` inside the same Kafka cluster, not end-to-end delivery to external systems.
+
+## Poison messages and dead-letter queues
+
+A **poison message** is one that keeps failing — a parse error, a schema mismatch, a violated invariant — no matter how many times you retry. Without protection it blocks the queue and burns CPU on endless retries.
+
+The standard mitigation:
+
+1. **Cap retries** per message (e.g., 5 attempts, with exponential backoff).
+2. After the cap, move the message to a **Dead-Letter Queue (DLQ)** for manual inspection instead of discarding it.
+3. Alert on DLQ depth; triage, fix the root cause, then **replay** from the DLQ once the bug is fixed.
+
+RabbitMQ supports this via **dead-letter exchanges** (`x-dead-letter-exchange` on the queue). Azure Service Bus has built-in DLQs per queue/subscription. Kafka does not have DLQs natively — teams usually implement them as a separate `*.dlq` topic managed by the consumer.
 
 ---
 
