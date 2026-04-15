@@ -176,4 +176,4 @@ Mitigations:
 
 ---
 
-[← Previous: SQL Indexes](05-sql-indexes.md) | [Back to index](README.md)
+[← Previous: SQL Indexes](05-sql-indexes.md) | [Back to index](README.md) | [Next: Database Locks →](07-database-locks.md)

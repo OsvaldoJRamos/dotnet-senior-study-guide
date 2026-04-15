@@ -105,4 +105,4 @@ finally
 
 ---
 
-[← Previous: Deadlocks](05-deadlocks.md) | [Back to index](README.md)
+[← Previous: Deadlocks](05-deadlocks.md) | [Back to index](README.md) | [Next: Locks in Depth →](07-locks-in-depth.md)

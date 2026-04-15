@@ -325,6 +325,121 @@ await Parallel.ForEachAsync(urls,
 
 </details>
 
+### 12. What does the C# `lock` statement actually compile to?
+
+<details>
+<summary>Reveal answer</summary>
+
+It depends on the static type of the lock target:
+
+- **Any reference type other than `System.Threading.Lock`** — lowers to `Monitor.Enter(obj, ref bool taken)` + `try/finally` with `Monitor.Exit` guarded by `taken`. The `ref bool` pattern ensures we only release if we actually acquired.
+- **`System.Threading.Lock` (.NET 9+ / C# 13)** — lowers to `using (target.EnterScope()) { ... }`. `EnterScope` returns a `ref struct` whose `Dispose()` releases the lock. Faster than the Monitor path and clearer in intent.
+
+Key consequence: the same lock target **must** have the static type `System.Threading.Lock` for the optimized path. If you hold one via `object`, the compiler emits the old Monitor path.
+
+Deep dive: [Locks in Depth](../04-concurrency-and-parallelism/07-locks-in-depth.md)
+
+</details>
+
+---
+
+### 13. Why is `await` inside a `lock` a compile error, and what's the underlying reason?
+
+<details>
+<summary>Reveal answer</summary>
+
+`await` inside `lock { ... }` raises **CS1996** at compile time — it's not a runtime issue.
+
+The underlying reason is **thread affinity**. Both `Monitor` (what plain `lock` uses) and `System.Threading.Lock` require the **same thread** that acquired the lock to release it. After an `await`, the continuation may resume on a **different thread** — that thread wouldn't be allowed to `Monitor.Exit`, so the lock would leak forever and freeze all subsequent callers.
+
+The async-friendly alternative is `SemaphoreSlim`, which is **not** thread-affine — any thread may call `Release`:
+
+```csharp
+await _gate.WaitAsync(ct);
+try { await DoWorkAsync(); }
+finally { _gate.Release(); }
+```
+
+Deep dive: [Locks in Depth](../04-concurrency-and-parallelism/07-locks-in-depth.md), [Deadlocks](../04-concurrency-and-parallelism/05-deadlocks.md)
+
+</details>
+
+---
+
+### 14. When would you pick `ReaderWriterLockSlim` over `lock`? When would `lock` still win?
+
+<details>
+<summary>Reveal answer</summary>
+
+Use **`ReaderWriterLockSlim`** when reads vastly outnumber writes **and** each read does non-trivial work, so parallelism among readers pays off. Multiple threads can hold the read lock simultaneously; writers are exclusive.
+
+```csharp
+_rw.EnterReadLock();  try { return _cache[key]; }  finally { _rw.ExitReadLock(); }
+_rw.EnterWriteLock(); try { _cache[key] = value; } finally { _rw.ExitWriteLock(); }
+```
+
+`EnterUpgradeableReadLock` is the important third mode — one upgradeable reader plus many plain readers. Lets you check and then upgrade to a write without the classic read-release-write race.
+
+**Why `lock` often wins anyway:** `ReaderWriterLockSlim` has higher per-call overhead. For short critical sections (e.g., a hashmap lookup), a plain `lock` finishes faster than the bookkeeping for a read lock. Also, `ConcurrentDictionary` is usually the better answer than either. **Benchmark before switching.**
+
+Deep dive: [Locks in Depth](../04-concurrency-and-parallelism/07-locks-in-depth.md)
+
+</details>
+
+---
+
+### 15. What is `System.Threading.Lock` (.NET 9+) and what does it buy you?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **dedicated lock type** added in .NET 9 / C# 13, replacing the decades-old idiom `private readonly object _lockObj = new();`.
+
+```csharp
+private readonly System.Threading.Lock _gate = new();
+lock (_gate) { /* critical section */ }
+```
+
+Benefits:
+
+1. **Intent** — the type literally says "this is a lock".
+2. **Performance** — when the static type is `Lock`, the compiler lowers `lock` to `using (_gate.EnterScope())`, which bypasses object-header thin-lock machinery and is measurably faster under contention.
+3. **Correctness by design** — nobody can accidentally `Monitor.Enter` on it through an `object` reference.
+4. **Warning on misuse** — the compiler warns if you cast a known `Lock` to another type and lock it.
+
+Caveat: if you assign a `Lock` into `object` or a generic `T` and lock there, you silently lose the optimized path.
+
+Deep dive: [Locks in Depth](../04-concurrency-and-parallelism/07-locks-in-depth.md)
+
+</details>
+
+---
+
+### 16. When is `Interlocked` the right choice, and where does it stop being enough?
+
+<details>
+<summary>Reveal answer</summary>
+
+`Interlocked` provides **atomic operations on a single 32/64-bit or native-sized field** — lock-free, no thread affinity, no blocking. Use it for:
+
+- Counters: `Interlocked.Increment(ref _count);`
+- Flags / single-reference swaps: `Interlocked.Exchange(ref _current, next);`
+- Lock-free CAS patterns (lazy init, lock-free stacks): `Interlocked.CompareExchange(ref field, newVal, expected);`
+- Atomic `long` read on 32-bit CPUs: `Interlocked.Read(ref _big);`
+
+**Where it stops being enough:** anything that requires two fields to update consistently. Composing two `Interlocked` calls is **not** atomic:
+
+```csharp
+// Still a race — another thread can decrement between the check and the decrement.
+if (Interlocked.Read(ref x) > 0) Interlocked.Decrement(ref x);
+```
+
+For compound invariants, you need a real lock or a transactional data structure.
+
+Deep dive: [Locks in Depth](../04-concurrency-and-parallelism/07-locks-in-depth.md)
+
+</details>
+
 ---
 
 [Back to index](README.md)

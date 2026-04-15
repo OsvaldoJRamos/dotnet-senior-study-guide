@@ -8,6 +8,7 @@
 4. [Race Conditions](04-race-conditions.md) - Locks and Interlocked
 5. [Deadlocks](05-deadlocks.md) - Causes and prevention
 6. [SemaphoreSlim](06-semaphore-slim.md) - Asynchronous concurrency control
+7. [Locks in Depth](07-locks-in-depth.md) - `lock`, `Monitor`, `System.Threading.Lock`, `ReaderWriterLockSlim`, `Mutex`, `SpinLock`, `Interlocked`, `Volatile`
 
 ---
 

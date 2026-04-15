@@ -328,7 +328,189 @@ Deep dive: [Transaction Isolation Levels](../09-data-access/06-transaction-isola
 
 ---
 
-### 17. How do you prevent lost updates in a concurrent system?
+### 17. What are the different lock granularities and modes in SQL Server?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Granularity** (smaller = more concurrency, more overhead):
+
+`RID` (row in heap) → `KEY` (row in B-tree) → `PAGE` (8 KB) → `EXTENT` (8 pages) → `HoBT` → `TABLE` → `DATABASE`. Plus `XACT` for optimized locking (2022+).
+
+**Modes** and what they mean:
+
+| Mode | Purpose |
+|---|---|
+| **S** (Shared) | Reads |
+| **U** (Update) | "I'll probably update" — blocks other U/X; prevents conversion deadlocks |
+| **X** (Exclusive) | Writes; incompatible with everything |
+| **IS / IX / SIX** | Intent locks at higher levels — signal lower-level S/X |
+| **Sch-S / Sch-M** | Schema stability / modification (DDL) |
+| **Range*** | Key-range locks for `SERIALIZABLE` to prevent phantoms |
+
+**Key facts for an interview:**
+- X is compatible with nothing.
+- U+U is **not** compatible (that's the point — it prevents lost updates).
+- Every query — even `NOLOCK` — takes `Sch-S`, which is why DDL can block everything.
+
+Deep dive: [Database Locks](../09-data-access/07-database-locks.md)
+
+</details>
+
+---
+
+### 18. What is lock escalation and how do you handle it?
+
+<details>
+<summary>Reveal answer</summary>
+
+SQL Server collapses many fine-grained locks into a single higher-level lock when a statement acquires roughly **5,000 locks on one table/partition**, or when lock memory exceeds internal thresholds (~24% of DB engine memory). It's re-checked every ~1,250 additional locks.
+
+**Why it exists:** tracking millions of row locks is expensive.
+
+**Why it hurts:** a big `UPDATE` that should affect 10k rows suddenly locks the whole table.
+
+**Detection:** Extended Events (`lock_escalation`) or `sys.dm_tran_locks`.
+
+**Mitigations, in order of preference:**
+1. **Batch big DML** — delete/update a few hundred rows at a time in a loop.
+2. **Enable `READ_COMMITTED_SNAPSHOT`** — readers stop taking S locks, shrinking the lock count.
+3. **Enable optimized locking** (SQL Server 2022+ with ADR + RCSI) — keeps only a transaction-ID lock and releases row/page locks incrementally.
+4. **Cover your predicates with indexes** — a scan locks far more rows than a seek.
+5. **Last resort:** `ALTER TABLE ... SET (LOCK_ESCALATION = DISABLE)` on that table.
+
+**PostgreSQL has no escalation** — different trade-off; you worry about tuple bloat instead.
+
+Deep dive: [Database Locks](../09-data-access/07-database-locks.md)
+
+</details>
+
+---
+
+### 19. Why is `WITH (NOLOCK)` dangerous beyond just "dirty reads"?
+
+<details>
+<summary>Reveal answer</summary>
+
+`NOLOCK` / `READUNCOMMITTED` disables shared locks, so scans can observe the table mid-mutation. It doesn't just allow "reading uncommitted data" — it can return:
+
+- **Duplicate rows** — a row that moves due to a page split during your scan can be read twice.
+- **Missing rows** — same mechanism, in reverse.
+- **Inconsistent data** — row images from different points in time.
+
+These can happen even when no transaction is rolled back, so retrying doesn't help. Can also surface **error 601**.
+
+The correct modern answer to "we want non-blocking reads" is `ALTER DATABASE ... SET READ_COMMITTED_SNAPSHOT ON`. Readers use row versions instead of locks — same non-blocking behavior, zero correctness risk. A senior interviewer will score you down for defending `NOLOCK` as a performance trick.
+
+Deep dive: [Database Locks](../09-data-access/07-database-locks.md)
+
+</details>
+
+---
+
+### 20. Pessimistic vs optimistic concurrency — how do you implement each?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Pessimistic** — lock the row at read time.
+
+```sql
+-- SQL Server
+BEGIN TRAN;
+SELECT Balance FROM Accounts WITH (UPDLOCK, ROWLOCK) WHERE Id = @id;
+UPDATE Accounts SET Balance = Balance - @amt WHERE Id = @id;
+COMMIT;
+```
+
+```sql
+-- PostgreSQL
+BEGIN;
+SELECT balance FROM accounts WHERE id = $1 FOR UPDATE;
+UPDATE accounts SET balance = balance - $2 WHERE id = $1;
+COMMIT;
+```
+
+Best for short critical sections with expected contention and expensive retries.
+
+**Optimistic** — no locks on read; detect conflicts on write via a version column.
+
+```sql
+CREATE TABLE Orders (
+    Id int PRIMARY KEY,
+    Total decimal(10,2),
+    RowVersion rowversion NOT NULL
+);
+
+UPDATE Orders SET Total = @new
+WHERE Id = @id AND RowVersion = @expected; -- @@ROWCOUNT = 0 means conflict
+```
+
+```csharp
+// EF Core
+public class Order
+{
+    [Timestamp] public byte[] RowVersion { get; set; } = default!;
+}
+// SaveChangesAsync throws DbUpdateConcurrencyException on conflict
+```
+
+Best for web apps with many readers, few conflicts, and easy retries.
+
+**Rule of thumb:** start optimistic; switch to pessimistic for hotspots where conflicts dominate.
+
+Deep dive: [Database Locks](../09-data-access/07-database-locks.md)
+
+</details>
+
+---
+
+### 21. How do you diagnose lock contention and deadlocks in production?
+
+<details>
+<summary>Reveal answer</summary>
+
+**SQL Server:**
+
+```sql
+-- Current locks and who holds them
+SELECT * FROM sys.dm_tran_locks;
+
+-- Active blocking chains
+SELECT blocking_session_id, session_id, wait_type, wait_resource
+FROM sys.dm_os_waiting_tasks
+WHERE blocking_session_id IS NOT NULL;
+
+-- Server-wide top lock waits
+SELECT wait_type, waiting_tasks_count, wait_time_ms
+FROM sys.dm_os_wait_stats
+WHERE wait_type LIKE 'LCK%'
+ORDER BY wait_time_ms DESC;
+```
+
+Deadlocks (error 1205) are auto-captured in the `system_health` Extended Events session as an XML deadlock graph — pull it with `sys.dm_xe_session_targets`. Always **retry with backoff** in app code; deadlocks are transient.
+
+**PostgreSQL:**
+
+```sql
+SELECT pid, relation::regclass, mode, granted FROM pg_locks;
+
+-- Blocking tree
+SELECT blocked.pid, blocking.pid, blocked.query, blocking.query
+FROM pg_stat_activity blocked
+JOIN pg_stat_activity blocking
+  ON blocking.pid = ANY(pg_blocking_pids(blocked.pid));
+```
+
+Deadlocks in Postgres raise `SQLSTATE 40P01`; serialization failures under `SERIALIZABLE` raise `40001`. Both need retries.
+
+Deep dive: [Database Locks](../09-data-access/07-database-locks.md)
+
+</details>
+
+---
+
+### 22. How do you prevent lost updates in a concurrent system?
 
 <details>
 <summary>Reveal answer</summary>
