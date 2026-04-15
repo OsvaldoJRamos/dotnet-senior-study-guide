@@ -101,7 +101,7 @@ Attacker tries refresh(RT₁) → reuse detected
 
 | Grant type | Use case |
 |------------|----------|
-| **Authorization Code + PKCE** | Default for **public clients** (SPAs, mobile, desktop). PKCE prevents code interception |
+| **Authorization Code + PKCE** | Default for **public clients** (SPAs, mobile, desktop). PKCE prevents code interception. Per RFC 7636 §4.2 (S256): `code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))` |
 | **Authorization Code** (with client secret) | Traditional server-side web apps with a confidential backend |
 | **Client Credentials** | **Service-to-service** — no user involved. The service authenticates with its own credentials |
 | **Device Code** | Devices with no browser/keyboard (smart TVs, CLI tools). User authorizes from another device |
