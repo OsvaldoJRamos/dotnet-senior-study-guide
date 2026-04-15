@@ -480,4 +480,77 @@ Deep dive: [Design Patterns](../06-architecture-and-patterns/02-design-patterns.
 
 ---
 
+### 18. A payment endpoint is called 4 times in a row (double-click, network retry, LB replay, webhook redelivery). How do you ensure the charge only happens once?
+
+<details>
+<summary>Reveal answer</summary>
+
+No single layer is enough — use a **layered defense**:
+
+| Layer | Mechanism | Catches |
+|---|---|---|
+| HTTP boundary | `Idempotency-Key` header (UUID per operation) | Client retries with the same key |
+| Application | Redis dedup cache (24h TTL) | In-flight duplicate requests |
+| Database | `UNIQUE` constraint on `idempotency_key` | Race that slipped past the cache |
+| Business | Optimistic concurrency (`row_version`) on the account row | Two different legitimate debits racing |
+| Orchestration | Saga + Outbox for cross-service flows | Partial failure across services |
+
+**The flow:**
+1. Client generates a UUID, sends it as `Idempotency-Key: <uuid>`.
+2. Server checks Redis — if hit, replay the cached response.
+3. Begin DB transaction; `INSERT INTO payment_attempts` — UNIQUE violation means a concurrent sibling already processed it, so look up and replay its response.
+4. `UPDATE accounts SET balance = balance - @amount, row_version = row_version + 1 WHERE id = @id AND row_version = @expected` — 0 rows affected means someone else moved the account; fail or retry.
+5. Commit, cache the response in Redis.
+
+Replay must be **byte-identical** to the first response (same status + body) — clients rely on this for transparent recovery. The DB unique constraint is the real guarantee; the Redis cache is just an optimization.
+
+Deep dive: [Idempotency and Race Conditions](../06-architecture-and-patterns/11-idempotency-and-race-conditions.md)
+
+</details>
+
+---
+
+### 19. What should the server do if a retry arrives with the same idempotency key but a DIFFERENT request body?
+
+<details>
+<summary>Reveal answer</summary>
+
+Reject it with **HTTP 422 Unprocessable Entity**.
+
+The IETF `httpapi-idempotency-key-header` draft is explicit: *"The idempotency key MUST be unique and MUST NOT be reused with another request with a different request payload."* Stripe does the same — it "compares incoming parameters to those of the original request and errors if they're not the same to prevent accidental misuse."
+
+**Why:** silently accepting the new body would either (a) replay the old response and lie to the client about what it just did, or (b) process the new body and violate the idempotency contract. Both are worse than a clean 422.
+
+**How to implement:** store a hash of the original request body alongside the idempotency key. On replay, compare hashes — match replays the cached response; mismatch returns 422.
+
+Related: concurrent requests with the same key (first still in flight) should get **HTTP 409 Conflict** per the same IETF draft.
+
+Deep dive: [Idempotency and Race Conditions](../06-architecture-and-patterns/11-idempotency-and-race-conditions.md)
+
+</details>
+
+---
+
+### 20. Why is end-to-end exactly-once delivery impossible, and what's the practical substitute?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Exactly-once is impossible** as a consequence of the **Two Generals Problem**: across an unreliable network, sender and receiver can never agree with certainty on whether a single message was delivered. Any acknowledgment can itself be lost. You can have "at-most-once" (may lose) or "at-least-once" (may duplicate) — not both.
+
+**The practical substitute: at-least-once delivery + idempotent processing = effectively-once.**
+
+How to achieve it:
+- **Producers**: publish via the **Outbox pattern** so the DB change and the message publish are atomic.
+- **Brokers**: use at-least-once (the default in Kafka, RabbitMQ, SQS, Service Bus).
+- **Consumers**: make every handler idempotent — dedup on message ID, use `UNIQUE` constraints on natural keys, or upsert instead of insert.
+
+**Note on Kafka's "exactly-once semantics" (EOS):** this is **within-cluster transactional processing** (`consume → process → produce` inside the same Kafka cluster), not end-to-end to external systems. The moment you write to a database or call an external API, you're back to at-least-once + idempotency.
+
+Deep dive: [Idempotency and Race Conditions](../06-architecture-and-patterns/11-idempotency-and-race-conditions.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

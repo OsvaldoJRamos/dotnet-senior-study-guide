@@ -179,4 +179,4 @@ RabbitMQ supports this via **dead-letter exchanges** (`x-dead-letter-exchange` o
 
 ---
 
-[← Previous: Microservices](09-microservices.md) | [Back to index](README.md)
+[← Previous: Microservices](09-microservices.md) | [Next: Idempotency and Race Conditions →](11-idempotency-and-race-conditions.md) | [Back to index](README.md)

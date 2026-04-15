@@ -12,6 +12,7 @@
 8. [CQRS](08-cqrs.md) - Command Query Responsibility Segregation, Event Sourcing
 9. [Microservices](09-microservices.md) - Microservices vs Monolith vs Modular Monolith
 10. [Messaging](10-messaging.md) - RabbitMQ, Kafka, Azure Service Bus
+11. [Idempotency and Race Conditions](11-idempotency-and-race-conditions.md) - Preventing duplicate payments with layered defenses
 
 ---
 
