@@ -15,9 +15,13 @@
 Fetch a single piece of data when opening a screen:
 
 ```typescript
-async loadPerfil(): Promise<void> {
-  const perfil = await this.http.get<Perfil>('/api/perfil').toPromise();
-  this.perfil = perfil;
+import { firstValueFrom } from 'rxjs';
+
+async loadProfile(): Promise<void> {
+  // toPromise() is deprecated since RxJS 7 and removed in RxJS 8.
+  // Use firstValueFrom (first emission) or lastValueFrom (last emission) instead.
+  const profile = await firstValueFrom(this.http.get<Profile>('/api/profile'));
+  this.profile = profile;
 }
 ```
 
@@ -34,16 +38,29 @@ this.searchControl.valueChanges.pipe(
   debounceTime(300),          // waits 300ms after last keystroke
   distinctUntilChanged(),      // ignores if value didn't change
   switchMap(term =>            // cancels previous request
-    this.http.get<Resultado[]>(`/api/busca?q=${term}`)
+    this.http.get<Result[]>(`/api/search?q=${term}`)
   )
-).subscribe(resultados => {
-  this.resultados = resultados;
+).subscribe(results => {
+  this.results = results;
 });
 ```
 
 - **Lazy**: only executes when someone subscribes (`.subscribe()`)
 - Emits **multiple values** over time
 - `switchMap` **cancels** the previous request automatically
+
+## Higher-order mapping operators
+
+A very common senior RxJS interview question: **when do I use `switchMap` vs `mergeMap` vs `concatMap` vs `exhaustMap`?** They all flatten an inner observable, but they differ in how they handle new source emissions while an inner observable is still active.
+
+| Operator | Behavior when a new value arrives | Typical use case |
+|----------|-----------------------------------|------------------|
+| **`switchMap`** | **Cancels** the previous inner observable and switches to the new one | Autocomplete / type-ahead search (discard stale responses) |
+| **`mergeMap`** | Runs all inner observables **in parallel** (no cancellation, no ordering) | Fire-and-forget uploads, independent side effects |
+| **`concatMap`** | **Queues** values and runs inner observables **sequentially** (order preserved) | Saving to a server where order matters, serialized writes |
+| **`exhaustMap`** | **Ignores** new values while the current inner observable is still running | Form submit / login button (prevent double submits) |
+
+> Rule of thumb: for HTTP driven by user input, default to `switchMap`. For actions that must not be duplicated (submit), prefer `exhaustMap`.
 
 ## Why Angular uses Observables
 

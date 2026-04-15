@@ -183,7 +183,9 @@ import { debounce } from 'lodash-es';
 import { Observable } from 'rxjs';
 
 // GOOD — imports specific operators
-import { map, filter } from 'rxjs/operators';
+// NOTE: `rxjs/operators` is deprecated since RxJS 7.2 and removed in later
+// versions. Operators are now top-level exports of the `rxjs` package.
+import { map, filter } from 'rxjs';
 ```
 
 ### 3. Preloading strategies
@@ -231,10 +233,79 @@ worker.onmessage = ({ data }) => {
 worker.postMessage(largeDataSet);
 ```
 
+## Signals (Angular 16+)
+
+Signals are a new reactive primitive that replace (or complement) Zone.js-based change detection. They are the **#1 modern Angular performance topic** and the foundation of **zoneless change detection** (Angular 18+).
+
+```typescript
+import { signal, computed, effect } from '@angular/core';
+
+@Component({
+  selector: 'app-cart',
+  template: `
+    <p>Items: {{ count() }}</p>
+    <p>Total: {{ total() }}</p>
+    <button (click)="add()">Add</button>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class CartComponent {
+  // Writable state
+  items = signal<Item[]>([]);
+
+  // Derived state (cached, recomputes only when dependencies change)
+  count = computed(() => this.items().length);
+  total = computed(() => this.items().reduce((sum, i) => sum + i.price, 0));
+
+  constructor() {
+    // Side effect — runs whenever a read signal changes
+    effect(() => console.log('Cart changed:', this.count()));
+  }
+
+  add() {
+    this.items.update(list => [...list, { id: 1, price: 10 }]);
+  }
+}
+```
+
+| Primitive | Purpose |
+|-----------|---------|
+| `signal(value)` | Writable reactive value (`.set()`, `.update()`) |
+| `computed(() => ...)` | Derived signal — cached, lazily recomputed |
+| `effect(() => ...)` | Side effect — runs when read signals change |
+
+**Why it matters for performance:** signal-based components **skip Zone.js change detection** entirely — Angular knows exactly which components need to re-render based on which signals changed. Combined with **zoneless change detection** (`provideZonelessChangeDetection()` in Angular 18+), this removes Zone.js from the bundle and eliminates global change detection passes.
+
+## New control flow syntax (Angular 17+)
+
+Angular 17 introduced built-in control flow blocks (`@if`, `@for`, `@switch`) that replace the structural directives (`*ngIf`, `*ngFor`, `*ngSwitch`). They are **significantly faster** (up to ~90% faster in `@for` rendering) and ship without importing `CommonModule`.
+
+```html
+<!-- OLD — *ngFor with trackBy function on the component -->
+<div *ngFor="let item of items; trackBy: trackById">{{ item.name }}</div>
+
+<!-- NEW — @for with inline track expression (trackBy is now REQUIRED) -->
+@for (item of items; track item.id) {
+  <div>{{ item.name }}</div>
+} @empty {
+  <p>No items.</p>
+}
+
+<!-- @if with else -->
+@if (user()) {
+  <p>Hello {{ user().name }}</p>
+} @else {
+  <p>Not logged in.</p>
+}
+```
+
+> `@for` **requires** a `track` expression — there's no opt-out like there was with `*ngFor`. This enforces good performance by default.
+
 ## Performance checklist
 
-- [ ] `OnPush` change detection on all components
-- [ ] `trackBy` on all `*ngFor`
+- [ ] `OnPush` change detection on all components (or use signals)
+- [ ] Prefer `@for` with `track` over `*ngFor` + `trackBy` (Angular 17+)
+- [ ] Use signals (`signal`, `computed`) for reactive state; consider zoneless (Angular 18+)
 - [ ] Lazy load all feature modules
 - [ ] Virtual scrolling for large lists (100+ items)
 - [ ] `async` pipe instead of manual subscriptions

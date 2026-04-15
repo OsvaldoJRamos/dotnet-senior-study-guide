@@ -22,9 +22,13 @@ Before MCP, every framework had its own plugin system. MCP provides a universal 
     └───────────────┘ └───────────────┘
 ```
 
-- **Host** — application running the LLM
-- **Client** — component that communicates with servers using JSON-RPC 2.0
-- **Server** — lightweight process that wraps an external system
+| Role | Responsibility |
+|------|----------------|
+| **Host** | Application that owns the LLM and the user interaction (Claude Desktop, an IDE, your web app). |
+| **Client** | Component **inside the host** that speaks MCP (JSON-RPC 2.0) to servers: discovers tools/resources/prompts and invokes them. |
+| **Server** | Lightweight process that exposes tools, resources, and prompts from an external system (DB, API, filesystem). |
+
+> One-liner for interviews: the **server** *exposes* capabilities, the **client** *discovers and invokes* them, the **host** *manages the LLM and user*.
 
 ## What an MCP Server Exposes
 
@@ -38,25 +42,30 @@ Tools are the most commonly used capability.
 
 ## Transport Protocols
 
-| Transport | How it works | Best for |
-|-----------|-------------|----------|
-| **Stdio** | Host launches server as child process, communicates via stdin/stdout | Local dev, desktop apps |
-| **SSE over HTTP** | Server runs as HTTP service, client connects via HTTP + SSE | Remote/production, multiple clients |
-| **Streamable HTTP** | Evolution of SSE, better bidirectional communication | Emerging standard |
+| Transport | How it works | Status / Best for |
+|-----------|-------------|-------------------|
+| **Stdio** | Host launches server as child process, communicates via stdin/stdout | Stable — local dev, desktop apps |
+| **Streamable HTTP** | HTTP with optional streaming, single endpoint, supports resumability | **Current standard** (spec 2025-03-26+) for remote/production |
+| **SSE over HTTP** | Separate SSE + POST endpoints | **Legacy** — replaced by Streamable HTTP; kept for backward compatibility |
 
 ## Building an MCP Server in C#
 
-```csharp
-using ModelContextProtocol;
+The official .NET SDK is the **`ModelContextProtocol`** NuGet package (preview). Tools are static methods decorated with `[McpServerTool]` inside a class marked `[McpServerToolType]`:
 
-public class OrderMcpServer
+```csharp
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+using System.Text.Json;
+
+[McpServerToolType]
+public static class OrderTools
 {
-    [McpServerTool]
-    [Description("Gets the current status of an order")]
-    public async Task<string> GetOrderStatus(
-        [Description("Order number, e.g. PED-12345")] string orderNumber)
+    [McpServerTool, Description("Gets the current status of an order")]
+    public static async Task<string> GetOrderStatus(
+        IOrderService orderService,
+        [Description("Order number, e.g. ORD-12345")] string orderNumber)
     {
-        var order = await _orderService.GetAsync(orderNumber);
+        var order = await orderService.GetAsync(orderNumber);
         return JsonSerializer.Serialize(new
         {
             order.Number,
@@ -65,40 +74,58 @@ public class OrderMcpServer
         });
     }
 
-    [McpServerTool]
-    [Description("Lists recent orders for a customer")]
-    public async Task<string> ListOrders(
+    [McpServerTool, Description("Lists recent orders for a customer")]
+    public static async Task<string> ListOrders(
+        IOrderService orderService,
         [Description("Customer email")] string email,
         [Description("Number of orders to return")] int limit = 10)
     {
-        var orders = await _orderService.ListByCustomerAsync(email, limit);
+        var orders = await orderService.ListByCustomerAsync(email, limit);
         return JsonSerializer.Serialize(orders);
     }
 }
+
+// Program.cs — host it over stdio
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddSingleton<IOrderService, OrderService>();
+builder.Services
+    .AddMcpServer()
+    .WithStdioServerTransport()
+    .WithToolsFromAssembly();
+await builder.Build().RunAsync();
 ```
 
 ## MCP + Semantic Kernel Integration
 
-SK has native MCP support — import MCP server tools as SK plugins:
+Connect an MCP client to a server, then expose the server's tools to Semantic Kernel as kernel functions:
 
 ```csharp
-// Connect to MCP server
-var mcpClient = await McpClientFactory.CreateAsync(new McpServerConfig
+using ModelContextProtocol.Client;
+
+// 1. Create a transport pointing at the MCP server process (stdio here)
+var transport = new StdioClientTransport(new StdioClientTransportOptions
 {
     Command = "dotnet",
     Arguments = ["run", "--project", "OrderMcpServer"]
 });
 
-// Import as SK plugins — works like any other plugin
-kernel.Plugins.AddFromMcpClient(mcpClient);
+// 2. Create the client over that transport
+var client = await McpClient.CreateAsync(transport);
 
-// Auto function calling works seamlessly
-var result = await kernel.InvokePromptAsync("What is the status of order PED-456?",
+// 3. List the server's tools and register them as SK functions
+var tools = await client.ListToolsAsync();
+kernel.Plugins.AddFromFunctions("Mcp", tools.Select(t => t.AsKernelFunction()));
+
+// 4. Auto function calling works seamlessly with the rest of SK
+var result = await kernel.InvokePromptAsync(
+    "What is the status of order ORD-456?",
     new KernelArguments(new OpenAIPromptExecutionSettings
     {
         FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
     }));
 ```
+
+> For remote servers, swap `StdioClientTransport` for `HttpClientTransport` (Streamable HTTP, per MCP spec 2025-03-26) pointed at the server URL. `SseClientTransport` still exists but is the legacy transport kept for backward compatibility.
 
 ## Function Calling vs MCP
 
