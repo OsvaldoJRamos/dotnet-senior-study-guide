@@ -107,7 +107,7 @@ Deep dive: [Yield Return](../02-collections-and-linq/03-yield-return.md)
 |-----------|-----------|---------------------------|
 | Lookup by key | O(n) — linear scan | O(1) — hash lookup |
 | Lookup by index | O(1) | Not supported |
-| Ordered | Yes (insertion order) | No (as of .NET < 7; insertion order preserved in practice but not guaranteed) |
+| Ordered | Yes (insertion order) | No order guarantee. In practice insertion order has been preserved since .NET Core 2.0 — but this is implementation detail, not contract. Use `OrderedDictionary<TKey, TValue>` (.NET 9+) or `SortedDictionary` if you need ordering. |
 | Memory | Lower overhead | Higher (hash buckets) |
 
 Use `Dictionary` when you need **frequent lookups by key**. Use `List` when you need **ordered access** or **sequential iteration** and lookups are rare.
@@ -264,7 +264,7 @@ You **cannot** use LINQ directly with `Span<T>` because `Span<T>` is a `ref stru
 For high-performance scenarios where you work with slices of arrays or memory:
 - Use manual `for` loops instead of LINQ
 - Use `Memory<T>` if you need to pass the data to async methods or store it on the heap
-- In .NET 8+, some LINQ-like methods are available for spans via `MemoryExtensions`
+- In .NET 9+, some LINQ-like methods are available for spans via `MemoryExtensions`
 
 ```csharp
 Span<int> numbers = stackalloc int[] { 1, 2, 3, 4, 5 };

@@ -255,8 +255,8 @@ Deep dive: [Garbage Collector](../03-memory-and-performance/02-garbage-collector
 // Closure allocation
 list.ForEach(x => Process(x, threshold)); // captures threshold
 
-// No allocation — static lambda
-list.ForEach(static x => Process(x));
+// No allocation — static lambda (cannot capture outer variables)
+list.ForEach(static x => Console.WriteLine(x));
 ```
 
 Deep dive: [Memory Optimization](../03-memory-and-performance/03-memory-optimization.md)
