@@ -11,9 +11,9 @@ list.Add(42);
 int value = (int)list[0]; // manual cast, risk of InvalidCastException
 
 // With generics: type-safe, no cast
-List<int> list = new List<int>();
-list.Add(42);
-int value = list[0]; // no cast
+List<int> genericList = new List<int>();
+genericList.Add(42);
+int genericValue = genericList[0]; // no cast
 ```
 
 ## Generic classes and methods
@@ -125,7 +125,7 @@ public interface IConverter<in TInput, out TOutput>
 2. Constraints guarantee **type safety at compile-time**
 3. Covariance/contravariance only work with **interfaces and delegates**, not classes
 4. `List<T>` is not covariant -- `IEnumerable<T>` is (because it's read-only)
-5. Generics are resolved at **compile-time** (unlike Java which uses type erasure)
+5. C# generics are **reified at runtime** by the CLR (not erased like Java). Reference-type instantiations share a single JIT-compiled body; value-type instantiations get their own specialized native code.
 
 ---
 
