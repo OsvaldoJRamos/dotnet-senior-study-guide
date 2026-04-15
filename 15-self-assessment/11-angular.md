@@ -243,3 +243,93 @@ Deep dive: [SignalR with Angular](../13-angular/02-signalr-with-angular.md)
 </details>
 
 ---
+
+### 9. What is the difference between a cold and a hot Observable? Give an example of each.
+
+<details>
+<summary>Reveal answer</summary>
+
+A **cold Observable** starts a **new, independent execution for every subscriber**. Each subscriber sees its own values from the beginning.
+
+A **hot Observable** shares a **single execution** across all subscribers. Values are produced whether or not anyone is subscribed, and late subscribers miss earlier emissions.
+
+**Cold examples**: `of(1, 2, 3)`, `interval(1000)`, `this.http.get('/api/x')`. Two subscribers to the same `http.get` trigger **two HTTP requests**.
+
+**Hot examples**: `fromEvent(button, 'click')`, any `Subject` / `BehaviorSubject`, or any Observable piped through `share()` / `shareReplay()`. The canonical fix when two components accidentally trigger the same request:
+
+```typescript
+config$ = this.http.get<Config>('/api/config').pipe(shareReplay(1));
+```
+
+Now both subscribers share one execution, and the last value is replayed to late subscribers.
+
+Deep dive: [RxJS Fundamentals](../13-angular/04-rxjs-fundamentals.md)
+
+</details>
+
+---
+
+### 10. Which RxJS operators would you use to build an autocomplete search input? Why?
+
+<details>
+<summary>Reveal answer</summary>
+
+The canonical pipeline:
+
+```typescript
+this.searchControl.valueChanges.pipe(
+  debounceTime(300),
+  distinctUntilChanged(),
+  switchMap(term => this.api.search(term)),
+  takeUntilDestroyed(this.destroyRef),
+).subscribe(results => this.results = results);
+```
+
+Why each operator:
+
+- **`debounceTime(300)`** — waits for the user to stop typing before hitting the API. Avoids a request on every keystroke.
+- **`distinctUntilChanged()`** — skips when the value hasn't changed (e.g., the user hit a modifier key).
+- **`switchMap`** — the critical one. When a new term arrives while the previous request is still in flight, `switchMap` **cancels** the previous request and subscribes to the new one. This prevents race conditions where a slow response for "ang" could overwrite a faster response for "angular".
+- **`takeUntilDestroyed`** — ties the subscription lifetime to the component so it cleans up on destroy.
+
+`mergeMap` would be wrong here — it would keep all in-flight requests running, letting stale responses win. `concatMap` would serialize, forcing the user to wait for every obsolete request to finish.
+
+Deep dive: [RxJS Fundamentals](../13-angular/04-rxjs-fundamentals.md)
+
+</details>
+
+---
+
+### 11. How do you prevent memory leaks from RxJS subscriptions in Angular components?
+
+<details>
+<summary>Reveal answer</summary>
+
+A subscription that is never unsubscribed keeps the producer alive and its callbacks running — even after the component is destroyed. Preferred patterns, from best to legacy:
+
+1. **`async` pipe in the template** — Angular subscribes on view init and unsubscribes on destroy automatically. No cleanup code at all.
+
+   ```html
+   <div *ngFor="let user of users$ | async">{{ user.name }}</div>
+   ```
+
+2. **`takeUntilDestroyed()`** (Angular 16+) — for manual `.subscribe()` calls. It completes the Observable when the component's `DestroyRef` fires. Called without arguments, it needs to run in an injection context (field initializer or constructor); otherwise pass an explicit `DestroyRef`.
+
+   ```typescript
+   private destroyRef = inject(DestroyRef);
+   ngOnInit() {
+     this.service.stream$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(...);
+   }
+   ```
+
+3. **`takeUntil(destroy$)`** — legacy pattern using a manual `Subject` that emits in `ngOnDestroy`. Still works, just verbose.
+
+4. **Manual `subscription.unsubscribe()` in `ngOnDestroy`** — last resort; easy to forget, and noisy when you have several subscriptions.
+
+The rule of thumb: prefer `async` pipe; if you must subscribe in code, always pair it with `takeUntilDestroyed`.
+
+Deep dive: [RxJS Fundamentals](../13-angular/04-rxjs-fundamentals.md)
+
+</details>
+
+---
