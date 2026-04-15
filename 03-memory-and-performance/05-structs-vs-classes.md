@@ -4,12 +4,12 @@
 
 | Feature | `struct` (Value Type) | `class` (Reference Type) |
 |---|---|---|
-| Where it is stored | Stack (generally) | Heap |
+| Where it is stored | Inlined in its container — stack when local; heap when a field of a reference type, boxed, or captured by a closure / async state machine | Heap |
 | Parameter passing | Copy of the value | Copy of the reference |
 | Inheritance | Not supported | Supported |
 | Can be null | No (unless `Nullable<T>`) | Yes |
 | Garbage Collection | Not needed | Needed |
-| Default constructor | Always exists (cannot be removed) | Can be customized |
+| Default constructor | Pre-C# 10: implicit parameterless constructor only. C# 10+: you can define your own parameterless constructor and field initializers | Can be customized |
 | Performance | Better for small and frequent objects | Better for complex objects |
 
 ## When to use struct
@@ -33,13 +33,17 @@ Structs are better in scenarios with **many small, short-lived objects**, where 
 
 ```csharp
 // Struct - good for coordinates (small, no identity)
-public struct Point
+// Marked `readonly` so the compiler enforces immutability.
+public readonly struct Point
 {
     public double X { get; }
     public double Y { get; }
     
     public Point(double x, double y) => (X, Y) = (x, y);
 }
+// Note: mutable structs are a common footgun — defensive copies made through
+// `readonly` fields, properties, or `in` parameters will silently discard any
+// mutation you perform on them.
 
 // Class - good for business entities (identity, inheritance)
 public class Customer

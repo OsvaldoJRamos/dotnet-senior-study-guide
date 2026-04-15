@@ -4,6 +4,8 @@
 
 A **memory leak** happens when the application allocates memory but fails to release it when it is no longer needed. Over time, this residual memory clogs the system, causing performance problems and, in the worst case, application crashes.
 
+> In managed .NET, a "memory leak" really means **unintended rooted references**: the GC never frees objects that are still reachable from a root (static field, live thread stack, event handler, etc.). The fix is almost always to break the reference, not to free memory manually.
+
 A **memory profiler** can be used to identify memory leaks.
 
 ## Common causes
@@ -110,21 +112,56 @@ class Program
 }
 ```
 
-**Correct approach with try/finally:**
+**Canonical dispose pattern (supports inheritance):**
 ```csharp
 using System;
 
 class Resource : IDisposable
 {
+    private bool _disposed;
+
+    // Public, sealed entry point — never overridden by derived classes.
     public void Dispose()
     {
-        Console.WriteLine("Resource is disposed.");
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
+
+    // Derived classes override this to add their own cleanup.
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            // Release managed resources here (other IDisposable fields).
+        }
+
+        // Release unmanaged resources here (raw handles, etc.).
+
+        _disposed = true;
+    }
+
+    // Only needed if the class directly owns unmanaged resources.
+    ~Resource() => Dispose(false);
 }
 
 class ChildResource : Resource
 {
-    // This class inherits from Resource and should also be disposed.
+    private bool _disposed;
+
+    protected override void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            // Release child-specific managed resources here.
+        }
+
+        _disposed = true;
+        base.Dispose(disposing); // Always chain to the base.
+    }
 }
 
 class Program
