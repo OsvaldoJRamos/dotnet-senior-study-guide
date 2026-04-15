@@ -67,14 +67,14 @@ If you start multiple `ProcessAsync()` calls at the same time, only **one** will
 ## What to avoid
 
 ```csharp
-// WRONG - lock with await causes deadlock
+// DOES NOT COMPILE - CS1996
 lock (locker)
 {
-    await MethodAsync(); // DO NOT do this
+    await MethodAsync();
 }
 ```
 
-This causes a **deadlock**, because `lock` blocks the thread while `await` waits.
+`await` inside a `lock` block is a **C# compile error (CS1996)** — not a runtime deadlock. The reason the compiler forbids it: `lock` uses `Monitor`, which is **thread-affine** (only the acquiring thread may release it). After an `await`, the continuation could resume on a different thread and fail to release the lock. `SemaphoreSlim` is the async-friendly alternative because it is **not** thread-affine — any thread may call `Release`.
 
 ### Correct with SemaphoreSlim:
 
@@ -89,6 +89,12 @@ finally
     _semaphore.Release();
 }
 ```
+
+## Pitfalls
+
+1. **Not reentrant.** Unlike `lock` (which a thread can re-enter on the same object), `SemaphoreSlim` will **deadlock** if the same logical flow calls `WaitAsync()` twice without releasing in between. Design your code so the critical section is entered once.
+2. **Always release in `finally`.** If the critical section throws, you must still `Release()` — otherwise the semaphore is leaked and subsequent callers block forever. Use `try/finally`, or an `IDisposable` wrapper that releases on dispose.
+3. **`WaitAsync` accepts a `CancellationToken` and a timeout.** Prefer `await semaphore.WaitAsync(timeout, cancellationToken)` in request-scoped code so a cancelled request (or a stuck holder) does not pile up waiters indefinitely.
 
 ## Conclusion
 

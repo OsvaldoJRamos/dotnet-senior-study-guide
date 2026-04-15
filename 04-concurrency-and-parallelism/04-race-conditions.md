@@ -45,6 +45,8 @@ Interlocked.Increment(ref sharedVar);
 
 `Interlocked.Increment` ensures that the increment operation is executed atomically, preventing race conditions.
 
+> **Important:** `Interlocked` provides **atomicity for a single variable operation** (increment, exchange, compare-and-swap). It does **NOT** protect **composite invariants** across multiple fields. If your invariant spans more than one variable (e.g., "deduct from account A **and** credit account B"), you still need `lock` or `SemaphoreSlim`. Using `Interlocked` on each field independently can leave the object in an inconsistent intermediate state visible to other threads.
+
 ### 3. Thread Safety
 
 When writing C# code, it is important to consider thread safety in the design of classes and methods. Thread-safe code can be accessed by multiple threads simultaneously without causing race conditions. You can ensure thread safety by using synchronization techniques such as locks or Interlocked operations, or by using immutable objects.

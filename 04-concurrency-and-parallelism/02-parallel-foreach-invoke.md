@@ -2,30 +2,36 @@
 
 ## 1. Parallel.ForEach
 
-Executes loop iterations in parallel.
+Executes loop iterations in parallel. Designed for **CPU-bound** work — do **not** use for I/O (HTTP, DB). For parallel I/O, see `Parallel.ForEachAsync` below.
 
 ```csharp
-var parallelOptions = new ParallelOptions();
-parallelOptions.MaxDegreeOfParallelism = 8;
+var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 8 };
 
-var stopWatch = new Stopwatch();
-stopWatch.Start();
+var payloads = Enumerable.Range(0, 10_000)
+    .Select(_ => RandomNumberGenerator.GetBytes(1024))
+    .ToArray();
 
-var cepList = new List<CepModel>();
+var hashes = new List<byte[]>(); // BUG: see warning below
 
-Parallel.ForEach(ceps, parallelOptions, cep =>
+Parallel.ForEach(payloads, parallelOptions, payload =>
 {
-    cepList.Add(new ViaCepService().GetCep(cep));
+    var hash = SHA256.HashData(payload); // pure CPU work
+    hashes.Add(hash);
 });
-
-stopWatch.Stop();
-Console.WriteLine($"Elapsed Time {stopWatch.ElapsedMilliseconds} ms");
-
-cepList.ToList().ForEach(cep => Console.WriteLine(cep));
-Console.ReadKey();
 ```
 
-> **Warning:** `List<T>` is not thread-safe. In the example above, using `ConcurrentBag<T>` would be safer.
+> **Warning:** `List<T>.Add` from multiple threads is **not thread-safe**. Concurrent `Add` calls can corrupt the internal array, drop items silently, or throw `IndexOutOfRangeException` / `ArgumentException` when the list resizes mid-write. Use `ConcurrentBag<T>`, `ConcurrentQueue<T>`, or a local aggregation with `Parallel.ForEach`'s `localInit`/`localFinally` overload.
+
+### Parallel.ForEachAsync (.NET 6+) — for I/O
+
+Use this, not `Parallel.ForEach`, when each iteration is an async I/O call:
+
+```csharp
+await Parallel.ForEachAsync(
+    ceps,
+    new ParallelOptions { MaxDegreeOfParallelism = 4 },
+    async (cep, ct) => await new ViaCepService().GetCepAsync(cep, ct));
+```
 
 ## 2. Parallel.Invoke
 
