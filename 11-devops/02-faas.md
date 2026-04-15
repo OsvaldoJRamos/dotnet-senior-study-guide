@@ -18,8 +18,8 @@ Event (HTTP, SQS, etc.) --> Container spins up --> Function executes --> Contain
 
 - Pre-configured containers with runtimes (Node.js, Python, Go, C#, Java, etc.)
 - Allows installing external dependencies
-- Container tends to be **small** and stay up for **short** periods (hours, at most days)
-- The platform keeps the container active for a while longer in case other events are waiting
+- Execution environments are **short-lived** — on AWS Lambda, observed recycling typically occurs within minutes of idleness (not guaranteed or documented by AWS), so don't count on in-memory state across invocations
+- The platform may keep the container warm for a while to serve follow-up events (mitigating cold starts)
 
 ## What it is suited for
 
@@ -32,26 +32,83 @@ Event (HTTP, SQS, etc.) --> Container spins up --> Function executes --> Contain
 
 - **Monolithic web frameworks** (ASP.NET MVC, Rails, etc.) - technically possible, but not the intended purpose
 - **Stateful applications**: FaaS is stateless by nature
-- **Long-running processing**: has time limits (e.g.: Lambda = 15min max)
+- **Long-running processing**: has time limits (see comparison below)
 - **Cold start**: first execution can be slow (container spinning up)
 
-## Example with Azure Functions (C#)
+### Execution time limits
+
+| Platform | Plan | Max duration |
+|----------|------|--------------|
+| AWS Lambda | Any | 15 min |
+| Azure Functions | Consumption | 5 min default, 10 min max |
+| Azure Functions | Premium / Dedicated (App Service) | 30 min default, unbounded configurable |
+| Google Cloud Functions (Gen 2) | Any | 60 min (HTTP) / 9 min (event) |
+
+## Example with Azure Functions (C# — isolated worker)
+
+Azure Functions has two .NET models: the legacy **in-process** model (`[FunctionName]`, method-injected `ILogger`) and the modern **isolated worker** model. The in-process model runs inside the host; the isolated worker runs in its own process with full control over DI, middleware, and .NET version. **Microsoft is ending support for the in-process model in November 2026 — new projects should use the isolated worker model.**
 
 ```csharp
+// ProcessOrderFunction.cs
 public class ProcessOrderFunction
 {
-    [FunctionName("ProcessOrder")]
+    private readonly ILogger<ProcessOrderFunction> _logger;
+
+    public ProcessOrderFunction(ILogger<ProcessOrderFunction> logger)
+    {
+        _logger = logger;
+    }
+
+    [Function("ProcessOrder")]
     public async Task Run(
-        [QueueTrigger("orders-queue")] string orderJson,
-        ILogger log)
+        [QueueTrigger("orders-queue")] string orderJson)
     {
         var order = JsonSerializer.Deserialize<Order>(orderJson);
-        log.LogInformation($"Processing order {order.Id}");
-        
+        _logger.LogInformation("Processing order {OrderId}", order.Id);
+
         // process the order...
     }
 }
 ```
+
+```csharp
+// Program.cs — host setup
+var host = new HostBuilder()
+    .ConfigureFunctionsWorkerDefaults()
+    .ConfigureServices(services =>
+    {
+        services.AddApplicationInsightsTelemetryWorkerService();
+        services.ConfigureFunctionsApplicationInsights();
+        // register your dependencies here
+    })
+    .Build();
+
+host.Run();
+```
+
+> See the [Azure Functions isolated worker guide](https://learn.microsoft.com/azure/azure-functions/dotnet-isolated-process-guide) for the full migration story.
+
+## Durable Functions (Azure)
+
+Durable Functions is an extension of Azure Functions for writing **stateful orchestrations** on top of stateless functions. Senior-relevant because most non-trivial serverless workflows need it.
+
+Key building blocks:
+
+- **Orchestrator function**: coordinates the workflow. Deterministic code (no direct I/O) — state is persisted via event sourcing.
+- **Activity function**: the actual work (HTTP call, DB write, etc.). Called from the orchestrator.
+- **Entity function**: small, addressable piece of state (think actor model) — useful for counters, aggregates, per-user state.
+
+Common patterns:
+
+| Pattern | Use case |
+|---------|----------|
+| **Function chaining** | Run A → B → C sequentially, passing results |
+| **Fan-out / fan-in** | Execute N activities in parallel, aggregate results |
+| **Async HTTP APIs** | Long-running job with a status endpoint |
+| **Monitoring** | Poll an external resource on a schedule |
+| **Human interaction** | Wait for external event (approval) with timeout |
+
+> Use Durable Functions when you need workflows that outlive a single function execution — otherwise queue + function is simpler.
 
 ## Cold Start
 

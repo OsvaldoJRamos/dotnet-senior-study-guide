@@ -173,7 +173,7 @@ Set a lower value (30-60s) for faster deployments.
 | Layer | 7 (HTTP/HTTPS) | 4 (TCP/UDP) |
 | Routing | Path, host, headers, query string | Port-based only |
 | Latency | ~400µs | ~100µs |
-| Static IP | No (use Global Accelerator) | Yes |
+| Static IP | No native static IP historically; use Global Accelerator for static IPs (newer integration options exist) | Yes |
 | WebSocket | Yes | Yes |
 | Source IP | X-Forwarded-For header | Preserved natively |
 | Price | Per hour + LCU | Per hour + NLCU |

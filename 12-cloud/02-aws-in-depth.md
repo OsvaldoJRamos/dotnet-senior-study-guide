@@ -108,6 +108,12 @@ Isolated virtual network in AWS:
 }
 ```
 
+### Consistency model
+
+Since **December 2020**, S3 provides **strong read-after-write consistency** for all operations — PUT (new and overwrite), DELETE, and LIST — across all regions, at no extra cost. A successful write is immediately visible to all readers.
+
+> This is a common interview trap: many candidates still believe S3 is eventually consistent. That was true before Dec 2020, but no longer.
+
 ### Pre-signed URLs
 
 Temporary URLs for upload/download without exposing the bucket:
@@ -150,10 +156,28 @@ var response = await sqsClient.ReceiveMessageAsync(receiveRequest);
 
 | Aspect | Standard | FIFO |
 |--------|----------|------|
-| Order | Best effort | Guaranteed |
+| Order | Best effort | Guaranteed (per message group) |
 | Duplicates | May occur | Exactly-once |
-| Throughput | Unlimited | 300 msgs/s (3000 with batching) |
-| Use case | Most cases | When order matters |
+| Throughput | Unlimited | Per-partition limit is 300 msg/s (3,000/s with batching). **High-throughput FIFO** (2021) raises the queue ceiling via **automatic partition scaling** — more message groups map to more partitions, so total throughput grows with group cardinality (the 300/3,000 per-partition cap still applies; a single hot group does not get more) |
+| Use case | Most cases | When order or dedup matters |
+
+### Dead Letter Queues (DLQ)
+
+An SQS queue where messages land after failing to be processed N times (the **maxReceiveCount** on the source queue's redrive policy). Essential for senior-level queue design:
+
+- Prevents **poison messages** from blocking the main queue
+- Lets you inspect, replay, or alert on failures
+- Create a DLQ per source queue (don't share)
+- Monitor DLQ depth with a CloudWatch alarm — anything above 0 is usually a real bug
+
+### Visibility Timeout
+
+When a consumer calls `ReceiveMessage`, the message becomes **invisible** to other consumers for the visibility timeout (default 30s). If the consumer deletes the message before the timeout expires, it's gone. If not (crash, slow processing), the message becomes visible again and another consumer picks it up.
+
+Rules of thumb:
+- Set visibility timeout to **~6× your expected processing time** (so retries don't overlap)
+- For long-running work, call `ChangeMessageVisibility` periodically to extend
+- Too short → duplicate processing. Too long → slow recovery from consumer crashes
 
 ## SNS (Simple Notification Service)
 

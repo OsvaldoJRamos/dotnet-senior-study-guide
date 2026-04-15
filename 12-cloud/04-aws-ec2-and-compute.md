@@ -14,7 +14,9 @@ Launch → Running → Stop → Stopped → Start → Running → Terminate (del
 
 - **Running**: you pay for compute + storage
 - **Stopped**: you pay only for storage (EBS volumes)
-- **Terminated**: instance is deleted, EBS root volume deleted by default
+- **Terminated**: instance is deleted. The **root** EBS volume defaults to `DeleteOnTermination = true`, so it's deleted with the instance. **Non-root attached volumes default to `DeleteOnTermination = false`** — they survive termination unless you explicitly configure them to delete. Check the block device mapping if you care.
+
+> Gotcha: the `false` default for non-root volumes only applies to the AWS Console and post-launch attachments. When you attach a non-root volume **at launch time via the CLI/SDK** (block device mapping in `run-instances`), it defaults to `DeleteOnTermination = true` — a frequent surprise that has destroyed data. Always set the flag explicitly in CLI/SDK launches.
 
 ### Instance Types
 

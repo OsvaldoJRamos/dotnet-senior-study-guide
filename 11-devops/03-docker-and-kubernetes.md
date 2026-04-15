@@ -72,7 +72,7 @@ Orchestrates **multiple containers** locally:
 
 ```yaml
 # docker-compose.yml
-version: '3.8'
+# (the top-level `version:` key is obsolete in the modern Compose spec — omit it)
 services:
   api:
     build: .
@@ -151,14 +151,22 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /healthz/live
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /health
+              path: /healthz/live
               port: 8080
+            periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /healthz/ready
               port: 8080
+            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
@@ -187,14 +195,40 @@ kubectl describe pod pod-name          # pod details
 
 ### Health Checks in .NET
 
+Split liveness and readiness — **never use the same endpoint for both**. If readiness (which checks the DB, Redis, etc.) is also the liveness probe, a transient DB blip will cause K8s to restart the pod in a loop and it will never recover.
+
 ```csharp
 builder.Services.AddHealthChecks()
-    .AddSqlServer(connectionString)
-    .AddRedis("localhost:6379");
+    // Liveness: only the app itself. Always healthy unless the process is wedged.
+    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: new[] { "live" })
+    // Readiness: external dependencies. If these fail, stop routing traffic but DO NOT restart.
+    .AddSqlServer(connectionString, tags: new[] { "ready" })
+    .AddRedis("localhost:6379", tags: new[] { "ready" });
 
-app.MapHealthChecks("/health");  // liveness
-app.MapHealthChecks("/ready");   // readiness
+// Liveness — "am I alive?" — only checks self-liveness.
+app.MapHealthChecks("/healthz/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live")
+});
+
+// Readiness — "can I serve traffic?" — checks dependencies.
+app.MapHealthChecks("/healthz/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 ```
+
+### Startup probes (for slow-starting apps)
+
+Some .NET apps have a long warmup (EF Core model caching, plugin scanning, JIT of large assemblies, gRPC reflection, AOT-less cold start). During that time the liveness probe may fail and K8s will restart the pod **before it ever finishes starting**.
+
+Use a **startup probe** to guard the warmup window:
+
+- While the startup probe is failing, liveness and readiness probes are **paused**.
+- Once the startup probe succeeds, K8s switches to liveness/readiness as usual.
+- Configure `failureThreshold × periodSeconds` to cover your worst-case startup (e.g., 30 × 10s = 5 min).
+
+Without a startup probe, you'd be forced to set a very long `initialDelaySeconds` on liveness, which would also delay detection of a real wedge after the app is up.
 
 ## Managed K8s services
 

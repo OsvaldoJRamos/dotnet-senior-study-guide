@@ -46,7 +46,7 @@ resource "azurerm_resource_group" "main" {
   location = "eastus2"
 }
 
-resource "azurerm_app_service_plan" "main" {
+resource "azurerm_service_plan" "main" {
   name                = "asp-my-app"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
@@ -54,11 +54,15 @@ resource "azurerm_app_service_plan" "main" {
   sku_name            = "B1"
 }
 
+# Note: `azurerm_app_service_plan` is deprecated in azurerm v3+.
+# Use `azurerm_service_plan` (schema is simpler — `os_type` and `sku_name`
+# directly, no more `kind`/`reserved` juggling).
+
 resource "azurerm_linux_web_app" "api" {
   name                = "app-my-api-prod"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  service_plan_id     = azurerm_app_service_plan.main.id
+  service_plan_id     = azurerm_service_plan.main.id
 
   site_config {
     application_stack {
@@ -167,13 +171,15 @@ resource "azurerm_linux_web_app" "api" {
   name                = "app-api-${var.environment}"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  service_plan_id     = azurerm_app_service_plan.main.id
+  service_plan_id     = azurerm_service_plan.main.id
 
   app_settings = {
     "ConnectionStrings__Default" = "Server=${azurerm_mssql_server.main.fully_qualified_domain_name};Database=${azurerm_mssql_database.main.name};User=${azurerm_mssql_server.main.administrator_login};Password=${var.db_password}"
   }
 }
 ```
+
+> **Don't put plaintext passwords in `app_settings`.** For production, store secrets in **Azure Key Vault** and reference them from App Service using **Managed Identity** — either via Key Vault reference syntax (`@Microsoft.KeyVault(SecretUri=...)`) or by resolving them in the app with `DefaultAzureCredential`. This keeps secrets out of Terraform state, CI logs, and portal views.
 
 ## Example: Infra on AWS
 
@@ -260,7 +266,7 @@ module "api_staging" {
 3. **Modules** — reuse code across environments
 4. **`terraform plan` in CI** — review before apply
 5. **Sensitive variables** — use `sensitive = true` and secret managers
-6. **Workspaces or folders per environment** — isolate dev/staging/prod
+6. **Separate root modules per environment** — one folder per env (`envs/dev`, `envs/staging`, `envs/prod`), each with its own backend. HashiCorp **does not recommend CLI workspaces for production environment isolation** — they share the same backend and provider config, making drift and blast-radius hard to control. Workspaces are best for ephemeral/testing scenarios (feature branches, per-developer sandboxes).
 7. **`.gitignore`** — ignore `*.tfstate`, `*.tfstate.backup`, `.terraform/`
 
 ---
