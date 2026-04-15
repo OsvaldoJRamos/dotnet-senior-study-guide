@@ -77,7 +77,10 @@ public void CreateUser_DuplicateEmail_ShouldReturnConflict()
 
 ## Testing exceptions
 
+> **Avoid `[ExpectedException]` (MSTest).** It is a discouraged anti-pattern: it passes if *any* line of the test throws the expected type — including setup code — which can mask real bugs, and it gives no clean way to assert on the message or inner state. Prefer `Assert.ThrowsException<T>(...)` so you scope the assertion to exactly the call under test and can inspect the exception.
+
 ```csharp
+// Discouraged — the whole test body is the assertion scope
 [TestMethod]
 [ExpectedException(typeof(DomainException))]
 public void Approve_CancelledOrder_ShouldThrowException()
@@ -87,7 +90,7 @@ public void Approve_CancelledOrder_ShouldThrowException()
     order.Approve(); // should throw
 }
 
-// Or with Assert (more control)
+// Preferred — scoped, inspectable
 [TestMethod]
 public void Approve_CancelledOrder_ShouldThrowException()
 {
@@ -98,6 +101,8 @@ public void Approve_CancelledOrder_ShouldThrowException()
     Assert.AreEqual("Cannot approve a cancelled order", ex.Message);
 }
 ```
+
+> xUnit equivalent: `Assert.Throws<T>(() => ...)` / `await Assert.ThrowsAsync<T>(...)`. NUnit: `Assert.Throws<T>(...)` / `Assert.ThrowsAsync<T>(...)`.
 
 ## DataRow / DynamicData (data-driven tests)
 
@@ -130,6 +135,14 @@ private static IEnumerable<object[]> DiscountScenarios()
 
 ## Integration tests with WebApplicationFactory
 
+> **Do not use EF Core's InMemory provider for integration tests.** The EF team **explicitly discourages it**: it has no referential integrity, no real transactions, no SQL semantics, and silently accepts data a real database would reject. Tests pass, production breaks.
+>
+> Use one of these instead:
+> - **SQLite in-memory mode** (`UseSqlite("Filename=:memory:")` with an **open connection per test** — the database lives only while the connection is open). Gives real SQL, transactions, and FK constraints for most scenarios. Works fine for code that doesn't depend on provider-specific SQL features.
+> - **TestContainers** (`Testcontainers.MsSql`, `Testcontainers.PostgreSql`, etc.) — spins up a real SQL Server / PostgreSQL in Docker. This is the senior-standard approach when your code uses provider-specific features (JSON columns, full-text search, stored procs, etc.).
+>
+> Also remember: `services.RemoveAll<DbContextOptions<AppDbContext>>()` alone is usually **not enough** — the original `AddDbContext<AppDbContext>` registered both the options and the `AppDbContext` itself (and potentially the pooled factory). Remove all of them, then re-register.
+
 ```csharp
 [TestClass]
 public class OrderApiTests
@@ -145,10 +158,15 @@ public class OrderApiTests
             {
                 builder.ConfigureServices(services =>
                 {
-                    // Replace real database with in-memory
+                    // Remove BOTH the options and the DbContext registration.
+                    // RemoveAll<DbContextOptions<T>> alone is not enough if the real
+                    // registration also added the DbContext itself (and any pooling):
                     services.RemoveAll<DbContextOptions<AppDbContext>>();
+                    services.RemoveAll<AppDbContext>();
+
+                    // Re-register the DbContext with a test-friendly provider
                     services.AddDbContext<AppDbContext>(options =>
-                        options.UseInMemoryDatabase("TestDb"));
+                        options.UseSqlite("Filename=:memory:"));
                 });
             });
         _client = _factory.CreateClient();

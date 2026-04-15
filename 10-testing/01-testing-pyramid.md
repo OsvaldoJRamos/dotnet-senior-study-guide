@@ -14,7 +14,7 @@
 
 ## Important point
 
-Tests **must not depend on external services**. In CI/CD, tests run before the build. If the external service fails or does not have the required data, the tests fail and consequently the build fails.
+Tests **must not depend on external services**. In CI/CD, tests run **after the build** (you can't run compiled tests before compilation), but **before deploy**. If the external service fails or does not have the required data, the tests fail and consequently the pipeline blocks the deploy.
 
 ## Unit Tests
 
@@ -103,6 +103,22 @@ Tools: Playwright, Selenium, Cypress
 Verify that the **interface (contract)** between services is being respected.
 
 Useful in microservices to ensure that changes in an API do not break consumers.
+
+## Fixture lifetime
+
+Different test frameworks instantiate and tear down fixtures differently. Senior devs should know the difference:
+
+| Framework | Per-test setup | Per-class / shared setup |
+|---|---|---|
+| **xUnit** | New class instance per test (constructor = setup, `IDisposable.Dispose` = teardown) | `IClassFixture<T>` (shared within one class) / `ICollectionFixture<T>` (shared across classes in a collection) |
+| **MSTest** | `[TestInitialize]` / `[TestCleanup]` | `[ClassInitialize]` / `[ClassCleanup]` (static methods) |
+| **NUnit** | `[SetUp]` / `[TearDown]` | `[OneTimeSetUp]` / `[OneTimeTearDown]` |
+
+> xUnit's "new instance per test" is the key distinction — it forces test isolation by default. In MSTest/NUnit, instance state leaks unless you reset it in `[TestInitialize]`/`[SetUp]`.
+
+## Integration tests with real dependencies: TestContainers
+
+**Testcontainers.NET** (`Testcontainers` NuGet) is the senior-standard approach for integration tests that need a real database, message broker, or other service. It spins up throwaway Docker containers per test run (Postgres, SQL Server, RabbitMQ, Redis, etc.), giving you real SQL semantics and real transactions — without the drawbacks of EF Core's InMemory provider or shared dev databases.
 
 ## Test Doubles
 
