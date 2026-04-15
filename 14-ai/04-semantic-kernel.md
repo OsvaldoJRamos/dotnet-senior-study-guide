@@ -82,7 +82,7 @@ Lets the LLM decide **when** to invoke external functions and with **what parame
 
 > The model **never executes anything** — it only decides what to call and with what parameters.
 
-> **Terminology note:** OpenAI renamed `functions` → `tools` in mid-2024. The older `function_call` / `functions` fields are deprecated; the current API uses `tool_calls` / `tools`. In SK, `FunctionChoiceBehavior` (e.g. `Auto()`, `Required()`, `None()`) maps to the new tools API.
+> **Terminology note:** OpenAI renamed `functions` → `tools` at DevDay in November 2023. The older `function_call` / `functions` fields are deprecated; the current API uses `tool_calls` / `tools`. In SK, `FunctionChoiceBehavior` (e.g. `Auto()`, `Required()`, `None()`) maps to the new tools API.
 
 ### Auto function calling in SK
 

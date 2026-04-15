@@ -270,7 +270,7 @@ export class CartComponent {
 
 | Primitive | Purpose |
 |-----------|---------|
-| `signal(value)` | Writable reactive value (`.set()`, `.update()`, `.mutate()`) |
+| `signal(value)` | Writable reactive value (`.set()`, `.update()`) |
 | `computed(() => ...)` | Derived signal — cached, lazily recomputed |
 | `effect(() => ...)` | Side effect — runs when read signals change |
 

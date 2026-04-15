@@ -110,7 +110,7 @@ var transport = new StdioClientTransport(new StdioClientTransportOptions
 });
 
 // 2. Create the client over that transport
-var client = await McpClientFactory.CreateAsync(transport);
+var client = await McpClient.CreateAsync(transport);
 
 // 3. List the server's tools and register them as SK functions
 var tools = await client.ListToolsAsync();
@@ -125,7 +125,7 @@ var result = await kernel.InvokePromptAsync(
     }));
 ```
 
-> For remote servers, swap `StdioClientTransport` for `SseClientTransport` (or the newer Streamable HTTP transport) pointed at the server URL.
+> For remote servers, swap `StdioClientTransport` for `HttpClientTransport` (Streamable HTTP, per MCP spec 2025-03-26) pointed at the server URL. `SseClientTransport` still exists but is the legacy transport kept for backward compatibility.
 
 ## Function Calling vs MCP
 
