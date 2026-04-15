@@ -18,8 +18,10 @@ Another example is the implementation of a factory pattern. Although it could be
 
 ```csharp
 builder.Services.AddSingleton<ILogger, FileLogger>();
-builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
+builder.Services.AddSingleton<IClock, SystemClock>();
 ```
+
+> `IMemoryCache` itself is already registered as a singleton by `builder.Services.AddMemoryCache()` — don't re-register it manually. Use `AddMemoryCache()` and inject `IMemoryCache` directly.
 
 ## Scoped
 
@@ -60,6 +62,25 @@ public class MySingleton
 ```
 
 **Rule:** Singleton > Scoped > Transient (you can only inject a lifetime equal to or longer).
+
+### Detecting captive dependencies at startup
+
+The DI container can catch these mistakes for you if you enable scope validation:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseDefaultServiceProvider((context, options) =>
+{
+    options.ValidateScopes = true;     // detects captive dependencies
+    options.ValidateOnBuild = true;    // validates the whole graph at startup
+});
+```
+
+- **`ValidateScopes = true`** — throws `InvalidOperationException` when a scoped service is resolved from the root (singleton) scope. Enabled by default in the Development environment.
+- **`ValidateOnBuild = true`** — walks every registration at startup and fails fast on misconfigurations (missing dependencies, captive scopes) instead of at the first request.
+
+> Set both to `true` in all environments. Catching captive dependencies during CI/startup is much cheaper than debugging a stale `DbContext` in production.
 
 ---
 

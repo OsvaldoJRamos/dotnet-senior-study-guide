@@ -74,23 +74,47 @@ builder.Services.AddHostedService<QueueProcessorService>();
 
 ## Be careful with Scoped services
 
-BackgroundService is a **singleton**. To use **scoped** services (like DbContext), create a scope manually:
+`BackgroundService` instances are registered as **singletons** via `AddHostedService<T>()`. Injecting a scoped dependency like `DbContext` directly into the constructor is a **captive dependency**:
 
 ```csharp
-// WRONG: injecting DbContext directly in the constructor
+// WRONG: captive dependency — the DbContext lives as long as the BackgroundService
 public class MyService : BackgroundService
 {
-    private readonly AppDbContext _context; // ERROR at runtime!
-}
+    private readonly AppDbContext _context;
 
-// CORRECT: create a scope
-protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-{
-    using var scope = _provider.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    // use context...
+    public MyService(AppDbContext context) => _context = context;
 }
 ```
+
+What actually happens:
+
+- With `ValidateScopes = true` (the **default in Development**, and recommended everywhere), the DI container throws `InvalidOperationException` **at startup** — fail fast.
+- With `ValidateScopes = false` (default in Production unless you opt in), DI silently resolves the `DbContext` from the root scope and keeps it alive for the **entire lifetime of the service**. Consequences: stale change tracker, cross-iteration concurrency bugs, unbounded memory growth, and connection-pool issues.
+
+The correct pattern is to inject `IServiceScopeFactory` (or `IServiceProvider`) and create a **fresh scope per work iteration**:
+
+```csharp
+public class QueueProcessorService : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    public QueueProcessorService(IServiceScopeFactory scopeFactory)
+        => _scopeFactory = scopeFactory;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            // use db for this iteration only
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        }
+    }
+}
+```
+
+> Enable `ValidateScopes = true` (and `ValidateOnBuild = true`) in every environment so captive dependencies blow up at startup instead of silently corrupting state in production.
 
 ## Scheduled job (Timer-based)
 
