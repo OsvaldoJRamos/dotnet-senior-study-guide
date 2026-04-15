@@ -10,9 +10,18 @@
 | `POST` | No | No | Create resource or execute procedure |
 | `PUT` | No | Yes | Replace entire resource. Client can generate the ID |
 | `PATCH` | No | No* | Partially update a resource |
-| `DELETE` | No | Yes | Remove resource. **Never return 404** when not found |
+| `DELETE` | No | Yes | Remove resource (see note on 404 vs 204 below) |
 
 > *PATCH can be idempotent depending on the implementation
+
+### DELETE when the resource is missing
+
+Both responses are valid per RFC 9110:
+
+- **404 Not Found** — correct: the resource does not exist.
+- **204 No Content** — also correct: some APIs always return 204 on DELETE, treating the operation as idempotent from the client's point of view (repeated deletes look identical).
+
+> Pick one convention and **document it**. What matters is consistency across the API, not which code you pick.
 
 ### DELETE and query parameters
 
@@ -50,15 +59,21 @@ Different parts of the URL have different types of encoding:
 
 ## Redirects
 
-| Code | Type | Note |
-|------|------|------|
-| 301 | Permanent Redirect | Security issues in some scenarios |
-| 302 | Found (temporary) | Historically inconsistent usage |
-| 303 | See Other | Security issues |
-| **307** | Temporary Redirect | Safe replacement for 302 |
-| **308** | Permanent Redirect | Safe replacement for 301 |
+The real distinction between the 3xx codes is **method preservation** — what the client does with the method and body on the redirected request.
 
-> Prefer **307** and **308** as they are safer and more predictable.
+| Code | Type | Method/body on redirect |
+|------|------|-------------------------|
+| 301 | Moved Permanently | Legacy: browsers may rewrite POST → GET |
+| 302 | Found (temporary) | Legacy: browsers may rewrite POST → GET |
+| 303 | See Other | **Must switch to GET** — by design |
+| **307** | Temporary Redirect | **Method and body preserved** |
+| **308** | Permanent Redirect | **Method and body preserved** |
+
+### When to use which
+
+- **303 See Other** — the canonical answer to **POST-Redirect-GET**. After a successful POST, redirect to a GET URL so the browser loads a resource page (no resubmission on refresh).
+- **307 / 308** — when you need the same method/body replayed against a new URL (e.g., moving an API endpoint without forcing clients to rebuild POST bodies).
+- **301 / 302** — historically ambiguous because of the legacy POST→GET behavior. Prefer **308** over 301 and **307** over 302 when method preservation matters.
 
 ## Content Negotiation
 

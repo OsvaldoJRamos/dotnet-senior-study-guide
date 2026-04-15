@@ -51,10 +51,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(config["Jwt:Secret"]!))
+                Encoding.UTF8.GetBytes(config["Jwt:Secret"]!)),
+            // Default is 5 minutes — tokens live past their `exp`. Set to zero
+            // unless you have clock-drift requirements.
+            ClockSkew = TimeSpan.Zero
         };
     });
 ```
+
+> **`alg` confusion attack:** if your server expects `RS256` (asymmetric) but blindly trusts the token header, an attacker can forge a token signed with `HS256` using your **public key as the HMAC secret**, and the library will accept it. Always pin the expected algorithm (`ValidAlgorithms` / explicit `SecurityTokenValidator`) and never let the token's own `alg` header pick the verification method.
 
 ### Access Token + Refresh Token
 
@@ -66,6 +71,50 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 ```
 
 > A **short-lived** Access Token limits the attack window if it is leaked.
+
+### Refresh token rotation
+
+A leaked refresh token is a long-lived credential — rotation limits the damage.
+
+1. Every call to `/token` (refresh) issues a **new** access token **and a new refresh token**.
+2. The **old** refresh token is **invalidated** immediately.
+3. If an old (already-rotated) refresh token is ever used again, treat it as a **leak**: **invalidate the entire token family** (every refresh descended from the same original login) and force re-authentication.
+
+```
+login         → RT₁
+refresh(RT₁)  → RT₂  (RT₁ invalidated)
+refresh(RT₂)  → RT₃  (RT₂ invalidated)
+
+Attacker tries refresh(RT₁) → reuse detected
+  → invalidate RT₂, RT₃, and all descendants. Force login.
+```
+
+> This is called **reuse detection**. It is the standard way to bound the blast radius of a stolen refresh token.
+
+## OAuth 2 and OpenID Connect (OIDC)
+
+**OAuth 2** is an **authorization** framework: it lets an app get an **access token** to call an API on the user's behalf. It does **not** define how to identify the user.
+
+**OIDC** is **OAuth 2 + an identity layer**. On top of the access token, it returns an `id_token` (a JWT with user claims like `sub`, `email`, `name`) so the client knows **who** logged in.
+
+### Grant types (pick the right one)
+
+| Grant type | Use case |
+|------------|----------|
+| **Authorization Code + PKCE** | Default for **public clients** (SPAs, mobile, desktop). PKCE prevents code interception. Per RFC 7636 §4.2 (S256): `code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))` |
+| **Authorization Code** (with client secret) | Traditional server-side web apps with a confidential backend |
+| **Client Credentials** | **Service-to-service** — no user involved. The service authenticates with its own credentials |
+| **Device Code** | Devices with no browser/keyboard (smart TVs, CLI tools). User authorizes from another device |
+| **Refresh Token** | Exchanged at `/token` for a new access token when the old one expires |
+
+### Deprecated grants (do not use)
+
+- **Implicit flow** — returned the access token directly in the URL fragment. Leaked via referrer headers and browser history. **Replaced by Authorization Code + PKCE**, which SPAs can now use safely.
+- **Resource Owner Password Credentials (ROPC)** — the app collects the user's username/password and sends them to the IdP. Defeats the whole point of federated login (phishing, no MFA support, no SSO). Only acceptable for migrating legacy systems.
+
+### OAuth 2 vs OIDC in one sentence
+
+> OAuth 2 answers **"can this app call this API?"**. OIDC also answers **"who is the user?"** by adding the `id_token`.
 
 ## CORS (Cross-Origin Resource Sharing)
 
@@ -139,7 +188,29 @@ Someone forces the user's browser to make an unwanted request:
 public IActionResult Transfer(TransferDto dto) { ... }
 ```
 
-> REST APIs with JWT in the header **do not need** anti-CSRF (the token is not sent automatically).
+> REST APIs with JWT in the **`Authorization` header** do not need anti-CSRF — browsers do not attach custom headers automatically across origins, so an attacker's page cannot forge the request.
+>
+> **Caveat:** if the JWT is stored in a **cookie** (even `HttpOnly`), CSRF **still applies** — the browser sends cookies automatically on cross-site requests. In that case, use anti-CSRF tokens or `SameSite=Lax/Strict` cookies.
+
+### Cookie attributes (core CSRF/session defenses)
+
+| Attribute | Effect |
+|-----------|--------|
+| `HttpOnly` | JavaScript cannot read the cookie (`document.cookie`). Mitigates XSS token theft |
+| `Secure` | Cookie only sent over HTTPS |
+| `SameSite=Strict` | Never sent on cross-site requests. Strongest CSRF defense; breaks cross-site logins |
+| `SameSite=Lax` | Sent on top-level navigations (GET) but not on cross-site POST/fetch. Modern default |
+| `SameSite=None` | Sent on all cross-site requests. **Requires `Secure`**. Needed for third-party embeds |
+
+```csharp
+context.Response.Cookies.Append("session", token, new CookieOptions
+{
+    HttpOnly = true,
+    Secure = true,
+    SameSite = SameSiteMode.Lax,
+    Expires = DateTimeOffset.UtcNow.AddHours(1)
+});
+```
 
 ## HTTPS
 
@@ -157,11 +228,41 @@ app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
     context.Response.Headers.Append("X-Frame-Options", "DENY");
-    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    // X-XSS-Protection is deprecated. Chrome removed the XSS auditor
+    // and enabling it has historically introduced new vulnerabilities.
+    // Set to "0" to disable, and rely on CSP instead.
+    context.Response.Headers.Append("X-XSS-Protection", "0");
     context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     await next();
 });
 ```
+
+> `X-XSS-Protection` is **superseded by Content Security Policy (CSP)**. Modern browsers ignore it; older ones were safer with it off.
+
+### Content Security Policy (CSP)
+
+CSP is the modern defense against XSS. The browser enforces an allow-list of sources for scripts, styles, images, connections, etc. If an attacker injects a `<script>` tag, the browser refuses to execute it because it is not on the allow-list.
+
+```csharp
+context.Response.Headers.Append(
+    "Content-Security-Policy",
+    "default-src 'self'; " +
+    "script-src 'self' 'nonce-abc123'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: https:; " +
+    "object-src 'none'; " +
+    "frame-ancestors 'none'");
+```
+
+| Directive | Meaning |
+|-----------|---------|
+| `default-src 'self'` | Fallback: everything must come from the same origin |
+| `script-src` | Where scripts can load from. Use **nonces** (per-request random value) or **hashes** instead of `'unsafe-inline'` |
+| `style-src` | Where stylesheets can load from |
+| `object-src 'none'` | Blocks `<object>`, `<embed>`, `<applet>` (legacy XSS vectors) |
+| `frame-ancestors 'none'` | Modern replacement for `X-Frame-Options: DENY` (clickjacking defense) |
+
+> Prefer **nonces** (`<script nonce="abc123">`) over `'unsafe-inline'`. The nonce is a per-request random value that only your server knows.
 
 > See also: [Middleware Pipeline](../08-aspnet-core/05-middleware.md) for implementation details.
 

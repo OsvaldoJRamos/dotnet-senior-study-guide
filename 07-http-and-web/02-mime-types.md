@@ -42,15 +42,17 @@ Accept: application/json
 
 ```http
 POST /api/upload HTTP/1.1
-Content-Type: multipart/form-data; boundary=---boundary
+Content-Type: multipart/form-data; boundary=abc123
 
----boundary
+--abc123
 Content-Disposition: form-data; name="file"; filename="report.pdf"
 Content-Type: application/pdf
 
 (binary PDF content)
----boundary--
+--abc123--
 ```
+
+> Per RFC 7578/2046, the header declares `boundary=<value>`, but on the wire each part is introduced by `--<value>` (two dashes prepended) and the closing delimiter is `--<value>--`.
 
 ### 3. In downloads/responses
 
