@@ -92,19 +92,75 @@ public class Order { ... }
 
 Lists all sections with a one-line description. Update it whenever adding a new section.
 
+## Source Verification (MANDATORY)
+
+**Every technical claim must be verified against official sources — before AND after being written.** Training-data recall is not acceptable for anything version-sensitive (API names, version numbers, release/EOL dates, default values, deprecations).
+
+### Before adding or modifying content
+
+1. Identify the primary official source for the topic and fetch it via `WebFetch`:
+
+    | Area | Primary source |
+    |---|---|
+    | .NET / C# / ASP.NET Core / EF Core | `learn.microsoft.com` |
+    | Angular | `angular.dev` (not legacy `angular.io`) |
+    | RxJS | `rxjs.dev` |
+    | AWS services | `docs.aws.amazon.com` + `aws.amazon.com/about-aws/whats-new` |
+    | Azure services | `learn.microsoft.com/azure` |
+    | MongoDB | `www.mongodb.com/docs` |
+    | PostgreSQL / MySQL / Oracle | respective official docs |
+    | Kafka / RabbitMQ / Redis | official project docs + release notes |
+    | OpenAI | `platform.openai.com/docs` + `openai.com` announcements |
+    | MCP / fast-moving SDKs | GitHub repo README + latest release notes |
+    | HTTP / OAuth / OIDC / JWT | IETF RFCs (`datatracker.ietf.org`) |
+    | Browser APIs / web security | MDN (`developer.mozilla.org`) |
+
+2. Do NOT rely on training-data recall for:
+    - API names, method signatures, attribute names
+    - Version numbers, release dates, EOL/deprecation dates
+    - Default values, flags, required parameters
+    - Anything that changes between releases
+
+3. For preview or fast-moving SDKs (MCP, HybridCache, Polly v8, Microsoft.Extensions.Http.Resilience, new Azure Functions models, etc.), always fetch the CURRENT README and release notes — preview APIs rename types between minor versions.
+
+### After writing content
+
+1. Re-verify every specific claim against the same official source. A claim's wording can drift from intent during writing.
+2. Cross-check with community discussions for gotchas the docs don't mention:
+    - GitHub Issues / Discussions on the official repo
+    - Stack Overflow (prefer recent, high-voted answers)
+    - Official blogs: `devblogs.microsoft.com`, `aws.amazon.com/blogs`, vendor engineering blogs (Confluent, Vercel, Jimmy Bogard, etc.)
+3. If the official source does NOT directly back a claim, either:
+    - Soften it ("observed behavior, not documented", "commonly cited"), OR
+    - Drop it.
+
+### What NOT to do
+
+- NEVER guess an API shape from similar APIs — fetch the real doc.
+- NEVER cite a version number or date without verifying it against release notes.
+- NEVER keep content that "sounds right" if the official source contradicts it.
+- NEVER trust a claim just because it was in the previous version of the file — verify on every edit.
+
+### Why this matters
+
+Training-data cutoffs drift. Preview SDKs rename types between minor versions. Blog posts go stale. A senior interviewer will call out any claim the official docs do not back, and one wrong claim destroys trust in the rest of the guide.
+
 ## When Adding New Content
 
-1. **Check if the topic already exists** — grep the repo before creating
-2. **Choose the right section** — place it in the most relevant directory
-3. **Number sequentially** — next number after the last file in that section
-4. **Update the section README** — add the new file to the numbered list
-5. **Update navigation links** — add "Next" to the previous file, "Previous" to the new file
-6. **Update root README** — if the section description should change
-7. **Cross-reference** — if the topic is mentioned in other files, link to it
-8. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `15-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
+1. **Verify against official docs** — see "Source Verification" above. This is the first step, always.
+2. **Check if the topic already exists** — grep the repo before creating
+3. **Choose the right section** — place it in the most relevant directory
+4. **Number sequentially** — next number after the last file in that section
+5. **Update the section README** — add the new file to the numbered list
+6. **Update navigation links** — add "Next" to the previous file, "Previous" to the new file
+7. **Update root README** — if the section description should change
+8. **Cross-reference** — if the topic is mentioned in other files, link to it
+9. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `15-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
+10. **Re-verify against official docs + community discussions** — see "Source Verification". Do this AFTER the content is written, before committing.
 
 ## When Modifying Content
 
+- **Verify against official docs BEFORE and AFTER the edit** — see "Source Verification". An edit that "sounds right" but drifted from the current API is worse than no edit.
 - Keep the same format and style as existing files
 - Don't add Portuguese — everything in English
 - Code examples should be practical and concise
