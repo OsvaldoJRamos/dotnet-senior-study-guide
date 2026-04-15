@@ -934,7 +934,7 @@ builder.Services.AddMediatR(cfg =>
 
 > **Tip:** MediatR pipeline behaviors are themselves an implementation of the **Chain of Responsibility** pattern — each behavior can process the request, pass it to the next behavior, and then process the response.
 
-> **Licensing note:** MediatR moved to a **paid commercial license at v12**; in-process mediator alternatives include hand-rolled `IRequest`/`IRequestHandler` patterns (a few interfaces + a dispatcher resolving handlers via DI) or community forks. Evaluate licensing terms before adopting in new projects.
+> **Licensing note:** In **April 2025**, Jimmy Bogard announced MediatR was going commercial; it launched in **July 2025** under **Lucky Penny Software** and now requires license key registration (current version **v14.1.0** as of early 2026). In-process mediator alternatives include hand-rolled `IRequest`/`IRequestHandler` patterns (a few interfaces + a dispatcher resolving handlers via DI) or community forks. Evaluate licensing terms before adopting in new projects.
 
 ### Template Method
 

@@ -123,13 +123,13 @@ An **event streaming** platform. Different from traditional queues:
 |---------|----------|-------|
 | Model | Message broker (queues) | Event streaming (log) |
 | Consumed message | Removed from queue (classic); retained in log (Streams) | Stays in the log |
-| Replay full history | No for classic queues; Yes with RabbitMQ Streams (since 3.10) | Yes (by offset) |
+| Replay full history | No for classic queues; Yes with RabbitMQ Streams (since 3.9, July 2021) | Yes (by offset) |
 | Throughput | Medium-high | Very high |
 | Latency | Lower | Higher |
 | Ideal use | Async tasks, RPC | Event sourcing, analytics, high scale |
 | Complexity | Lower | Higher |
 
-> **On "re-reading" in RabbitMQ:** classic queues do support **requeue via `nack`**, **dead-letter exchanges**, and consumer retries — what they don't support is replaying the full history after a message has been acknowledged. For that use case, **RabbitMQ Streams** (since 3.10) provide a Kafka-like append-only log with persistent, offset-based replay.
+> **On "re-reading" in RabbitMQ:** classic queues do support **requeue via `nack`**, **dead-letter exchanges**, and consumer retries — what they don't support is replaying the full history after a message has been acknowledged. For that use case, **RabbitMQ Streams** (since 3.9, July 2021) provide a Kafka-like append-only log with persistent, offset-based replay.
 
 ## Azure Service Bus
 
