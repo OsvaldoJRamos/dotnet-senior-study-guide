@@ -22,7 +22,7 @@ Multiple connections writing at the same time cannot step on each other's toes �
 
 ## 1. MongoDB
 
-It is a NoSQL document database. It is **not** an in-memory database — it uses the **WiredTiger** storage engine with memory-mapped files and a working-set cache, so hot data is served from RAM while the full dataset lives on disk.
+It is a NoSQL document database. It is **not** an in-memory database — it uses the **WiredTiger** storage engine, a block-based storage engine with a working-set cache (the previous MMAPv1 engine was memory-mapped and is now removed), so hot data is served from RAM while the full dataset lives on disk.
 
 ### Write concerns
 
@@ -31,13 +31,13 @@ What `OK` means on a write is configurable via **write concerns**:
 | Write concern | Meaning |
 |---|---|
 | `w: 0` | Fire-and-forget — no acknowledgement, fastest, weakest durability |
-| `w: 1` (default) | **Primary** acknowledged the write in memory |
-| `w: "majority"` | A majority of the replica set acknowledged — safe against primary failure |
+| `w: 1` | **Primary** acknowledged the write in memory |
+| `w: "majority"` (default since 5.0) | A majority of the replica set acknowledged — safe against primary failure |
 | `j: true` | Written to the on-disk **journal** before ack (durable across crash) |
 
-Combine them: `{ w: "majority", j: true }` gives strong durability (slower); `{ w: 1 }` is the typical default (fast, primary-only). Stronger concerns trade latency for safety — pick per operation based on criticality.
+Combine them: `{ w: "majority", j: true }` gives strong durability (slower); `{ w: 1 }` trades safety for speed by waiting only on the primary. Stronger concerns trade latency for safety — pick per operation based on criticality.
 
-Since MongoDB 5.0 the replica-set roles are **primary** and **secondary** (the old "master/slave" terminology is gone). You can require reads/writes to go through the primary, or route reads to secondaries with `readPreference`.
+The replica-set roles have long been **primary** and **secondary**; the old "master/slave" aliases were **deprecated in MongoDB 4.2** and **removed in MongoDB 5.0**. You can require reads/writes to go through the primary, or route reads to secondaries with `readPreference`.
 
 ## 2. Cassandra
 
