@@ -18,7 +18,7 @@ Event (HTTP, SQS, etc.) --> Container spins up --> Function executes --> Contain
 
 - Pre-configured containers with runtimes (Node.js, Python, Go, C#, Java, etc.)
 - Allows installing external dependencies
-- Execution environments are **short-lived** — typically recycled after ~5–15 minutes of idleness (AWS Lambda), so don't count on in-memory state across invocations
+- Execution environments are **short-lived** — on AWS Lambda, observed recycling typically occurs within minutes of idleness (not guaranteed or documented by AWS), so don't count on in-memory state across invocations
 - The platform may keep the container warm for a while to serve follow-up events (mitigating cold starts)
 
 ## What it is suited for

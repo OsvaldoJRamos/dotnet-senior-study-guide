@@ -158,7 +158,7 @@ var response = await sqsClient.ReceiveMessageAsync(receiveRequest);
 |--------|----------|------|
 | Order | Best effort | Guaranteed (per message group) |
 | Duplicates | May occur | Exactly-once |
-| Throughput | Unlimited | Default 300 msg/s (3,000 with batching); **high-throughput FIFO** (2021) supports 3,000 msg/s per message group natively, tens of thousands with multiple groups + batching |
+| Throughput | Unlimited | Per-partition limit is 300 msg/s (3,000/s with batching). **High-throughput FIFO** (2021) raises the queue ceiling via **automatic partition scaling** — more message groups map to more partitions, so total throughput grows with group cardinality (the 300/3,000 per-partition cap still applies; a single hot group does not get more) |
 | Use case | Most cases | When order or dedup matters |
 
 ### Dead Letter Queues (DLQ)
