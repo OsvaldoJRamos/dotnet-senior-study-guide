@@ -15,6 +15,7 @@
 11. [Angular](11-angular.md) - Promises vs Observables, RxJS, SignalR, OnPush, lazy loading, virtual scrolling
 12. [AI and LLMs](12-ai.md) - Embeddings, RAG, prompt engineering, function calling, Semantic Kernel, MCP
 13. [Cloud and Infrastructure](13-cloud.md) - EC2, ALB/NLB, S3, IAM, VPC, SQS/SNS, Terraform, Docker, Azure
+14. [Soft Skills](14-soft-skills.md) - Requirements, stakeholders, user stories, prioritization, communication, technology selection
 
 ---
 

@@ -293,4 +293,4 @@ Additional test layers:
 
 ---
 
-[← Previous: Messaging](10-messaging.md) | [Back to index](README.md)
+[← Previous: Messaging](10-messaging.md) | [Back to index](README.md) | [Next: Anti-Patterns →](12-anti-patterns.md)
