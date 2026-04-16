@@ -68,14 +68,9 @@ See [Requirements Management](05-requirements-management.md) for the mechanics o
 
 ## Cost of a bad requirement
 
-The earlier a defect is caught, the cheaper it is — the classic curve from Barry Boehm (1981) and re-validated many times since:
+The earlier a defect is caught, the cheaper it is — a principle going back to Barry Boehm's *Software Engineering Economics* (1981) and reproduced in many secondary studies since. The exact multipliers vary widely between sources (some cite 5×, others 10× or 100× when a defect escapes to production) and depend on the process being measured — but the **shape of the curve is robust**: defects caught at requirements time are cheap; defects caught after release are orders of magnitude more expensive.
 
-- Caught during requirements: ≈ 1× cost.
-- Caught during design: 5–10× cost.
-- Caught in test: 50× cost.
-- Caught in production: 100×+ cost.
-
-This isn't a quote to memorize; it's why *"we'll figure out the requirement later"* is the most expensive sentence in a project. A missing NFR that you discover the week before launch reshapes the architecture. A missing FR that you discover after launch costs rework, hotfixes, and user trust.
+This is why *"we'll figure out the requirement later"* is the most expensive sentence in a project. A missing NFR that you discover the week before launch reshapes the architecture. A missing FR that you discover after launch costs rework, hotfixes, and user trust.
 
 ## Senior role
 

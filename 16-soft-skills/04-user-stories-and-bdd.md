@@ -62,7 +62,7 @@ Works well for straightforward CRUD. Less good at capturing state-dependent beha
 
 ### 2. BDD / Gherkin (Given-When-Then)
 
-Dan North introduced BDD in 2003 as an evolution of TDD, framed in the language of the domain. The canonical format:
+BDD was introduced in the early 2000s by Dan North (Daniel Terhorst-North) as an evolution of TDD, framed in the language of the domain. Martin Fowler's bliki credits the Given-When-Then formulation specifically to *"Daniel Terhorst-North and Chris Matts as part of Behavior-Driven Development (BDD)."* (`martinfowler.com/bliki/GivenWhenThen.html`) The canonical format:
 
 ```
 Given [initial context]

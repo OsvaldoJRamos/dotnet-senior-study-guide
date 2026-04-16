@@ -88,7 +88,7 @@ Two or more services write to the same tables. The database becomes the integrat
 
 A system with no discernible architecture — ad hoc modifications accreted over years, cross-cutting dependencies, no clear layering.
 
-> Brian Foote and Joseph Yoder (1997): *"A BIG BALL OF MUD is haphazardly structured, sprawling, sloppy, duct-tape-and-baling-wire, spaghetti code jungle."* (`laputan.org/mud/`)
+> Brian Foote and Joseph Yoder (PLoP '97): *"A Big Ball of Mud is a haphazardly structured, sprawling, sloppy, duct-tape-and-baling-wire, spaghetti-code jungle."* (`laputan.org/mud/`)
 
 **Fix:** usually incremental — introduce seams (interfaces, facades, anti-corruption layers), carve out bounded contexts, strangle the legacy. Full rewrites rarely pay off.
 
