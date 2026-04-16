@@ -9,6 +9,7 @@
 5. [SQL Indexes](05-sql-indexes.md) - Clustered, non-clustered, covering, filtered, columnstore; seek vs scan
 6. [Transaction Isolation Levels](06-transaction-isolation-levels.md) - Anomalies, ANSI levels, snapshot, deadlocks
 7. [Database Locks](07-database-locks.md) - Granularity, modes, escalation, hints, MVCC, pessimistic vs optimistic
+8. [Execution Plans](08-execution-plans.md) - How the optimizer works, estimated vs actual, operators, reading plans in SQL Server/PostgreSQL/MySQL
 
 ---
 

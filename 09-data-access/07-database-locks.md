@@ -388,4 +388,4 @@ JOIN pg_stat_activity blocking
 
 ---
 
-[← Previous: Transaction Isolation Levels](06-transaction-isolation-levels.md) | [Back to index](README.md)
+[← Previous: Transaction Isolation Levels](06-transaction-isolation-levels.md) | [Back to index](README.md) | [Next: Execution Plans →](08-execution-plans.md)
