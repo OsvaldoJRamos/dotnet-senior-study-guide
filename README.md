@@ -61,6 +61,9 @@ Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, 
 ### [15 - Self-Assessment](15-self-assessment/README.md)
 Test your knowledge — questions with hidden answers.
 
+### [16 - Soft Skills](16-soft-skills/README.md)
+Requirements, stakeholders, elicitation, user stories, communication, technology selection.
+
 ## How to use
 
 Pick any section and start reading — each topic is self-contained. Use the navigation links at the bottom of each file to move between related topics.
