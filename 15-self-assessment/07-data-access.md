@@ -527,3 +527,66 @@ Deep dive: [Transaction Isolation Levels](../09-data-access/06-transaction-isola
 </details>
 
 ---
+
+### 23. What is an execution plan and what is the difference between estimated and actual?
+
+<details>
+<summary>Reveal answer</summary>
+
+An **execution plan** is the concrete strategy the optimizer chose for a query: which indexes, which join algorithms, which order, how to aggregate and sort.
+
+- **Estimated plan**: compiled by the optimizer based on statistics; does **not** execute the query. Useful for a quick sanity check.
+- **Actual plan**: the same plan plus runtime data — actual row counts, elapsed time, spill/warning flags. Only available *after* execution.
+
+The single most important thing to compare is **estimated rows vs actual rows** per operator. A large gap means the optimizer was working with bad assumptions (stale statistics, parameter sniffing, non-sargable predicate) and almost always picked the wrong algorithm.
+
+In SQL Server: `Ctrl+L` (estimated) / `Ctrl+M` (actual) in SSMS, or `SET SHOWPLAN_XML ON` / `SET STATISTICS XML ON` in T-SQL.
+In PostgreSQL: `EXPLAIN` (estimated) / `EXPLAIN (ANALYZE, BUFFERS)` (actual — runs the query).
+In MySQL: `EXPLAIN FORMAT=TREE` / `EXPLAIN ANALYZE`.
+
+Deep dive: [Execution Plans](../09-data-access/08-execution-plans.md)
+
+</details>
+
+---
+
+### 24. What red flags do you look for when reading a SQL Server execution plan?
+
+<details>
+<summary>Reveal answer</summary>
+
+In order of "fix me first":
+
+1. **Big Table/Clustered Index Scan** where a Seek was expected — non-sargable predicate, missing index, or implicit conversion.
+2. **Estimated rows ≪ Actual rows** on any operator — broken cardinality estimate; the plan shape is probably wrong.
+3. **Key Lookup / RID Lookup** on the hot path — the nonclustered index isn't covering. Fix with `INCLUDE` columns.
+4. **Nested Loops with a huge outer input** — should probably be Hash Match. Usually a symptom of #2.
+5. **Sort or Hash Match with a spill warning (yellow ⚠)** — operator wrote to `tempdb` because the memory grant was too small. Usually downstream of #2.
+6. **`CONVERT_IMPLICIT` in the predicate** — data type mismatch kills index usage. Fix the parameter type at the app or column level.
+7. **"Columns With No Statistics" warning** — optimizer is guessing. Create statistics or a covering index.
+
+Green "missing index" hints are suggestions, not prescriptions — they ignore existing indexes and write cost.
+
+Deep dive: [Execution Plans](../09-data-access/08-execution-plans.md)
+
+</details>
+
+---
+
+### 25. A query is fast in SSMS but slow in the application. Why?
+
+<details>
+<summary>Reveal answer</summary>
+
+Two usual suspects, both plan-related:
+
+- **Parameter sniffing**: the app and SSMS cached different plans because the first-run parameters were very different. The app's cached plan is terrible for the current parameters. Fix with `OPTION (RECOMPILE)`, `OPTIMIZE FOR`, or a plan guide — trade-offs in [Query Optimization](../09-data-access/04-query-optimization.md#parameter-sniffing-sql-server).
+- **Different `SET` options**: the app's connection has different `ARITHABORT`, `ANSI_NULLS`, or `QUOTED_IDENTIFIER` from SSMS, so it produces a **separate plan cache entry**. Classic: SSMS runs with `ARITHABORT ON` by default; .NET SqlClient connections used to default to `OFF`.
+
+The fix starts the same way both times: capture the **actual** plan the app is using (Extended Events, Query Store), not the one SSMS gives you.
+
+Deep dive: [Execution Plans](../09-data-access/08-execution-plans.md)
+
+</details>
+
+---
