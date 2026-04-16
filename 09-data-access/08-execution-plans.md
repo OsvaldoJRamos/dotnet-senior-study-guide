@@ -35,8 +35,8 @@ The **gap between estimated and actual row counts** is the #1 signal of a broken
 
 **SSMS graphical plan:**
 
-- **Query → Display Estimated Execution Plan** (also `Ctrl+L`) — estimated plan, no execution.
-- **Query → Include Actual Execution Plan** (also `Ctrl+M`) — toggle on, then run the query; plan appears in a new tab.
+- **Query → Display Estimated Execution Plan** — estimated plan, no execution.
+- **Query → Include Actual Execution Plan** — toggle on, then run the query; plan appears on the **Execution Plan** tab.
 - **Query → Include Live Query Statistics** — in-flight progress, updated every second; useful when a query hangs.
 
 **T-SQL (text/XML):**
@@ -63,7 +63,7 @@ SET STATISTICS TIME ON;   -- CPU time, elapsed time
 
 > Microsoft Learn: the estimated plan is *"the compiled plan as produced by the Query Optimizer, based on estimations. This is the query plan that is stored in the plan cache."* The actual plan *"returns the compiled plan plus its execution context... This plan includes actual runtime information such as execution warnings, and in newer versions of the Database Engine, the elapsed and CPU time used during execution."*
 
-**Query Store** (SQL Server 2016+, on by default in Azure SQL) keeps plan history, regression detection, and forced-plan support — query it via the `sys.query_store_*` DMVs or the SSMS Query Store reports.
+**Query Store** (SQL Server 2016+; enabled by default for new databases in **Azure SQL Database**, **Azure SQL Managed Instance**, and **SQL Server 2022+** in `READ_WRITE` mode) keeps plan history, runtime stats, wait stats, and supports **plan forcing** — query the `sys.query_store_*` catalog views or use the SSMS Query Store reports.
 
 ### PostgreSQL
 
@@ -130,7 +130,7 @@ A classic bad plan: the optimizer estimated 10 rows on the outer side (so picked
 - **Key Lookup** (on a clustered table) / **RID Lookup** (on a heap) — a nonclustered index matched the predicate but the query needs columns it doesn't cover. Each matching row triggers a separate clustered-index/heap lookup. Fix: add the missing columns as `INCLUDE` in the nonclustered index to make it **covering**.
 - **Sort** — expensive and blocking. If the query has `ORDER BY`, consider an index that delivers the rows already sorted.
 - **Hash Match (Aggregate)** or **Sort** with **spill warnings** — memory grant was too small and the operator wrote intermediate data to `tempdb`. Shows up as a yellow `⚠` on the operator. Usually driven by bad cardinality estimates.
-- **Convert_Implicit** in the predicate (`CONVERT_IMPLICIT(varchar, column, 0) = @param`) — data-type mismatch. SQL Server wraps the column in a conversion, which kills index usage (non-sargable). Fix the parameter type at the app layer or change the column type. See the `PlanAffectingConvert` warning in `sys.dm_exec_query_plan`.
+- **Convert_Implicit** in the predicate (`CONVERT_IMPLICIT(varchar, column, 0) = @param`) — data-type mismatch. SQL Server wraps the column in a conversion, which kills index usage (non-sargable). Fix the parameter type at the app layer or change the column type. The plan XML shows it as a warning on the operator.
 - **Missing Index** green hint — a hint, not a prescription. It tells you *a* useful index exists; it does **not** consider existing indexes, write cost, or overlap with what you already have. Validate manually.
 - **Columns With No Statistics** warning — the optimizer is flying blind on that column. Create statistics (`CREATE STATISTICS ...`) or an index that covers it.
 
@@ -193,9 +193,10 @@ No optimizer produces good plans without good statistics. The planner relies on:
 
 | Engine | Auto-update trigger | Manual refresh |
 |---|---|---|
-| SQL Server | ~20% of rows changed (roughly; exact threshold varies by version and `AUTO_UPDATE_STATISTICS`) | `UPDATE STATISTICS <table>` / `sp_updatestats` |
-| PostgreSQL | Background autovacuum (`ANALYZE` step) | `ANALYZE <table>` / `VACUUM ANALYZE` |
-| MySQL (InnoDB) | `innodb_stats_auto_recalc` on by default | `ANALYZE TABLE <table>` |
+| SQL Server (2014 and earlier, or compat level <130) | `500 + (0.20 * n)` row modifications for tables with `n > 500` rows | `UPDATE STATISTICS <table>` / `sp_updatestats` |
+| SQL Server (2016+ with compat level 130+) | `MIN(500 + 0.20*n, SQRT(1000*n))` — a dynamic threshold that triggers updates more often on large tables | same as above |
+| PostgreSQL | Background autovacuum runs `ANALYZE` when enough rows change | `ANALYZE <table>` / `VACUUM ANALYZE` |
+| MySQL (InnoDB) | `innodb_stats_auto_recalc` ON by default; recalculates when ~10% of rows change | `ANALYZE TABLE <table>` |
 
 If you just bulk-loaded a table and queries are slow, **update statistics first** — it's a 10-second command that usually beats any indexing change.
 

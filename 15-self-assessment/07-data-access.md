@@ -581,7 +581,7 @@ Deep dive: [Execution Plans](../09-data-access/08-execution-plans.md)
 Two usual suspects, both plan-related:
 
 - **Parameter sniffing**: the app and SSMS cached different plans because the first-run parameters were very different. The app's cached plan is terrible for the current parameters. Fix with `OPTION (RECOMPILE)`, `OPTIMIZE FOR`, or a plan guide — trade-offs in [Query Optimization](../09-data-access/04-query-optimization.md#parameter-sniffing-sql-server).
-- **Different `SET` options**: the app's connection has different `ARITHABORT`, `ANSI_NULLS`, or `QUOTED_IDENTIFIER` from SSMS, so it produces a **separate plan cache entry**. Classic: SSMS runs with `ARITHABORT ON` by default; .NET SqlClient connections used to default to `OFF`.
+- **Different `SET` options**: the app's connection has different `ARITHABORT`, `ANSI_NULLS`, or `QUOTED_IDENTIFIER` from SSMS, so it produces a **separate plan cache entry**. Microsoft Learn explicitly warns: SSMS defaults to `ARITHABORT ON`, and *"client applications setting ARITHABORT to OFF might receive different query plans, making it difficult to troubleshoot poorly performing queries."* On modern databases (compat level 90+ with `ANSI_WARNINGS ON`), `ARITHABORT` is implicitly ON regardless of the client-side value — but if the app is on a legacy compat level or explicitly sets it OFF, plans diverge.
 
 The fix starts the same way both times: capture the **actual** plan the app is using (Extended Events, Query Store), not the one SSMS gives you.
 

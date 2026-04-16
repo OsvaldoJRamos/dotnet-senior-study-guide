@@ -169,6 +169,47 @@ Training-data cutoffs drift. Preview SDKs rename types between minor versions. B
 - Keep files focused — one topic per file, not everything in one giant file
 - **Always add/update self-assessment questions** in `15-self-assessment/` when modifying topic content
 
+## Reviewing a PR (MANDATORY)
+
+When asked to **review a PR** (mine or any other), the review is worthless if it is not grounded. **Assume nothing. Verify everything.**
+
+### Non-negotiable rules
+
+- **NEVER approve a claim based on training-data recall.** Fetch the official source every time, even if the claim "sounds right" or "has been true for years".
+- **Every factual claim in the diff must be individually verified** against its primary official source (see the table in "Source Verification"). "I already verified while writing" is not acceptable — re-verify on review.
+- **Cross-check with community discussions** for gotchas the official docs don't mention (GitHub Issues, Stack Overflow top answers from the last 2 years, `devblogs.microsoft.com`, vendor engineering blogs).
+- **When the official source does NOT directly back a claim**, report it. Do not soften silently — call it out so the user can decide to drop or hedge.
+- **When the official source contradicts a claim**, report the contradiction with the exact quote and URL before editing.
+
+### PR review checklist
+
+1. **List every verifiable claim in the diff.** Version numbers, default values, menu names, keyboard shortcuts, method signatures, flag behaviors, operator names, benchmark numbers, availability ("since X version", "on by default in Y").
+2. **Fetch the primary official source for each claim** via `WebFetch`. Do not reuse caches — each claim is its own verification.
+3. **For each claim, record**: the exact quote from the official source, the URL, and whether it confirms, contradicts, or is silent on the claim.
+4. **For claims the docs are silent on**, consult community sources (SO answers dated in the last 2 years, official blogs, issue threads). If still unverified, flag for removal or hedging.
+5. **Produce a table** mapping each claim → verified (yes/no/partial) → action (keep / fix / drop / hedge).
+6. **Only then apply corrections**, commit to the PR branch, and push.
+
+### What counts as a verifiable claim
+
+Anything that a reader could challenge with "where does it say that?":
+
+- API / method / class / flag / attribute names
+- Version numbers, release dates, EOL / deprecation dates
+- Default values (enabled/disabled, thresholds, limits)
+- Behavioral claims ("X triggers Y", "Z is not supported when W")
+- Keyboard shortcuts, menu paths, UI element names
+- Quoted text (must match the source verbatim)
+- "Since version N" and "new in X" statements
+- Comparisons between tools/versions (must be symmetrically verified)
+
+### What NOT to do during a PR review
+
+- Do not skip verification because the file was "just written" or "reviewed before".
+- Do not verify only the "suspicious-looking" claims — verify every claim.
+- Do not declare a review complete without the verification table.
+- Do not mix verification with speculation — if a claim is unverified, label it so.
+
 ## Content Style
 
 - **Interview-oriented**: write as if explaining in an interview, not a textbook
