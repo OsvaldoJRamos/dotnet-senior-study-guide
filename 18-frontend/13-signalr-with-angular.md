@@ -238,4 +238,4 @@ this.hubConnection.on('ReceiveMessage', (user, msg) => {
 
 ---
 
-[← Previous: Promises vs Observables](01-promises-vs-observables.md) | [Next: Angular Performance →](03-angular-performance.md) | [Back to index](README.md)
+[← Previous: Angular Performance](12-angular-performance.md) | [Back to index](README.md)

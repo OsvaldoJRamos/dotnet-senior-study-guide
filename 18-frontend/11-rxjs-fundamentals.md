@@ -274,4 +274,4 @@ readonly query$ = toObservable(this.querySignal);
 
 ---
 
-[← Previous: Angular Performance](03-angular-performance.md) | [Back to index](README.md)
+[← Previous: Promises vs Observables](10-promises-vs-observables.md) | [Next: Angular Performance →](12-angular-performance.md) | [Back to index](README.md)

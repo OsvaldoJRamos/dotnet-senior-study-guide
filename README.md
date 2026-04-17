@@ -67,8 +67,8 @@ CAP theorem, consistency models, idempotency, outbox pattern, saga, distributed 
 ### [17 - System Design](17-system-design/README.md)
 Interview framework, capacity estimation, scaling, load balancing, caching, rate limiting, case studies (URL shortener, news feed, chat).
 
-### [18 - Angular](18-angular/README.md)
-Promises vs Observables, SignalR integration, performance optimization.
+### [18 - Frontend](18-frontend/README.md)
+Browser rendering, DOM, CDN, iframes, Web Storage, Core Web Vitals, PWA/Service Workers, SPA/SSR/SSG, accessibility, plus Angular (Promises/Observables, RxJS, performance, SignalR).
 
 ### [19 - AI](19-ai/README.md)
 Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.
