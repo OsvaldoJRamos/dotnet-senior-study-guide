@@ -112,8 +112,8 @@ register → install → waiting → activate → active → (redundant)
 
 Two escape hatches from the default "safe" lifecycle:
 
-- **`self.skipWaiting()`** — called from `install`, makes the new worker activate immediately without waiting for old pages to close. web.dev notes this is "risky if newer and older versions handle requests differently."
-- **`self.clients.claim()`** — called from `activate`, makes the new worker take control of already-open pages without a reload. "This is timing sensitive" and mainly matters for the first-ever install.
+- **`self.skipWaiting()`** — called from `install`, makes the new worker activate immediately without waiting for old pages to close. Per web.dev, "`skipWaiting()` means that your new service worker is likely controlling pages that were loaded with an older version… If this might break things, don't use `skipWaiting()`."
+- **`self.clients.claim()`** — called from `activate`, takes over already-open pages without a reload. web.dev notes it is mostly useful during the first-ever install; for subsequent updates it can surprise pages that loaded under the old worker.
 
 ```javascript
 self.addEventListener('install', (event) => {
@@ -142,7 +142,7 @@ self.addEventListener('activate', (event) => {
 
 ## Caching strategies — the Offline Cookbook
 
-Jake Archibald's [Offline Cookbook](https://web.dev/articles/offline-cookbook) is the canonical reference. The five strategies:
+Jake Archibald's [Offline Cookbook](https://web.dev/articles/offline-cookbook) is the canonical reference. The cookbook itself enumerates several storage-timing and serving patterns (e.g., "Cache, falling back to network", "Cache and network race", "Cache then network"); the five strategies below are the community distillation most tools (Workbox) expose by name:
 
 | Strategy | Flow | Use for |
 |----------|------|---------|

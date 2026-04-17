@@ -128,7 +128,7 @@ Inline the CSS needed to render the above-the-fold content in a `<style>` tag in
 | `preconnect` | Opens DNS + TCP + TLS to an origin ahead of time | Connection only | Critical third-party origin (CDN, API) |
 | `dns-prefetch` | Resolves DNS only | Cheapest | Many third-party origins you might use |
 
-> Overusing `preconnect` hurts more than it helps — MDN: "Preconnecting to many third-party domains can be counterproductive." Reserve it for critical origins.
+> Overusing `preconnect` hurts more than it helps — MDN: "If a page needs to make connections to many third-party domains, preconnecting them all can be counterproductive." Reserve it for critical origins.
 
 ### JavaScript
 

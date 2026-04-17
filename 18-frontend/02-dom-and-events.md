@@ -153,7 +153,7 @@ In Chrome DevTools, a **Memory** panel heap snapshot with the "Detached" filter 
 
 ## `MutationObserver`
 
-Observes changes to the DOM tree — added/removed children, attribute changes, character data changes. Callbacks are **asynchronous** (delivered as microtasks, not on every DOM edit), so heavy bursts of edits are batched.
+Observes changes to the DOM tree — added/removed children, attribute changes, character data changes. Callbacks are **asynchronous** and batch bursts of DOM edits rather than firing on every single mutation (per the WHATWG DOM spec, which queues a microtask to deliver records).
 
 ```ts
 const mo = new MutationObserver((records) => {

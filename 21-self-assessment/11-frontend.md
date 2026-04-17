@@ -416,7 +416,7 @@ Use a cookie to prevent XSS from stealing the token. JavaScript cannot read an `
 Required flags for session cookies:
 - **`HttpOnly`** — blocks `document.cookie` access.
 - **`Secure`** — only sent over HTTPS (except localhost).
-- **`SameSite=Lax`** (default) or **`Strict`** — blocks CSRF on cross-site POSTs.
+- **`SameSite=Lax`** (used as the default by some browsers — set it explicitly) or **`Strict`** — blocks CSRF on cross-site POSTs.
 - **`SameSite=None`** only when cross-site sending is required, and then `Secure` is mandatory.
 - `__Host-` prefix: forces `Secure`, no `Domain`, `Path=/` — hardens against subdomain attacks.
 

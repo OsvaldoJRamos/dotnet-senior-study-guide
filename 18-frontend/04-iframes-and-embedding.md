@@ -152,9 +152,9 @@ MDN: "allows a website to control whether a new top-level document, opened using
 | Value | Behavior |
 |-------|----------|
 | `unsafe-none` (default) | Shares BCG with any document. No isolation. |
-| `same-origin` | Only same-origin `same-origin` documents share a BCG. Enables cross-origin isolation. |
-| `same-origin-allow-popups` | Like `same-origin` but allows popups with `unsafe-none` to be opened in the same BCG. |
-| `noopener-allow-popups` | Always opens into a new BCG unless the opener also has `noopener-allow-popups`. |
+| `same-origin` | Permits loading into a BCG that uses COOP and contains only same-origin documents. Enables cross-origin isolation. |
+| `same-origin-allow-popups` | Like `same-origin`, but allows `Window.open()` to open documents with a COOP value of `unsafe-none` in the same BCG. |
+| `noopener-allow-popups` | A document with this directive is always opened into a new BCG, except when navigating from a document that also has `noopener-allow-popups`. Used to process-isolate same-origin documents. |
 
 ### `Cross-Origin-Embedder-Policy` (COEP)
 

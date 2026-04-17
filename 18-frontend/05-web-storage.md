@@ -17,7 +17,7 @@ Set-Cookie: sid=a3fWa; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Lax
 | `Secure` | Cookie is sent only over HTTPS (`except on localhost`). |
 | `HttpOnly` | JavaScript cannot read it via `document.cookie`. Mitigates XSS token theft. |
 | `SameSite=Strict` | Sent only on same-site requests — use for auth / cart cookies. |
-| `SameSite=Lax` | Sent on same-site and on top-level cross-site navigations using a safe method (`GET`/`HEAD`). Default in modern browsers when the attribute is omitted. |
+| `SameSite=Lax` | Sent on same-site and on top-level cross-site navigations using a safe method (`GET`/`HEAD`). Used as the default by some browsers when the attribute is omitted — don't rely on it, set it explicitly. |
 | `SameSite=None` | Sent on all cross-site requests. **Requires `Secure`.** Use for third-party embeds. |
 | `Path` | Cookie is sent only if the request URL path matches this prefix. |
 | `Domain` | Makes the cookie available to the given host and its subdomains. Omitting it is stricter (host-only cookie). |
@@ -35,7 +35,7 @@ Set-Cookie: sid=a3fWa; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Lax
 
 ### CSRF implications
 
-CSRF exists because the browser automatically attaches cookies to cross-site requests. `SameSite=Lax` (default) blocks the dangerous vector — cross-site `POST` from `evil.com` to `bank.com` won't include the session cookie. `SameSite=Strict` closes it fully. For APIs used by a SPA on the same site, `Lax` + CSRF token for state-changing requests is the conservative combo.
+CSRF exists because the browser automatically attaches cookies to cross-site requests. `SameSite=Lax` (used as the default by some browsers — set it explicitly anyway) blocks the dangerous vector — cross-site `POST` from `evil.com` to `bank.com` won't include the session cookie. `SameSite=Strict` closes it fully. For APIs used by a SPA on the same site, `Lax` + CSRF token for state-changing requests is the conservative combo.
 
 ### Cookie name prefixes: `__Host-` and `__Secure-`
 

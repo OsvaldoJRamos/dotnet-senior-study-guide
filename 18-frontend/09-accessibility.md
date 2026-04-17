@@ -44,7 +44,7 @@ MDN's canonical warning:
 
 > "If you can use a native HTML element or attribute with the semantics and behavior you require already built in, instead of re-purposing an element and adding an ARIA role, state or property to make it accessible, then do so."
 
-And: **"No ARIA is better than bad ARIA."** WebAIM's 2024 data found pages with ARIA averaged significantly more detected errors than pages without — because developers add ARIA to fix the wrong problem.
+And the common saying: **"No ARIA is better than bad ARIA"** (MDN). WebAIM's 2024 Million Report found that home pages with ARIA averaged 41% more detected errors than those without — because ARIA is often added to fix the wrong problem.
 
 ## ARIA essentials
 
@@ -94,7 +94,7 @@ Every interactive control must be reachable and operable with the keyboard alone
 - Visit elements in **document order**. If your DOM order doesn't match your visual order, fix the DOM (or CSS), not with `tabindex`
 - `tabindex="0"` — include an element in the natural tab order (for custom widgets)
 - `tabindex="-1"` — focusable only programmatically (via `.focus()`); used for modal containers, skip-link targets, error summaries
-- **Avoid positive `tabindex`.** MDN: "Avoid using `tabindex` values greater than `0`. Doing so makes it difficult for people who rely on using keyboard for navigation or assistive technology to navigate and operate page content."
+- **Avoid positive `tabindex`.** MDN: "Avoid using `tabindex` values greater than `0` [...]. Doing so makes it difficult for people who rely on using keyboard for navigation or assistive technology to navigate and operate page content."
 
 ### Focus management on route changes (SPA)
 
@@ -203,7 +203,7 @@ Checklist:
 | **Pa11y** | CLI wrapper around axe/HTML_CodeSniffer for CI pipelines |
 | **WAVE** (WebAIM) | Browser extension; visualizes errors inline |
 
-**How much do they catch?** Axe-core's own documentation claims it finds "on average 57% of WCAG issues automatically" — but hedge on this number. Public audits (WebAIM Million) report only the issues their automated scanner detects and explicitly warn: "not all conformance failures can be automatically detected. Absence of detected errors does not indicate that a page is accessible or conformant." The commonly cited range is **~30–57% automated coverage, varying by study and rule set**.
+**How much do they catch?** axe-core's README states it finds "on average 57% of WCAG issues automatically" — but treat that as an upper bound. Public audits (WebAIM Million) report only the issues their automated scanner detects and explicitly warn: "All automated tools, including WAVE, have limitations—not all conformance failures can be automatically detected. Absence of detected errors does not indicate that a page is accessible or conformant." The commonly cited range is **~30–57% automated coverage, varying by study and rule set**.
 
 > Practical conclusion: automated tools catch the easy stuff (missing alt, missing label, low contrast, empty button). They cannot judge whether alt text is *meaningful*, whether focus order makes sense, whether a custom widget is usable with a screen reader, or whether your flow works with voice control. Every product flow still needs manual keyboard + screen-reader review.
 
