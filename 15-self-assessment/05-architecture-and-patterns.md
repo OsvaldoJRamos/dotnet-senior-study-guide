@@ -553,4 +553,114 @@ Deep dive: [Idempotency and Race Conditions](../06-architecture-and-patterns/11-
 
 ---
 
+### 21. Name three anti-patterns and how you'd refactor each incrementally.
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Anemic Domain Model** — entities are field bags; all logic lives in services. Fowler: *"If all your logic is in services, you've robbed yourself blind."* Fix: push invariants and state transitions back into the entities (`order.Confirm()`, not `orderService.Confirm(order)`).
+- **Distributed Monolith** — "microservices" that share a DB, call each other synchronously, and must deploy together. Fix: align services to real bounded contexts, replace sync fan-out with events, give each service its own schema.
+- **Database-as-Integration** — two services writing to the same tables. Fix: each service owns its schema; integrate via APIs or events (Outbox + CDC for read-model replication).
+
+Deep dive: [Anti-Patterns](../06-architecture-and-patterns/12-anti-patterns.md)
+
+</details>
+
+---
+
+### 22. What's the difference between strategic and tactical DDD, and when do you need both?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Strategic DDD** carves the problem: ubiquitous language, bounded contexts, context mapping (Partnership, Shared Kernel, Customer–Supplier, Conformist, Anti-Corruption Layer, Open Host Service, Published Language, Separate Ways). It tells you *where* a change lives.
+- **Tactical DDD** builds inside one bounded context: entities, value objects, aggregates (one root, small, one-per-transaction), domain services, repositories (per-aggregate), domain events. It tells you *how* to keep a change consistent.
+
+You need strategic DDD when multiple teams or contexts exist; tactical DDD when invariants inside a context are non-trivial. A CRUD app with no hard invariants doesn't need either.
+
+Deep dive: [Domain-Driven Design](../06-architecture-and-patterns/13-ddd.md)
+
+</details>
+
+---
+
+### 23. When would you adopt Event Sourcing, and when would you refuse?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Adopt** when the domain naturally demands an event log:
+- Audit/compliance is a first-class requirement (finance, healthcare).
+- Business asks *"what happened on X date at Y time?"* — temporal queries.
+- You need to replay with updated business rules to fix past bugs.
+
+**Refuse** when:
+- Nobody cares about history — a plain audit table and an `UpdatedAt` column solve it at a fraction of the cost.
+- The team is still learning DDD/CQRS — adopting Event Sourcing simultaneously is how you get stuck for 6 months.
+- Data shape changes constantly in unpredictable ways — event schema evolution will dominate your time.
+
+Event Sourcing pairs well with CQRS (projections from the event stream) but is a separate pattern.
+
+Deep dive: [Event Sourcing](../06-architecture-and-patterns/15-event-sourcing.md)
+
+</details>
+
+---
+
+### 24. When do you reach for an API Gateway vs a BFF?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **API Gateway** (Chris Richardson): single entry point for all clients. Owns cross-cutting concerns — routing, authn, rate limiting, TLS termination, response composition. Owned by the platform team. Keep it thin; business logic belongs in services.
+- **BFF** (Sam Newman): one backend *per user experience* — web BFF, mobile BFF, partner BFF. Owned by the team that owns that UI. Handles aggregation and response shaping for that client specifically.
+
+Use a gateway when multiple clients share cross-cutting concerns. Use a BFF when distinct clients have distinct aggregation and shape needs (typical when mobile + web + partners coexist). They're complementary, not alternatives — many systems run both, plus a service mesh for internal east-west traffic.
+
+Deep dive: [API Gateway and BFF](../06-architecture-and-patterns/14-api-gateway-and-bff.md)
+
+</details>
+
+---
+
+### 25. How do you translate a non-functional requirement like *"p95 ≤ 200 ms at 5 000 rps"* into architecture?
+
+<details>
+<summary>Reveal answer</summary>
+
+Each NFR forces architectural choices with explicit trade-offs:
+
+- **Latency (p95 ≤ 200 ms)** → cache the read path (Redis, CDN), move aggregation off the hot path (CQRS read model / BFF), avoid synchronous fan-out, async IO end-to-end. Trade: invalidation complexity, eventual consistency in reads.
+- **Throughput (5 000 rps)** → stateless compute + horizontal scale, partition/shard, async processing behind a queue, read replicas. Trade: sticky state moves to Redis/DB; cross-shard queries harder.
+- **Availability** (if stated) → multi-AZ or multi-region, health checks, auto-rollback, graceful degradation. Trade: infra cost, DR drills, multi-region complexity.
+
+Every choice goes into an ADR with the NFR it satisfies and the trade it accepts. NFRs that aren't monitored aren't guarantees — each one also needs a dashboard and an alert.
+
+Deep dive: [NFR-Driven Architecture](../06-architecture-and-patterns/18-nfr-driven-architecture.md)
+
+</details>
+
+---
+
+### 26. What goes into a good ADR, and what's the Nygard template?
+
+<details>
+<summary>Reveal answer</summary>
+
+Michael Nygard's 2011 template (verbatim sections):
+
+- **Title** — *"a short noun phrase"* (e.g., *"ADR 7: Use PostgreSQL for the Orders service"*).
+- **Status** — *"proposed"* or *"accepted"*; later possibly *"superseded by ADR N"*.
+- **Context** — *"the forces at play, including technological, political, social, and project local... value-neutral"*.
+- **Decision** — *"stated in full sentences, with active voice. 'We will …'"*.
+- **Consequences** — *"All consequences should be listed here, not just the 'positive' ones."*
+
+Rules: one decision per ADR; numbered monotonically; never edit an accepted ADR (supersede with a new one); store in the repo next to the code it constrains.
+
+Deep dive: [Design Docs, C4 and ADRs](../06-architecture-and-patterns/17-design-docs-c4-adr.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

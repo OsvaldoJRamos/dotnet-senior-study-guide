@@ -221,4 +221,4 @@ If you just bulk-loaded a table and queries are slow, **update statistics first*
 
 ---
 
-[← Previous: Database Locks](07-database-locks.md) | [Back to index](README.md)
+[← Previous: Database Locks](07-database-locks.md) | [Back to index](README.md) | [Next: Polyglot Persistence →](09-polyglot-persistence.md)
