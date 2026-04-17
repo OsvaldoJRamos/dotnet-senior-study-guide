@@ -42,7 +42,7 @@ Senior signal at interview: *"we run quarterly game days on our top three failur
 
 | Tool | What it is |
 |---|---|
-| **Netflix Chaos Monkey** (OSS) | The original — randomly terminates instances in an auto-scaling group. Now part of the Simian Army / Spinnaker. |
+| **Netflix Chaos Monkey** (OSS) | The original — randomly terminates instances in an auto-scaling group. Version 2 integrates with Spinnaker; the broader Simian Army suite from Netflix is no longer actively maintained. |
 | **AWS Fault Injection Service (FIS)** | Managed AWS service; formerly *Fault Injection Simulator*. Runs experiments against EC2, ECS, EKS, RDS, networking. Enforces stop conditions via CloudWatch alarms. |
 | **Azure Chaos Studio** | Managed Azure equivalent; integrates with Azure resource types and Azure Monitor. |
 | **Gremlin / Chaos Mesh / Litmus** | Third-party / OSS platforms with a broader fault library (latency injection, packet loss, CPU hogs, disk fill). |

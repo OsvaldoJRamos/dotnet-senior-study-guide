@@ -10,7 +10,7 @@ From the *Embracing Risk* chapter of the Google SRE book:
 
 And the example the book uses:
 
-> *"If a service's SLO is to successfully serve 99.999% of all queries per quarter ... the service's error budget is a failure rate of 0.001% for a given quarter."*
+> *"imagine that a service's SLO is to successfully serve 99.999% of all queries per quarter ... the service's error budget is a failure rate of 0.001% for a given quarter."*
 
 So the calculation is:
 
@@ -52,7 +52,7 @@ The two-window approach prevents alerting on a single one-minute spike while sti
 
 ## What triggers a feature freeze
 
-The error-budget policy codifies what happens when the budget is exhausted. From the Google SRE book: when budgets deplete, *"releases are temporarily halted while additional resources are invested in system testing and development to make the system more resilient."*
+The error-budget policy codifies what happens when the budget is exhausted. From the Google SRE book *Embracing Risk* chapter, when budgets deplete: *"releases are temporarily halted while additional resources are invested in system testing and development."*
 
 A concrete policy looks like:
 

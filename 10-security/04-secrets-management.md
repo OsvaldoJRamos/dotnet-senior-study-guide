@@ -71,7 +71,7 @@ Authentication is always against Microsoft Entra ID. For authorization, Azure of
 - **Azure RBAC** (the newer, recommended model).
 - **Key Vault access policies** (the older, per-vault model).
 
-> Pick one model per vault; mixing them is a known source of "it works in dev, 403 in prod" incidents. Microsoft recommends Azure RBAC for new vaults.
+> Pick one model per vault; mixing them is a known source of "it works in dev, 403 in prod" incidents. Per the Azure Key Vault RBAC guide, *"Starting with API version 2026-02-01, Azure RBAC is the default access control model for newly created key vaults"* — prefer Azure RBAC for all new vaults.
 
 ### .NET client — Managed Identity preferred
 

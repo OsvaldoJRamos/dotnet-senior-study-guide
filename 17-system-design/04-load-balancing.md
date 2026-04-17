@@ -70,7 +70,7 @@ The LB pins a client to a specific backend, typically via a cookie or IP hash.
 When you need stickiness:
 
 - Legacy servers with in-memory session state.
-- WebSocket / SignalR without a distributed back-plane (see [SignalR Redis back-plane](../08-aspnet-core/) for the proper fix).
+- WebSocket / SignalR without a distributed back-plane (see [SignalR](../08-aspnet-core/09-signalr.md) for the proper fix).
 - Short-lived warm caches that are expensive to rebuild per request.
 
 Why it's usually wrong:

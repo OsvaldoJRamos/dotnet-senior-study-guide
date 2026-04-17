@@ -154,9 +154,9 @@ Deep dive: [Threat Modeling](../10-security/05-threat-modeling.md)
 
 ASP.NET Core uses the Synchronizer Token Pattern — the server issues a unique hidden token (field name `__RequestVerificationToken`) that the client echoes back with every unsafe request.
 
-- **MVC / Razor Pages** — `AddControllersWithViews()` and `AddRazorPages()` register antiforgery automatically; the `FormTagHelper` injects the token into any `<form method="post">`. `[AutoValidateAntiforgeryToken]` validates on POST/PUT/PATCH/DELETE only. For strict validation on every request (including GETs that mutate), use `[ValidateAntiForgeryToken]`.
+- **MVC / Razor Pages / Blazor** — per the official doc, antiforgery is auto-registered when one of `AddMvc`, `MapRazorPages`, `MapControllerRoute`, or `AddRazorComponents` (ASP.NET Core 8+) is called; the `FormTagHelper` then injects the token into any `<form method="post">`. `[AutoValidateAntiforgeryToken]` validates on POST/PUT/PATCH/DELETE only. For strict validation on every request (including GETs that mutate), use `[ValidateAntiForgeryToken]`.
 - **Minimal APIs** — antiforgery is **not** automatic. You must call `builder.Services.AddAntiforgery()` and `app.UseAntiforgery()`.
-- **Plain `AddControllers()`** — does NOT enable antiforgery by itself. Use `AddControllersWithViews()` if you render forms.
+- **Plain `AddControllers()`** — does NOT enable antiforgery. The docs explicitly say *"AddControllersWithViews must be called to have built-in antiforgery token support"*.
 
 Tokens are encrypted with the ASP.NET Core Data Protection API, which must be configured with a shared key ring for multi-instance deployments — otherwise tokens from node A look invalid on node B and users see random `400 Bad Request` failures.
 

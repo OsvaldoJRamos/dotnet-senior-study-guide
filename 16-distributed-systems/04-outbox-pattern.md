@@ -119,11 +119,11 @@ MassTransit's consumer side also supports an **inbox** (dedup by `MessageId`), c
 
 ### Wolverine
 
-Wolverine (Jeremy D. Miller, the author of MassTransit-era Marten) integrates outbox into its core messaging pipeline, with first-class support for EF Core and Marten. Outbox is configured per endpoint/message handler; durability is provided by the same DB that stores state. Verify the current API against the Wolverine docs before wiring it — the project iterates fast.
+Wolverine (Jeremy D. Miller, creator of Marten) integrates outbox into its core messaging pipeline. Per the docs, it "only supports PostgreSQL, SQL Server, and RavenDB as the underlying database and either Marten or Entity Framework Core as the application persistence framework." The public API is `UseDurableOutbox()` (per-endpoint) / `Policies.UseDurableOutboxOnAllSendingEndpoints()` (global) for sends, and `UseDurableInbox()` / `Policies.UseDurableInboxOnAllListeners()` for listens. Wolverine iterates quickly — pin the version and re-check the docs before upgrading.
 
 ### NServiceBus
 
-NServiceBus ships an Outbox feature that uses the business DB to store outgoing messages and deduplicate inbound messages. Works with SQL Persistence and NHibernate Persistence. As with MassTransit, the guarantee is at-least-once delivery with consumer-side dedup.
+NServiceBus ships an Outbox feature that uses the business DB to store outgoing messages and deduplicate inbound messages. Supported persisters (per the official docs) include SQL, NHibernate, RavenDB, MongoDB, Cosmos DB, DynamoDB, and Azure Table. As with MassTransit, the guarantee is at-least-once delivery with consumer-side dedup.
 
 ## Schema sketch
 

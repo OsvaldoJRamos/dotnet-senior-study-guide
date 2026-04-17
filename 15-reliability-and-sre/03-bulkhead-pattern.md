@@ -28,7 +28,7 @@ In modern async .NET, thread-pool bulkheads are rarely the right tool — async 
 
 Polly v7 had a distinct `Bulkhead` policy. **Polly v8 removed the named bulkhead strategy** and replaced it with the concurrency limiter from `System.Threading.RateLimiting`, exposed via the `Polly.RateLimiting` package.
 
-From the Polly v8 migration guide: *"In v8, it's not separately exposed because it's essentially a specialized type of rate limiter: the `ConcurrencyLimiter`."*
+From the Polly v8 migration guide (*Migrating bulkhead policies* section): *"In v7, the bulkhead was presented as an individual strategy. In v8, it's not separately exposed because it's essentially a specialized type of rate limiter: the `ConcurrencyLimiter`."*
 
 ```csharp
 using Polly;
@@ -41,17 +41,19 @@ var pipeline = new ResiliencePipelineBuilder()
         queueLimit: 5)     // up to 5 more can wait; beyond that, reject
     .Build();
 
-// Or with full options for partitioned / sliding-window variants:
+// For more control (custom limiter / partitioned / sliding-window), provide the limiter yourself:
+var concurrencyLimiter = new ConcurrencyLimiter(new ConcurrencyLimiterOptions
+{
+    PermitLimit = 20,
+    QueueLimit = 5,
+    QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+});
+
 var advanced = new ResiliencePipelineBuilder()
     .AddRateLimiter(new RateLimiterStrategyOptions
     {
-        RateLimiter = args => new ValueTask<RateLimitLease>(
-            new ConcurrencyLimiter(new ConcurrencyLimiterOptions
-            {
-                PermitLimit = 20,
-                QueueLimit = 5,
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
-            }).AcquireAsync(1, args.Context.CancellationToken).AsTask().Result)
+        RateLimiter = args =>
+            concurrencyLimiter.AcquireAsync(1, args.Context.CancellationToken)
     })
     .Build();
 ```

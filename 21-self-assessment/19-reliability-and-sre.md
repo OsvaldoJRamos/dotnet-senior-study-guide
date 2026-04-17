@@ -15,7 +15,7 @@ Controls:
 1. **Retry only transient errors** — never on 4xx (except 408/429), never on business rule failures.
 2. **Exponential backoff with full jitter**: `sleep = random(0, min(cap, base * 2^attempt))`.
 3. **Bound attempts** — 3 is a sane default; more is rarely better.
-4. **Retry budget / token bucket** — every successful call refills; retries drain. When empty, retries are rejected locally. AWS SDKs have done this since 2016.
+4. **Retry budget / token bucket** — every successful call refills; retries drain. When empty, retries are rejected locally. AWS's adaptive retry mode (shipped in several AWS SDKs) uses this pattern.
 5. **Idempotency-first** — retries on a non-idempotent `POST` without an idempotency key double-charge customers.
 
 Polly: `AddRetry` with `BackoffType = Exponential`, `UseJitter = true`, `MaxRetryAttempts = 3`. For HTTP specifically, `AddStandardResilienceHandler` gets these defaults right.
@@ -81,7 +81,7 @@ Deep dive: [Circuit Breaker](../15-reliability-and-sre/02-circuit-breaker.md)
 <details>
 <summary>Reveal answer</summary>
 
-Polly v7 had a distinct `Bulkhead` policy. In v8 it was **replaced by `ConcurrencyLimiter`**, which is a specialized rate limiter. The v8 migration guide states explicitly: *"In v8, it's not separately exposed because it's essentially a specialized type of rate limiter: the `ConcurrencyLimiter`."*
+Polly v7 had a distinct `Bulkhead` policy. In v8 it was **replaced by `ConcurrencyLimiter`**, which is a specialized rate limiter. The v8 migration guide states explicitly: *"In v7, the bulkhead was presented as an individual strategy. In v8, it's not separately exposed because it's essentially a specialized type of rate limiter: the `ConcurrencyLimiter`."*
 
 Implementation uses `Polly.RateLimiting` (backed by `System.Threading.RateLimiting`):
 
@@ -186,7 +186,7 @@ Deep dive: [Incident Response](../15-reliability-and-sre/06-incident-response.md
 <details>
 <summary>Reveal answer</summary>
 
-Blameless does **not** mean nameless or consequence-free. It means analysis focuses on **systemic gaps that permitted the mistake**, not the individual who made it. Google SRE workbook: postmortems *"examine gaps in system design that permitted undesirable failure modes."*
+Blameless does **not** mean nameless or consequence-free. It means analysis focuses on **systemic gaps that permitted the mistake**, not the individual who made it. Google SRE workbook, describing a good postmortem: *"The authors focused on the gaps in system design that permitted undesirable failure modes."*
 
 Test: does the root-cause section describe a *control that was missing* (no integration test for the real pool, no rollback on error spike) or a *person who slipped up* (Alice deployed the bug)? The first is useful; the second is a dead end.
 

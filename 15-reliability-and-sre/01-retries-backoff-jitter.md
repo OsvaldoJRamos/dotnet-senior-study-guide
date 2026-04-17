@@ -34,8 +34,8 @@ Jitter adds randomness to the delay so clients desynchronize. The AWS Architectu
 
 | Strategy | Formula | Notes |
 |---|---|---|
-| **Full jitter** | `sleep = random(0, min(cap, base * 2^attempt))` | Lowest total work in AWS's test — recommended default |
-| **Equal jitter** | `sleep = cap/2 + random(0, cap/2)` | Worst performer; still better than no jitter |
+| **Full jitter** | `sleep = random(0, min(cap, base * 2^attempt))` | Lowest total work in AWS's test vs Equal jitter — common default |
+| **Equal jitter** | `temp = min(cap, base * 2^attempt); sleep = temp/2 + random(0, temp/2)` | Worst performer among jitter variants; still better than no jitter |
 | **Decorrelated jitter** | `sleep = min(cap, random(base, 3 * last_sleep))` | Self-correlates with recent history; close to full jitter |
 
 > Source: AWS, *Exponential Backoff And Jitter* (Marc Brooker). Full jitter is the usual choice unless you have a specific reason to keep a minimum delay.

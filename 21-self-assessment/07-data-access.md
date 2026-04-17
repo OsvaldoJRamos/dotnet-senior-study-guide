@@ -733,7 +733,7 @@ Deep dive: [Change Data Capture](../09-data-access/12-change-data-capture.md)
 <details>
 <summary>Reveal answer</summary>
 
-**Debezium** is an open-source CDC platform that runs as **Kafka Connect** source connectors. It supports MySQL/MariaDB, PostgreSQL, Oracle, SQL Server, MongoDB, and a generic JDBC connector. Debezium runs a **snapshot** of the source tables, then tails the database log and emits `c`/`u`/`d`/`r` events (with `before`/`after` row images) into Kafka topics.
+**Debezium** is an open-source CDC platform that runs as **Kafka Connect** source connectors. It supports MySQL/MariaDB, PostgreSQL, Oracle, SQL Server, and MongoDB as sources (plus others like Db2, Cassandra, Vitess, Spanner depending on release). Debezium also ships a **JDBC sink connector** for writing CDC events from Kafka into a relational target — it is a sink, not a source. Debezium runs a **snapshot** of the source tables, then tails the database log and emits `c`/`u`/`d`/`r` events (with `before`/`after` row images) into Kafka topics.
 
 **CDC vs Outbox** — both solve "keep another store in sync with my DB":
 

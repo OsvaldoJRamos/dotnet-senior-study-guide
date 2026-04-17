@@ -1,6 +1,6 @@
 # OWASP Top 10 for .NET
 
-The OWASP Top 10 is the baseline every web engineer is expected to know. The **2021** edition (current at time of writing) is the one to memorize for interviews — the categories below use the official `AXX:2021` codes. For each, the senior signal is naming the concrete .NET API or built-in mitigation, not repeating the OWASP description.
+The OWASP Top 10 is the baseline every web engineer is expected to know. `owasp.org/Top10/` now publishes the **2025** edition as the current release, but the **2021** list is still the one you will see cited in most production guidance, compliance tooling, and interview material — the categories below use the official `AXX:2021` codes. For each, the senior signal is naming the concrete .NET API or built-in mitigation, not repeating the OWASP description.
 
 ## The categories (2021)
 
@@ -17,7 +17,7 @@ The OWASP Top 10 is the baseline every web engineer is expected to know. The **2
 | **A09:2021** | Security Logging and Monitoring Failures |
 | **A10:2021** | Server-Side Request Forgery (SSRF) |
 
-> A newer 2025 edition has been published as a release candidate on `owasp.org`; most production guidance and interview questions still reference 2021. Verify which edition your target company uses before the interview.
+> The 2025 edition is now the released version on `owasp.org/Top10/`; most production guidance and interview questions still reference 2021. Verify which edition your target company uses before the interview.
 
 ## A01:2021 — Broken Access Control
 
@@ -164,7 +164,7 @@ Deserialization of untrusted data, unsigned update mechanisms, CI/CD compromise,
 
 ### .NET mitigation
 
-- **CSRF**: ASP.NET Core's antiforgery middleware. For MVC / Razor Pages, `AddControllersWithViews()` and `AddRazorPages()` auto-register it; the `FormTagHelper` injects the hidden `__RequestVerificationToken` field. For Minimal APIs, call `builder.Services.AddAntiforgery()` and `app.UseAntiforgery()` explicitly.
+- **CSRF**: ASP.NET Core's antiforgery middleware. Per the official doc, antiforgery services are **auto-registered** only when `AddMvc`, `MapRazorPages`, `MapControllerRoute`, or `AddRazorComponents` (ASP.NET Core 8+) is called; the `FormTagHelper` then injects the hidden `__RequestVerificationToken` field. `AddControllers()` alone does NOT enable antiforgery — use `AddControllersWithViews()` if you render forms. For Minimal APIs, call `builder.Services.AddAntiforgery()` and `app.UseAntiforgery()` explicitly.
 - **Deserialization**: prefer `System.Text.Json` over `BinaryFormatter` (which is obsolete and removed in .NET 9+). Never deserialize untrusted input into polymorphic types without `TypeInfoResolver` / a type allow-list.
 - **CI/CD**: sign your own NuGet packages (`dotnet nuget sign`) and verify consumed packages.
 

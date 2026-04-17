@@ -116,12 +116,12 @@ Space: 62^7 ≈ 3.5 trillion codes in 7 chars, 62^8 ≈ 218 trillion in 8 chars.
 
 ### Option B — Snowflake-style ID
 
-Twitter Snowflake: 64-bit ID composed of `timestamp | machine_id | sequence`. Per the [Wikipedia description](https://en.wikipedia.org/wiki/Snowflake_ID) of Twitter's original design:
+Twitter Snowflake: 64-bit ID composed of `timestamp | machine_id | sequence`. Layout of Twitter's original design (see the [archived `IdWorker.scala`](https://github.com/twitter-archive/snowflake/blob/snowflake-2010/src/main/scala/com/twitter/service/snowflake/IdWorker.scala) and the [Wikipedia article](https://en.wikipedia.org/wiki/Snowflake_ID)):
 
-- **1 bit** sign (unused, zero)
-- **41 bits** timestamp (ms since custom epoch — 4 Nov 2010 UTC for Twitter, giving ~69 years)
-- **10 bits** machine id (up to 1024 workers) — Twitter split this 5/5 for datacenter/worker
-- **12 bits** sequence (up to 4 096 IDs per ms per worker)
+- **1 bit** sign (unused, zero).
+- **41 bits** timestamp in milliseconds since a custom epoch — the archived source sets `twepoch = 1288834974657L`, which is 2010-11-04 01:42:54 UTC; 41 bits gives roughly 69 years of range.
+- **10 bits** machine id (up to 1 024 workers) — Twitter's `IdWorker` splits this 5/5 into `datacenterIdBits = 5` and `workerIdBits = 5`.
+- **12 bits** sequence (up to 4 096 IDs per ms per worker).
 
 Then base62-encode to get a short string (~11 chars).
 

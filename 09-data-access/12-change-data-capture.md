@@ -44,7 +44,7 @@ Debezium is an open-source CDC platform built on **Kafka Connect**. Debezium des
 Key properties from the Debezium README:
 
 - Each connector *"deployed to the distributed Kafka Connect service monitors a database and records changes in Kafka topics"*.
-- Supported source connectors: **MySQL/MariaDB, PostgreSQL, Oracle, SQL Server, MongoDB**, plus a **JDBC** generic connector.
+- Supported source connectors: **MySQL/MariaDB, PostgreSQL, Oracle, SQL Server, MongoDB** (plus others like Db2, Cassandra, Vitess, Spanner depending on release). Debezium also ships a **JDBC sink connector** (for writing CDC events from Kafka into a relational target) — it is a sink, not a source.
 - For PostgreSQL, Debezium uses logical decoding plugins: `pgoutput` (built into Postgres), and external options like `decoderbufs` and `wal2json`.
 - Events are durable because they live in Kafka topics — consumers can be down and catch up later.
 
@@ -81,7 +81,7 @@ Microsoft Learn: *"The source of change data for change data capture is the SQL 
 - A **capture job** (SQL Server Agent) reads the log and writes rows to **change tables** in the `cdc` schema, named `cdc.<schema>_<table>_CT`.
 - Each change-table row includes `__$operation` (1=delete, 2=insert, 3=update-before, 4=update-after), `__$start_lsn`, `__$update_mask`.
 - Query via `fn_cdc_get_all_changes_<capture_instance>` and `fn_cdc_get_net_changes_<capture_instance>`.
-- The **cleanup job** runs daily (default 2 AM) and retains change data for 3 days by default.
+- The **cleanup job** runs daily at 2 AM by default, retaining change data for 4320 minutes (3 days) and removing up to 5000 rows per delete.
 - **Caveat:** CDC requires SQL Server Agent to be running. When a database has CDC enabled, log truncation is held until the capture process has processed the relevant log entries — a stuck capture job can blow up your transaction log.
 
 ### SQL Server Change Tracking (not CDC)

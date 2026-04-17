@@ -31,7 +31,7 @@ Coord ──▶│                                  │◀── ACK
 
 ### Why 2PC is avoided in microservices
 
-**Blocking.** Per the 2PC protocol: after voting `YES`, a participant holds its locks until the coordinator tells it to commit or abort. If the coordinator dies after collecting votes but before sending the decision, participants are stuck — they cannot safely roll back (maybe the others already committed) and cannot commit (maybe the others aborted). This is the protocol's defining flaw: *"the protocol's greatest disadvantage is that it is a blocking protocol."*
+**Blocking.** After voting `YES`, a participant holds its locks until the coordinator tells it to commit or abort. If the coordinator dies after collecting votes but before sending the decision, participants are stuck — they cannot safely roll back (maybe the others already committed) and cannot commit (maybe the others aborted). This is the protocol's defining flaw: the standard database-textbook treatment (Bernstein, Hadzilacos & Goodman, *Concurrency Control and Recovery in Database Systems*, 1987) characterises 2PC as a **blocking protocol** — once a participant sends `PREPARED`, "until it receives a message containing the coordinator's decision, it is unable to commit or abort."
 
 **Practical consequences:**
 
@@ -121,7 +121,8 @@ Is the operation truly cross-service (different DBs, different teams)?
 
 ## References
 
-- Two-Phase Commit (Wikipedia summary of Gray's formulation): https://en.wikipedia.org/wiki/Two-phase_commit_protocol
+- Bernstein, Hadzilacos, Goodman — *Concurrency Control and Recovery in Database Systems* (1987) — canonical treatment of 2PC and its blocking property
+- Gray — *Notes on Database Operating Systems* (1978) — original formulation of 2PC
 - Richardson — *Pattern: Saga*: https://microservices.io/patterns/data/saga.html
 - Confluent — *Exactly-Once Semantics Are Possible: Here's How Apache Kafka Does It*: https://www.confluent.io/blog/exactly-once-semantics-are-possible-heres-how-apache-kafka-does-it/
 - Kafka docs — *Transactions*: https://kafka.apache.org/documentation/#semantics

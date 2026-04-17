@@ -58,7 +58,7 @@ This is the "metrics → traces → logs" drill-down pattern. It minimizes cost:
 
 Some vendors and Honeycomb in particular argue the three pillars framing is wrong, and that **wide structured events** (one high-cardinality event per request, queryable after the fact) subsume all three. In practice most teams still run a split stack: metrics for alerting + dashboards, traces for drill-down, logs for forensics. Know the debate; in an interview, the pragmatic answer is *"three signals with a clear drill-down path, plus exemplars to jump between them."*
 
-> **Exemplars** — since Prometheus 2.26 and the OpenMetrics spec, a metric sample can carry a reference to a trace ID. Clicking a latency bucket in Grafana can jump straight to a trace in that bucket. This is what makes metrics-first observability actually workable.
+> **Exemplars** — the OpenMetrics spec defines a way for a metric sample to carry a reference to a trace ID. Prometheus added experimental exemplar storage in **2.26** (behind `--enable-feature=exemplar-storage`). Clicking a latency bucket in Grafana can jump straight to a trace in that bucket. This is what makes metrics-first observability actually workable.
 
 ---
 

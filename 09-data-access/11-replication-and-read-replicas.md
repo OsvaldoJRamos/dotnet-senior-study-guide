@@ -105,7 +105,7 @@ SQL Server AGs' forced failover: *"Forced failover is a form of manual failover 
 - Classic **async binlog replication** — default for decades; easy to scale reads, no automatic failover.
 - **Semi-sync plugin** — primary waits for at least one replica to acknowledge receipt.
 - **Group Replication** — MySQL's built-in HA/fault-tolerant cluster: *"MySQL Group Replication enables you to create elastic, highly-available, fault-tolerant replication topologies."* (`dev.mysql.com`)
-- Two modes: **single-primary** (the default, with automatic primary election) and **multi-primary** (*"all servers can accept updates, even if they are issued concurrently"*). Multi-primary requires careful conflict handling — concurrent updates to the same row are detected and the later one is rolled back.
+- Two modes: **single-primary** (the default, with automatic primary election) and **multi-primary** (*"all servers can accept updates, even if they are issued concurrently"*). Multi-primary uses an **optimistic**, certification-based approach: the docs describe it as *"based on an optimistic replication paradigm, where statements are optimistically executed and rolled back later if necessary"* — conflicting concurrent updates to the same row are detected at certification time and only one wins.
 
 ## Connection routing patterns
 

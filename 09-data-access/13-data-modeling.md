@@ -149,7 +149,7 @@ Picking the right Redis type can replace a whole layer of application logic.
 
 Cassandra is the canonical wide-column store. The primary key is **composite**: `(partition key, clustering column 1, clustering column 2, ...)`.
 
-The Cassandra project describes the primary key as *"a collection of columns identified by a unique primary key made up of the partition key and optionally additional clustering keys."* (`cassandra.apache.org`)
+The Apache Cassandra docs describe it this way: *"the first field or component of a primary key is hashed to generate the partition key and the remaining fields or components are the clustering keys that are used to sort data within a partition."* (`cassandra.apache.org`)
 
 - **Partition key** — mandatory; decides which node holds the row.
 - **Clustering columns** — optional; define the **order** of rows within a partition.

@@ -71,7 +71,7 @@ byte[] decrypted = new byte[ciphertext.Length];
 aes.Decrypt(nonce, ciphertext, tag, decrypted);
 ```
 
-> The parameterless `AesGcm(byte[])` and `AesGcm(ReadOnlySpan<byte>)` constructors are **obsolete** in .NET 8+. Always pass `tagSizeInBytes` explicitly so the code is still valid on newer runtimes.
+> The parameterless `AesGcm(byte[])` and `AesGcm(ReadOnlySpan<byte>)` constructors were marked `[Obsolete]` with `DiagnosticId="SYSLIB0053"` starting in **.NET 8**. Always pass `tagSizeInBytes` explicitly so the code is still valid on newer runtimes.
 
 Rules:
 
@@ -94,7 +94,7 @@ public class PayloadService(IDataProtectionProvider provider)
 }
 ```
 
-From the Microsoft overview: *"The ASP.NET Core data protection stack was designed to provide a built-in solution for most Web scenarios... address many of the deficiencies of the previous encryption system [and] serve as the replacement for the `<machineKey>` element in ASP.NET 1.x–4.x."* It is **not** designed for indefinite long-term storage — use Key Vault / HSMs for that.
+From the Microsoft overview: *"The ASP.NET Core data protection stack was designed to: Provide a built in solution for most Web scenarios. Address many of the deficiencies of the previous encryption system. Serve as the replacement for the `<machineKey>` element in ASP.NET 1.x - 4.x."* The same doc notes the APIs *"aren't primarily intended for indefinite persistence of confidential payloads"* and points to Windows CNG DPAPI or Azure Rights Management for that scenario — for truly long-term key custody, reach for Key Vault / HSMs.
 
 ## Asymmetric (public-key) cryptography
 
@@ -189,10 +189,10 @@ CryptographicOperations.FixedTimeEquals(expected, actual);
 
 ## .NET FIPS mode
 
-Regulated environments (US government, banking) often require FIPS 140 validation. On modern .NET, enabling FIPS mode restricts you to validated algorithms — the biggest practical consequences:
+Regulated environments (US government, banking) often require FIPS 140 validation. Per Microsoft's FIPS compliance doc, .NET Core *"Passes cryptographic primitives calls through to the standard modules the underlying operating system provides"* and *"Does not enforce the use of FIPS Approved algorithms or key sizes"* — the OS-level FIPS configuration is what restricts algorithms. Practical consequences:
 
 - Cryptographic operations route through OS-provided validated modules on Windows (CNG) / Linux (OpenSSL in FIPS mode).
-- `MD5`, and some elliptic-curve and cipher algorithms, may throw `CryptographicException`.
+- In FIPS-configured operating systems, calls into non-approved algorithms such as `MD5` or certain cipher / curve combinations typically fail at the OS layer (observed as `CryptographicException`); the exact surface depends on the OS policy.
 - Argon2 and scrypt aren't FIPS-validated; PBKDF2-HMAC-SHA256 / SHA512 is — which is why ASP.NET Core Identity defaults there.
 
 ## Anti-patterns

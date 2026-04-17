@@ -10,7 +10,7 @@ Blameless does **not** mean "no names" or "nobody is accountable." It means:
 - Assume the human acted reasonably given the information they had at the time.
 - The question is not *"why did Alice deploy at 6 PM Friday?"* but *"why did our process allow a Friday-evening deploy without a peer review?"*
 
-From the Google SRE workbook: blameless postmortems *"examine gaps in system design that permitted undesirable failure modes"* rather than "targeting people."
+From the Google SRE workbook, describing what a good postmortem's authors did: *"The authors focused on the gaps in system design that permitted undesirable failure modes."* The contrast is with postmortems that target people.
 
 Why this matters: if blame is on the table, engineers hide information. Hidden information means no learning, which means the same incident next quarter.
 
@@ -91,7 +91,7 @@ Better tools: a **causal diagram** (multiple parallel chains leading to the outc
 
 ## Publication and follow-through
 
-The SRE workbook stresses timeliness: *"Published within days of incident closure while details remain fresh."* A postmortem delivered a month later is archaeology.
+The SRE workbook stresses timeliness: *"A prompt postmortem tends to be more accurate because information is fresh in the contributors' minds."* Its good-postmortem example notes the doc was *"written and circulated less than a week after the incident was closed."* A postmortem delivered a month later is archaeology.
 
 Two discipline points seniors notice:
 

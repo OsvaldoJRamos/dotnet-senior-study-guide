@@ -125,7 +125,7 @@ Baggage vs `tracestate`:
 
 ## Activity vs ILogger — wiring the trace_id into logs
 
-ASP.NET Core's default logging middleware + OpenTelemetry already add `TraceId` / `SpanId` to log entries via `Activity.Current`. If you're rolling your own logger, capture them yourself:
+`Microsoft.Extensions.Logging` has built-in Activity tracking. When a log is written while an `Activity` is active, the logging factory implicitly creates a log scope populated from `Activity.Current` — controlled by [`LoggerFactoryOptions.ActivityTrackingOptions`](https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.loggerfactoryoptions.activitytrackingoptions). Per the official docs, `SpanId`, `TraceId`, and `ParentId` are **enabled by default** (since .NET 5); `Baggage` and `Tags` are opt-in. This works with or without OpenTelemetry — it only requires an active `Activity` (which ASP.NET Core and `HttpClient` already start). The catch: the provider must surface scope properties for you to see them (set `IncludeScopes = true` on Console; Serilog picks them up via `Enrich.FromLogContext()`). If you're rolling your own logger or want explicit control, capture from `Activity.Current` yourself:
 
 ```csharp
 // Serilog enricher — adds trace_id / span_id to every log while an Activity is active

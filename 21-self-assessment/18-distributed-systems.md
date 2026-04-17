@@ -153,7 +153,7 @@ Deep dive: [Consensus — Raft and Paxos](../16-distributed-systems/07-consensus
 - **etcd** — distributed KV store backing Kubernetes cluster state. Raft gives it linearizable reads/writes on the control plane.
 - **Consul** — HashiCorp's service discovery / mesh. Raft runs the server cluster for the KV store and service catalog; gossip (SWIM) handles larger-scale membership.
 - **CockroachDB / TiKV** — per-range replication. Each "range" is its own Raft group of 3 or 5 replicas; cross-range transactions coordinate atop.
-- **Kafka KRaft** — Kafka's move away from ZooKeeper (KIP-500) replaces the controller with a Raft-based metadata quorum. Check current Kafka release notes for the exact "production-ready" and "ZooKeeper-removed" version milestones.
+- **Kafka KRaft** — Kafka's move away from ZooKeeper (KIP-500) replaces the controller with a Raft-based metadata quorum. Marked production-ready for new clusters in 3.3 (KIP-833); ZooKeeper fully removed in 4.0.
 - **MongoDB replica sets** — primary election and log replication use a Raft-inspired protocol (protocol version 1).
 
 Interview signal: 99% of the time, a senior should **use one of these**, not implement their own Raft. Running a correct Raft library in production is multi-year work.

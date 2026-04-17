@@ -9,7 +9,7 @@ Rate limiting protects you from abuse (malicious or accidental), enforces quotas
 - **Cost control** — every downstream call (OpenAI, Twilio, Stripe) has a price tag.
 - **Back-pressure** — slow failures are better than collapse.
 
-Microsoft: *"Rate limiting can mitigate the risk of Denial of Service (DoS) attacks… It's not a comprehensive solution for Distributed Denial of Service (DDoS) attacks."* ([docs](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit)). Combine rate limiting with a WAF / CDN for L7 DDoS.
+Microsoft: *"While rate limiting can help mitigate the risk of Denial of Service (DoS) attacks by limiting the rate at which requests are processed, it's not a comprehensive solution for Distributed Denial of Service (DDoS) attacks."* ([docs](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit)). Combine rate limiting with a WAF / CDN for L7 DDoS.
 
 ## The four algorithms
 
@@ -77,7 +77,7 @@ A queue drained at a fixed rate. If the queue is full, new requests are rejected
 
 ## `System.Threading.RateLimiting` (.NET 7+)
 
-.NET ships the primitives in `System.Threading.RateLimiting` and the ASP.NET Core integration in `Microsoft.AspNetCore.RateLimiting` ([docs](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit)). Available on ASP.NET Core 7.0 through 11.0 per the official monikers on the rate-limit page.
+.NET ships the primitives in `System.Threading.RateLimiting` and the ASP.NET Core integration in `Microsoft.AspNetCore.RateLimiting` ([docs](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit)). The rate-limit middleware page is versioned for ASP.NET Core 7.0 through 11.0 (per the official monikers on the page).
 
 ### Available limiters
 
@@ -86,7 +86,7 @@ A queue drained at a fixed rate. If the queue is full, new requests are rejected
 | `FixedWindowRateLimiter` | Fixed window |
 | `SlidingWindowRateLimiter` | Sliding window (segment-based) |
 | `TokenBucketRateLimiter` | Token bucket |
-| `ConcurrencyLimiter` | Concurrency (not time-based) |
+| `ConcurrencyLimiter` | Caps concurrent in-flight requests; the docs describe it as a `RateLimiter` implementation but note it *"limits only the number of concurrent requests and doesn't cap the number of requests in a time period"* |
 | `PartitionedRateLimiter<TResource>` | Combines any of the above, keyed by tenant/user/IP |
 
 ### Minimal fixed-window example
@@ -215,7 +215,7 @@ Return predictable headers so clients can self-throttle:
 | `X-RateLimit-Reset` | Epoch seconds when the window resets |
 | `Retry-After` | Seconds (or HTTP date) after which to retry — standard on 429 and 503 |
 
-`Retry-After` is an IETF-standard header defined in RFC 9110 §10.2.3. The other `X-RateLimit-*` headers are de-facto but not standardized (the `draft-ietf-httpapi-ratelimit-headers` effort exists but was not yet finalized at the time of writing).
+`Retry-After` is an IETF-standard header defined in [RFC 9110 §10.2.3](https://datatracker.ietf.org/doc/html/rfc9110#section-10.2.3). The `X-RateLimit-*` headers above are **de-facto conventions, not an IETF standard** — the `draft-ietf-httpapi-ratelimit-headers` effort (which proposes standardized `RateLimit` / `RateLimit-Policy` fields, not the `X-` variants) expired in September 2025 without becoming an RFC. Use them, but don't rely on a client library honoring any specific name.
 
 ## Pitfalls
 

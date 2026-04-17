@@ -170,9 +170,9 @@ public class OrderStateMachine : MassTransitStateMachine<OrderSaga>
 }
 ```
 
-Storage options per the MassTransit docs include Entity Framework, MongoDB, Redis, and DynamoDB. Correlation uses a `CorrelationId` (GUID) — all events for the same saga share it.
+Storage options per the MassTransit docs include Entity Framework, Dapper, NHibernate, MongoDB, Marten, Azure Cosmos DB, Redis, DynamoDB, and Azure Table Storage. Correlation uses a `CorrelationId` (GUID) — all events for the same saga share it.
 
-**Concurrency**: optimistic concurrency is the MassTransit default — if two messages hit the same saga instance simultaneously, one wins and the other retries. Pessimistic (DB row lock) is available for pathological cases. Running an in-memory outbox inside the saga buffers outbound messages until the saga state commits; without it, a crash between "send command" and "save state" can re-send.
+**Concurrency**: MassTransit recommends **optimistic concurrency** for nearly all scenarios — if two messages hit the same saga instance simultaneously, one wins and the other retries via a concurrency-exception retry policy. Pessimistic options (serializable transactions / row locks, where the store supports them) are available for pathological cases. Running an in-memory outbox inside the saga buffers outbound messages until the saga state commits; without it, a crash between "send command" and "save state" can re-send.
 
 ## NServiceBus
 

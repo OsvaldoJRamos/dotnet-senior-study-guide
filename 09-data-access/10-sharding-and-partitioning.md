@@ -132,7 +132,7 @@ Originally built at YouTube. *"Vitess currently supports MySQL and Percona Serve
 - Two shard key strategies: **hashed** (even distribution, scatter-gather for ranges) and **ranged** (locality, hotspot risk on monotonic keys).
 - The **balancer** migrates chunks between shards automatically.
 - **Zones** pin ranges of shard key values to specific shards — used for data-residency (EU data on EU shards) and tiered storage.
-- A shard key is immutable once set, except for the special case of updating the value within the same shard; resharding is possible but heavy (`reshardCollection`).
+- MongoDB allows updating a document's shard key value (since 4.2) unless the shard key is the immutable `_id` field, but changing the value is expensive — it can move the document across shards. Changing the *shard key itself* (which fields define it) requires `reshardCollection` (MongoDB 5.0+), which is a heavy online operation.
 
 ## When NOT to shard
 

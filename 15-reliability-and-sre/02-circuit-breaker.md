@@ -107,7 +107,7 @@ services.AddHttpClient<PaymentsClient>()
 
 Circuit breakers are a step function — closed, then open, then closed again. **Adaptive concurrency** (Netflix's concurrency-limits library, Envoy's adaptive concurrency filter) continuously adjusts how many concurrent calls a client allows, based on observed latency. Load drops smoothly as the peer degrades, rather than collapsing to zero.
 
-.NET does not ship an adaptive-concurrency primitive out of the box. The closest analog is `AddConcurrencyLimiter` with tuned permits, or hedging (`AddStandardHedgingHandler`) which sends a second request when the first is slow.
+.NET does not ship an adaptive-concurrency primitive out of the box. The closest analog is `AddConcurrencyLimiter` with tuned permits, or hedging (`AddStandardHedgingHandler`), which issues additional parallel requests (optionally to alternative endpoints) when the original is slow.
 
 > Rule of thumb: circuit breaker protects you from *hammering* a dead peer; concurrency limit protects you from *overwhelming* a slow one. They compose.
 

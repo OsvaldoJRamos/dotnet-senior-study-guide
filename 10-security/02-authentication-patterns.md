@@ -116,11 +116,11 @@ builder.Services.AddAuthentication(options =>
 
 The flow every SPA and mobile app should use today:
 
-1. Client generates a random `code_verifier` (43–128 characters per RFC 7636).
-2. Client computes `code_challenge = BASE64URL(SHA256(code_verifier))` and sends it to `/authorize` with `code_challenge_method=S256`.
+1. Client generates a random `code_verifier` (43–128 characters per RFC 7636 §4.1).
+2. Client computes `code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))` (RFC 7636 §4.2) and sends it to `/authorize` with `code_challenge_method=S256`.
 3. User authenticates; authorization server returns a one-time `code` via redirect.
 4. Client POSTs `code` **plus the raw `code_verifier`** to `/token`.
-5. Server checks `BASE64URL(SHA256(code_verifier)) == code_challenge`. If yes, issues tokens.
+5. Server recomputes the challenge from the verifier and checks it matches the stored one. If yes, issues tokens.
 
 > PKCE closes the authorization-code interception attack that affects public clients (SPAs, mobile, desktop) that cannot keep a `client_secret`. Modern guidance (OAuth 2.1 draft) recommends PKCE for **all** clients, including confidential ones.
 

@@ -123,7 +123,7 @@ Use cases: service registration and discovery, health checking, KV store, Connec
 
 ### Kafka KRaft
 
-Since KIP-500, Apache Kafka has been removing its ZooKeeper dependency in favour of a Raft-based metadata quorum (KRaft). In modern Kafka releases, the cluster controller uses a Raft-inspired protocol for cluster metadata. Verify the exact version behaviour against the current Kafka release notes; the ZooKeeper-to-KRaft migration story has evolved across releases and the "production-ready" and "ZooKeeper-removed" milestones are in different versions.
+Since KIP-500, Apache Kafka has been removing its ZooKeeper dependency in favour of a Raft-based metadata quorum (KRaft). KIP-833 marked KRaft as production-ready for **new** clusters in Kafka **3.3**; ZooKeeper mode was deprecated in 3.5 (also the bridge-migration release) and **fully removed in Kafka 4.0** (KRaft-only). The cluster controller uses a Raft-inspired protocol for cluster metadata. Verify specifics against the current release notes if you're on a 3.x line — ZooKeeper-to-KRaft migration behaviour evolved across minor releases.
 
 ### MongoDB replica sets
 

@@ -134,7 +134,7 @@ Deep dive: [Rate Limiting](../17-system-design/06-rate-limiting.md)
 Three viable approaches:
 
 - **Counter + base62**: 64-bit counter, base62-encoded (7 chars = 62^7 ≈ 3.5 T codes). Simple, sequential, cache-friendly. Central counter is the bottleneck — fix with **pre-allocated ranges**: each app instance grabs 10 000 IDs from a central allocator and burns them locally.
-- **Snowflake**: 64-bit ID with `timestamp | machine_id | sequence` (Twitter's original design: 41 + 10 + 12 bits + 1 sign bit, per the Wikipedia description). No coordination needed but longer codes (~11 chars in base62). Overkill here; shines for ordered distributed IDs.
+- **Snowflake**: 64-bit ID with `timestamp | machine_id | sequence` (Twitter's original design: 1 sign + 41-bit ms timestamp since epoch `1288834974657` (2010-11-04 UTC) + 10-bit machine id (5 datacenter + 5 worker per the archived `IdWorker.scala`) + 12-bit sequence). No coordination needed but longer codes (~11 chars in base62). Overkill here; shines for ordered distributed IDs.
 - **Random with collision check**: unique constraint + retry. Stateless but collision rate grows as the keyspace fills.
 
 Senior default: **counter + base62 with pre-allocated ranges**. Mention Snowflake as the distributed alternative. Note random if unguessable URLs are a security requirement (but the namespace is still enumerable).

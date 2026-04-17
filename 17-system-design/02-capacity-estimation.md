@@ -30,7 +30,9 @@ Back-of-envelope math you do in 3-5 minutes on the whiteboard. The interviewer i
 
 Originally popularized by Jeff Dean; values below are from Colin Scott's interactive extrapolation for ~2020 (same site tracks drift year-by-year). Order of magnitude is what matters — memorize the *shape*, not the exact digits.
 
-| Operation | Latency (2020) |
+Order is fastest → slowest; values are **approximate** and drift year-by-year, so memorize the *shape*, not the exact digits.
+
+| Operation | Latency (approx, ~2020) |
 |---|---|
 | L1 cache reference | ~1 ns |
 | Branch mispredict | ~3 ns |
@@ -38,16 +40,16 @@ Originally popularized by Jeff Dean; values below are from Colin Scott's interac
 | Mutex lock/unlock | ~17 ns |
 | Main memory reference | ~100 ns |
 | Compress 1 KB with Zippy/Snappy | ~2 µs |
+| Read 1 MB sequentially from memory | ~3 µs |
 | Send 1 KB over 1 Gbps network | ~10 µs |
 | SSD random read | ~16 µs |
-| Read 1 MB sequentially from memory | ~3 µs |
-| Round trip within same datacenter | ~500 µs |
 | Read 1 MB sequentially from SSD | ~49 µs |
-| Disk seek | ~3 ms |
-| Read 1 MB sequentially from disk | ~825 µs |
+| Round trip within same datacenter | ~500 µs |
+| Read 1 MB sequentially from disk | ~1–5 ms |
+| Disk seek | ~3–10 ms |
 | Packet CA → Netherlands → CA | ~150 ms |
 
-Source: [Colin Scott — Interactive Latency](https://colin-scott.github.io/personal_website/research/interactive_latency.html). Note: many often-quoted lists are Jeff Dean's original ~2012 figures; SSD, memory, and network numbers drift every year. Quote the general shape and cite the year.
+Source: [Colin Scott — Interactive Latency](https://colin-scott.github.io/personal_website/research/interactive_latency.html) (interactive extrapolation of Jeff Dean's original ~2012 figures). SSD, memory, network, and disk numbers drift every year — quote the general shape and cite the year if you give a specific number.
 
 ### Rules of thumb you'll reuse
 

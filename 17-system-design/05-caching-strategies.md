@@ -81,7 +81,7 @@ Three tools, in increasing order of effort:
 
 When a hot key expires, N concurrent readers all miss simultaneously and hammer the source. If the source recomputation is slow, traffic piles up and you cascade-fail.
 
-> Wikipedia: *"A cache stampede is a type of cascading failure that can occur when massively parallel computing systems with caching mechanisms come under very high load."* ([source](https://en.wikipedia.org/wiki/Cache_stampede))
+> Wikipedia: *"A cache stampede is a type of cascading failure that can occur when massively parallel computing systems with caching mechanisms come under a very high load."* ([source](https://en.wikipedia.org/wiki/Cache_stampede))
 
 ### Mitigations
 
@@ -150,7 +150,7 @@ Both are in-memory, both are fast, both are commonly deployed as cache sidecars.
 
 ## HybridCache (.NET 9+)
 
-`Microsoft.Extensions.Caching.Hybrid` (part of .NET 9's ASP.NET Core) combines an L1 in-process cache and an L2 distributed cache (Redis) behind one API, with stampede protection built in. It's a newer alternative to rolling your own two-tier cache; verify the current API before using in production since it shipped with .NET 9.
+`Microsoft.Extensions.Caching.Hybrid` (shipped with ASP.NET Core 9.0) combines a primary in-process cache with an optional secondary out-of-process cache (e.g., Redis via `IDistributedCache`) behind one API, with stampede protection built in — *"the HybridCache service ensures that only one concurrent caller for a given key calls the factory method"* ([docs](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid)). It replaces hand-rolled two-tier caches and is a drop-in addition over existing `IDistributedCache` backends; the library also targets .NET Framework 4.7.2 / .NET Standard 2.0 per the compatibility section of the docs.
 
 ## CDN caching
 

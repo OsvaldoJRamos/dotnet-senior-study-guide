@@ -150,7 +150,7 @@ Verify against the original paper and the docs of any system you're using before
 
 Google Spanner uses **TrueTime**: GPS receivers and atomic clocks in every data centre deliver `now()` as an interval `[earliest, latest]` with a bounded uncertainty (typically a few ms). Spanner waits out the uncertainty at commit time so any committed transaction's timestamp is guaranteed to be in the past by the time clients see it — this is **external consistency**, a property stronger than linearizability.
 
-Without atomic clocks you can't replicate TrueTime cheaply. Alternatives (CockroachDB's "HLC + uncertainty restart", YugabyteDB, Azure Cosmos DB) approximate strong semantics using HLC plus various additional mechanisms. Validate the current behaviour against the vendor docs — these systems tune their strategy across releases.
+Without atomic clocks you can't replicate TrueTime cheaply. CockroachDB's official architecture docs describe using HLCs explicitly: *"CockroachDB implements hybrid-logical clocks (HLC) which are composed of a physical component (always close to local wall time) and a logical component (used to distinguish between events with the same physical component)."* It combines HLC with a clock-uncertainty window and transaction-restart protocol to approximate strong semantics. Other systems take different tacks (YugabyteDB uses hybrid timestamps; Cosmos DB's replication strategy is internal). Validate specific behaviour against the vendor docs before quoting it — these systems tune their strategy across releases.
 
 ## Practical guidance
 
