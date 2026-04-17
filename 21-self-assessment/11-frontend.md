@@ -1,4 +1,4 @@
-# Angular
+# Frontend
 
 > Read the questions, think about your answer, then click to reveal.
 
@@ -21,7 +21,7 @@
 
 Angular's `HttpClient` returns Observables, which lets you use operators like `retry`, `switchMap`, and cancel in-flight requests when a component is destroyed.
 
-Deep dive: [Promises vs Observables](../18-angular/01-promises-vs-observables.md)
+Deep dive: [Promises vs Observables](../18-frontend/10-promises-vs-observables.md)
 
 </details>
 
@@ -51,7 +51,7 @@ Other mapping operators for comparison:
 - `concatMap` -- queues inner subscriptions (sequential).
 - `exhaustMap` -- ignores new emissions while an inner subscription is active (good for login buttons).
 
-Deep dive: [Promises vs Observables](../18-angular/01-promises-vs-observables.md)
+Deep dive: [Promises vs Observables](../18-frontend/10-promises-vs-observables.md)
 
 </details>
 
@@ -76,7 +76,7 @@ The `async` pipe subscribes to an Observable (or Promise) in the template and **
 
 **When manual subscribe is still needed**: when you need to perform side effects (navigation, toasts), or complex orchestration that doesn't map cleanly to template binding.
 
-Deep dive: [Promises vs Observables](../18-angular/01-promises-vs-observables.md)
+Deep dive: [Promises vs Observables](../18-frontend/10-promises-vs-observables.md)
 
 </details>
 
@@ -106,7 +106,7 @@ this.user = { ...this.user, name: 'New Name' };
 
 OnPush is a major performance win for large component trees.
 
-Deep dive: [Angular Performance](../18-angular/03-angular-performance.md)
+Deep dive: [Angular Performance](../18-frontend/12-angular-performance.md)
 
 </details>
 
@@ -133,7 +133,7 @@ trackById(index: number, item: Product): number {
 
 **Impact**: without `trackBy`, re-fetching a list of 500 items recreates 500 DOM elements. With `trackBy`, Angular only updates the elements whose data actually changed. This dramatically reduces DOM manipulation and improves rendering performance.
 
-Deep dive: [Angular Performance](../18-angular/03-angular-performance.md)
+Deep dive: [Angular Performance](../18-frontend/12-angular-performance.md)
 
 </details>
 
@@ -173,7 +173,7 @@ With standalone components (Angular 14+):
 
 **Preloading strategies** like `PreloadAllModules` can load lazy modules in the background after the app bootstraps, giving you the best of both worlds.
 
-Deep dive: [Angular Performance](../18-angular/03-angular-performance.md)
+Deep dive: [Angular Performance](../18-frontend/12-angular-performance.md)
 
 </details>
 
@@ -198,7 +198,7 @@ Angular CDK provides `cdk-virtual-scroll-viewport`:
 
 **Trade-offs**: items must have a known (or estimable) height, and features like "find in page" (Ctrl+F) won't find off-screen items since they don't exist in the DOM.
 
-Deep dive: [Angular Performance](../18-angular/03-angular-performance.md)
+Deep dive: [Angular Performance](../18-frontend/12-angular-performance.md)
 
 </details>
 
@@ -238,7 +238,7 @@ this.hubConnection = new signalR.HubConnectionBuilder()
 
 5. **Scalability** -- in multi-server deployments, use a **backplane** (Redis, Azure SignalR Service) so messages reach all connected clients regardless of which server they're connected to.
 
-Deep dive: [SignalR with Angular](../18-angular/02-signalr-with-angular.md)
+Deep dive: [SignalR with Angular](../18-frontend/13-signalr-with-angular.md)
 
 </details>
 
@@ -263,7 +263,7 @@ config$ = this.http.get<Config>('/api/config').pipe(shareReplay(1));
 
 Now both subscribers share one execution, and the last value is replayed to late subscribers.
 
-Deep dive: [RxJS Fundamentals](../18-angular/04-rxjs-fundamentals.md)
+Deep dive: [RxJS Fundamentals](../18-frontend/11-rxjs-fundamentals.md)
 
 </details>
 
@@ -294,7 +294,7 @@ Why each operator:
 
 `mergeMap` would be wrong here — it would keep all in-flight requests running, letting stale responses win. `concatMap` would serialize, forcing the user to wait for every obsolete request to finish.
 
-Deep dive: [RxJS Fundamentals](../18-angular/04-rxjs-fundamentals.md)
+Deep dive: [RxJS Fundamentals](../18-frontend/11-rxjs-fundamentals.md)
 
 </details>
 
@@ -328,7 +328,189 @@ A subscription that is never unsubscribed keeps the producer alive and its callb
 
 The rule of thumb: prefer `async` pipe; if you must subscribe in code, always pair it with `takeUntilDestroyed`.
 
-Deep dive: [RxJS Fundamentals](../18-angular/04-rxjs-fundamentals.md)
+Deep dive: [RxJS Fundamentals](../18-frontend/11-rxjs-fundamentals.md)
+
+</details>
+
+---
+
+### 12. Explain the Critical Rendering Path. What is the difference between reflow, repaint, and composite?
+
+<details>
+<summary>Reveal answer</summary>
+
+Pixel pipeline: **JavaScript → Style → Layout → Paint → Composite**.
+
+- **Reflow (Layout)**: geometry changed — width, height, top, left, font-size. Re-runs layout; expensive.
+- **Repaint**: visual-only change that does not affect layout — `color`, `background-image`, `box-shadow`. Skips layout; still costs main-thread work.
+- **Composite only**: `transform` and `opacity` on a promoted layer. Handled by the compositor thread — cheapest and does not block the main thread.
+
+Rule of thumb for animations: stick to `transform` and `opacity`. `will-change` is a last-resort hint to promote layers.
+
+Deep dive: [Browser Rendering](../18-frontend/01-browser-rendering.md)
+
+</details>
+
+---
+
+### 13. What are the event phases in the DOM? When would you use event delegation?
+
+<details>
+<summary>Reveal answer</summary>
+
+Three phases: **capturing** (root → target), **target**, **bubbling** (target → root). `addEventListener` uses bubbling by default; pass `{ capture: true }` for the capturing phase.
+
+**Event delegation**: attach one listener on a common ancestor and inspect `event.target`. Use when you have many similar children, children are added/removed dynamically, or you want to avoid binding thousands of listeners.
+
+Use `{ passive: true }` for `scroll`/`touchstart`/`wheel` — lets the browser scroll on the compositor thread. In a passive listener, `preventDefault()` is a no-op.
+
+Deep dive: [DOM and Events](../18-frontend/02-dom-and-events.md)
+
+</details>
+
+---
+
+### 14. What is the difference between `Cache-Control: max-age` and `s-maxage`? What does `stale-while-revalidate` do?
+
+<details>
+<summary>Reveal answer</summary>
+
+- `max-age=N` applies to **any cache** (browser + CDN).
+- `s-maxage=N` applies to **shared caches only** (CDN / proxy). Lets you tell the CDN "hold for 1 hour" while the browser revalidates more often.
+- `stale-while-revalidate=N` (RFC 5861): the cache serves the stale response for N seconds after expiry while it revalidates in the background. Users see instant responses; the cache catches up asynchronously.
+- `stale-if-error=N`: serve stale on 5xx errors from the origin — keeps the site up during outages.
+- `immutable`: tells the browser not to revalidate even on reload (use with hashed asset filenames).
+
+Deep dive: [CDN](../18-frontend/03-cdn.md)
+
+</details>
+
+---
+
+### 15. Why should you never call `postMessage` with target `'*'`? `X-Frame-Options` vs CSP `frame-ancestors`?
+
+<details>
+<summary>Reveal answer</summary>
+
+**`postMessage(data, '*')`** sends the message to any origin currently in the target window. A malicious page could navigate the frame and receive your data. Always specify the target origin and verify `event.origin` in the receiver.
+
+**`X-Frame-Options`** (legacy): `DENY` or `SAMEORIGIN` only. `ALLOW-FROM` is obsolete.
+
+**CSP `frame-ancestors`** (modern): expressive allowlist with wildcards, `'none'`, `'self'`. Preferred. Ship both for defense in depth.
+
+The `sandbox` attribute strips iframe privileges (scripts, forms, same-origin, top-nav). Opt in with `allow-*` tokens only as needed.
+
+Deep dive: [iframes and Embedding](../18-frontend/04-iframes-and-embedding.md)
+
+</details>
+
+---
+
+### 16. When would you choose cookies over localStorage for a JWT? What flags are required?
+
+<details>
+<summary>Reveal answer</summary>
+
+Use a cookie to prevent XSS from stealing the token. JavaScript cannot read an `HttpOnly` cookie.
+
+Required flags for session cookies:
+- **`HttpOnly`** — blocks `document.cookie` access.
+- **`Secure`** — only sent over HTTPS (except localhost).
+- **`SameSite=Lax`** (default) or **`Strict`** — blocks CSRF on cross-site POSTs.
+- **`SameSite=None`** only when cross-site sending is required, and then `Secure` is mandatory.
+- `__Host-` prefix: forces `Secure`, no `Domain`, `Path=/` — hardens against subdomain attacks.
+
+Trade-off: cookies are sent on every same-site request. localStorage is fine for non-sensitive UI state.
+
+Deep dive: [Web Storage](../18-frontend/05-web-storage.md)
+
+</details>
+
+---
+
+### 17. What are the three Core Web Vitals and their "good" thresholds? Why did INP replace FID?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Metric | Measures | Good | Poor |
+|--------|----------|------|------|
+| **LCP** | Largest Contentful Paint — loading | ≤ 2.5 s | > 4.0 s |
+| **INP** | Interaction to Next Paint — responsiveness | ≤ 200 ms | > 500 ms |
+| **CLS** | Cumulative Layout Shift — visual stability | ≤ 0.1 | > 0.25 |
+
+Evaluated at the **75th percentile** of visits.
+
+**INP replaced FID** on 12 March 2024 (FID support ended 9 September 2024). FID only measured the *first* input delay. INP samples **every** interaction and reports the worst — a far better proxy for real responsiveness.
+
+Deep dive: [Web Performance](../18-frontend/06-web-performance.md)
+
+</details>
+
+---
+
+### 18. Walk through the Service Worker lifecycle. What does `skipWaiting()` do and why is it risky?
+
+<details>
+<summary>Reveal answer</summary>
+
+**install → waiting → activate → active → redundant**.
+
+- **install**: pre-cache assets here.
+- **waiting**: a new SW is installed but the old one still controls open tabs.
+- **activate**: the new SW takes over; clean up old caches.
+- **redundant**: replaced or discarded.
+
+**`skipWaiting()`** forces the new SW to activate immediately while tabs are open. Risky because a running page may have already received responses from the old SW — mixing versions in a single session leads to inconsistent behavior. Safe only when the two versions are interchangeable.
+
+**`clients.claim()`** takes over existing uncontrolled tabs on activate. Pair with `skipWaiting` cautiously.
+
+Deep dive: [PWA and Service Workers](../18-frontend/07-pwa-service-workers.md)
+
+</details>
+
+---
+
+### 19. Trade-offs between SPA, SSR, SSG, and ISR. What is hydration and why is it expensive?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Strategy | TTFB | LCP | SEO | Best for |
+|----------|------|-----|-----|----------|
+| **SPA (CSR)** | Fast | Slow | Weak w/o pre-render | Authed dashboards |
+| **SSR** | Slow | Fast | Strong | Dynamic content + SEO |
+| **SSG** | Fast | Fast | Strong | Docs, marketing, blogs |
+| **ISR** | Fast | Fast | Strong | Mostly-static with occasional updates |
+
+**Hydration**: the server ships HTML, then the client ships the same JS bundle and re-runs the framework to attach listeners and reconcile the DOM. Expensive because it downloads the full bundle, duplicates CPU work, and blocks interactivity until complete (hurts INP).
+
+Partial hydration (Astro islands), resumability (Qwik), and React Server Components reduce or eliminate this cost.
+
+Deep dive: [SPA vs SSR vs SSG](../18-frontend/08-spa-ssr-ssg.md)
+
+</details>
+
+---
+
+### 20. What are the four WCAG principles (POUR)? What is the "first rule of ARIA"?
+
+<details>
+<summary>Reveal answer</summary>
+
+**POUR**:
+- **Perceivable** — alt text, captions, contrast ≥ 4.5:1 body / 3:1 large.
+- **Operable** — keyboard-reachable, no seizure triggers, enough time.
+- **Understandable** — predictable navigation, clear errors.
+- **Robust** — works with current and future user agents, including assistive tech.
+
+Conformance levels: **A / AA / AAA**. AA is the typical legal target (EAA, ADA, Section 508, EN 301 549).
+
+**First rule of ARIA**: *"If you can use a native HTML element or attribute with the semantics and behavior you require already built in, instead of re-purposing an element and adding an ARIA role, state or property to make it accessible, then do so."*
+
+A `<button>` gives keyboard focus, Enter/Space activation, and screen-reader semantics for free.
+
+Deep dive: [Accessibility](../18-frontend/09-accessibility.md)
 
 </details>
 
