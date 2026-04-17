@@ -82,7 +82,7 @@ Two or more services write to the same tables. The database becomes the integrat
 
 "When all you have is a hammer, everything looks like a nail." Using the same favorite technology (microservices, Kafka, GraphQL, Kubernetes, MongoDB, Rust, …) regardless of whether the problem needs it.
 
-**Fix:** match the tool to the problem. See [Technology Selection](../16-soft-skills/07-technology-selection.md) for an evaluation framework.
+**Fix:** match the tool to the problem. See [Technology Selection](../20-soft-skills/07-technology-selection.md) for an evaluation framework.
 
 ### Big Ball of Mud
 
