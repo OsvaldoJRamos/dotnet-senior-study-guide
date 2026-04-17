@@ -1,6 +1,6 @@
 # .NET Senior Study Guide
 
-A comprehensive, open-source study guide covering the core topics a **senior .NET / C# developer** should know — from language fundamentals to cloud architecture.
+A comprehensive, open-source study guide covering the core topics a **senior .NET / C# developer** should know — from language fundamentals to distributed systems and production reliability.
 
 ## Who is this for?
 
@@ -10,7 +10,7 @@ A comprehensive, open-source study guide covering the core topics a **senior .NE
 
 ## What's inside?
 
-Every topic includes **concise explanations**, **code examples**, and **practical tips** — written the way you'd explain it to a colleague, not like a textbook.
+Every topic includes **concise explanations**, **code examples**, and **practical tips** — written the way you'd explain it to a colleague, not like a textbook. Sections are ordered from the most basic and essential topics to the most advanced, so the guide reads like a learning path.
 
 > All content is written in **English** with code examples in C#/.NET.
 
@@ -41,28 +41,43 @@ HTTP semantics, MIME types, REST API design, web security.
 DI, lifetimes, OAuth, resilience, middleware, caching, Minimal APIs, SignalR.
 
 ### [09 - Data Access](09-data-access/README.md)
-ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization.
+ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization, sharding, replication, CDC, data modeling.
 
-### [10 - Testing](10-testing/README.md)
+### [10 - Security](10-security/README.md)
+OWASP Top 10, authentication (Cookies/JWT/OIDC), authorization (RBAC/ABAC/policy), secrets management, threat modeling, supply chain, cryptography.
+
+### [11 - Testing](11-testing/README.md)
 Testing pyramid, mocking (Moq), best practices, stress/load testing (k6, NBomber).
 
-### [11 - DevOps](11-devops/README.md)
+### [12 - DevOps](12-devops/README.md)
 CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
 
-### [12 - Cloud](12-cloud/README.md)
+### [13 - Cloud](13-cloud/README.md)
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
-### [13 - Angular](13-angular/README.md)
+### [14 - Observability](14-observability/README.md)
+Three pillars (logs/metrics/traces), structured logging, .NET Metrics API, OpenTelemetry, correlation IDs, SLI/SLO/SLA, alerting.
+
+### [15 - Reliability and SRE](15-reliability-and-sre/README.md)
+Retries/backoff/jitter, circuit breaker, bulkhead, timeouts, chaos engineering, incident response, postmortems, error budgets.
+
+### [16 - Distributed Systems](16-distributed-systems/README.md)
+CAP theorem, consistency models, idempotency, outbox pattern, saga, distributed transactions, consensus (Raft/Paxos), clocks and ordering.
+
+### [17 - System Design](17-system-design/README.md)
+Interview framework, capacity estimation, scaling, load balancing, caching, rate limiting, case studies (URL shortener, news feed, chat).
+
+### [18 - Angular](18-angular/README.md)
 Promises vs Observables, SignalR integration, performance optimization.
 
-### [14 - AI](14-ai/README.md)
+### [19 - AI](19-ai/README.md)
 Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.
 
-### [15 - Self-Assessment](15-self-assessment/README.md)
-Test your knowledge — questions with hidden answers.
-
-### [16 - Soft Skills](16-soft-skills/README.md)
+### [20 - Soft Skills](20-soft-skills/README.md)
 Requirements, stakeholders, elicitation, user stories, communication, technology selection.
+
+### [21 - Self-Assessment](21-self-assessment/README.md)
+Test your knowledge — questions with hidden answers.
 
 ## How to use
 

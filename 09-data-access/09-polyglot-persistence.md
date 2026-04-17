@@ -182,4 +182,4 @@ Don't reach for polyglot persistence because a store sounds fashionable. Ask:
 
 ---
 
-[← Previous: Execution Plans](08-execution-plans.md) | [Back to index](README.md)
+[← Previous: Execution Plans](08-execution-plans.md) | [Next: Sharding and Partitioning →](10-sharding-and-partitioning.md) | [Back to index](README.md)

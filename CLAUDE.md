@@ -35,6 +35,20 @@ XX-section-name/
 - Files: `NN-kebab-case-in-english.md` (e.g., `01-dotnet-ecosystem.md`)
 - Numbers are zero-padded: `01`, `02`, ..., `10`, `11`
 
+### Section ordering (MANDATORY)
+
+**Sections must be ordered from the most basic and essential topics to the most complex.** The sequence reads as a learning path: language fundamentals → CS fundamentals → architecture → web → security → data → quality → ops → production concerns → distributed systems → system design → specializations → non-technical → assessment. Never dump a new section at the end by default — find the right spot in the progression.
+
+**The `self-assessment/` section must always be the LAST numbered section.** It aggregates questions for every other section, so it can only exist after the rest of the material is defined.
+
+When adding a new section:
+1. Determine where it naturally fits in the basic-to-complex progression (see the "Current Sections" table below for the reference order).
+2. Renumber every downstream section (including `self-assessment/`) and update ALL cross-references.
+3. Update section README titles (`# XX - Section Name`), the root `README.md`, the CLAUDE.md "Current Sections" table, and any `../XX-section-name/` paths in other files (including `21-self-assessment/`).
+4. Verify with `grep` that no stale `XX-section-name` paths remain.
+
+Never insert a new section after self-assessment, and never add content files inside it that belong in a dedicated topic section.
+
 ## File Format
 
 Every topic file follows this structure:
@@ -155,7 +169,7 @@ Training-data cutoffs drift. Preview SDKs rename types between minor versions. B
 6. **Update navigation links** — add "Next" to the previous file, "Previous" to the new file
 7. **Update root README** — if the section description should change
 8. **Cross-reference** — if the topic is mentioned in other files, link to it
-9. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `15-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
+9. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `21-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
 10. **Re-verify against official docs + community discussions** — see "Source Verification". Do this AFTER the content is written, before committing.
 
 ## When Modifying Content
@@ -167,7 +181,7 @@ Training-data cutoffs drift. Preview SDKs rename types between minor versions. B
 - Use tables for comparisons (X vs Y)
 - Use blockquotes (`>`) for tips and warnings
 - Keep files focused — one topic per file, not everything in one giant file
-- **Always add/update self-assessment questions** in `15-self-assessment/` when modifying topic content
+- **Always add/update self-assessment questions** in `21-self-assessment/` when modifying topic content
 
 ## Reviewing a PR (MANDATORY)
 
@@ -231,9 +245,15 @@ Anything that a reader could challenge with "where does it say that?":
 | 07 | HTTP and Web | `07-http-and-web/` |
 | 08 | ASP.NET Core | `08-aspnet-core/` |
 | 09 | Data Access | `09-data-access/` |
-| 10 | Testing | `10-testing/` |
-| 11 | DevOps | `11-devops/` |
-| 12 | Cloud | `12-cloud/` |
-| 13 | Angular | `13-angular/` |
-| 14 | AI | `14-ai/` |
-| 15 | Self-Assessment | `15-self-assessment/` |
+| 10 | Security | `10-security/` |
+| 11 | Testing | `11-testing/` |
+| 12 | DevOps | `12-devops/` |
+| 13 | Cloud | `13-cloud/` |
+| 14 | Observability | `14-observability/` |
+| 15 | Reliability and SRE | `15-reliability-and-sre/` |
+| 16 | Distributed Systems | `16-distributed-systems/` |
+| 17 | System Design | `17-system-design/` |
+| 18 | Angular | `18-angular/` |
+| 19 | AI | `19-ai/` |
+| 20 | Soft Skills | `20-soft-skills/` |
+| 21 | Self-Assessment | `21-self-assessment/` |
