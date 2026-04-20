@@ -59,7 +59,7 @@ Instr 2:          F -> D -> E -> M -> W
 Instr 3:               F -> D -> E -> M -> W
 ```
 
-With a full pipeline, the CPU effectively retires one instruction per cycle even though each instruction takes 5 cycles end-to-end. Real x86-64 pipelines are much deeper (15–20+ stages) and **superscalar** (multiple pipelines running in parallel).
+With a full pipeline, the CPU effectively retires one instruction per cycle even though each instruction takes 5 cycles end-to-end. Real x86-64 pipelines are much deeper — typically in the 15–20-stage range on recent Intel Core and AMD Zen cores — and **superscalar** (multiple pipelines running in parallel).
 
 ### Pipeline stalls
 
@@ -76,7 +76,7 @@ Anything that breaks the steady flow creates a **stall** (also called a bubble):
 Whenever the CPU hits an `if`, a `while`, or any conditional branch, it doesn't know which path to take until the condition is evaluated. Waiting would stall the pipeline. Instead, the CPU **predicts** which way the branch will go and speculatively executes that path.
 
 - **Correct prediction:** no penalty, pipeline keeps flowing
-- **Misprediction:** the speculative work is discarded and the pipeline is flushed — a penalty of ~15–20 cycles on modern cores
+- **Misprediction:** the speculative work is discarded and the pipeline is flushed — a penalty commonly cited in the 10–20-cycle range on modern cores (the exact number depends on the microarchitecture)
 
 Branch predictors are sophisticated (they track history patterns), so predictable branches — always taken, always not taken, or following a simple pattern — are nearly free. Unpredictable branches, especially inside tight loops, are where performance dies.
 

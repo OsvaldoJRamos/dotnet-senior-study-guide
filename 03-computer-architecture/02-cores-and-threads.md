@@ -34,7 +34,7 @@ Inside one SMT-enabled core:
 
 The goal is to keep the core's execution units busy: when one thread stalls (cache miss, branch misprediction), the other thread can use the freed-up units.
 
-**SMT is not the same as "two cores."** Two real cores can genuinely run two instructions at once. An SMT pair can only do so if the two threads need *different* execution resources at the same moment. Typical SMT speedups on multi-threaded workloads are 15–30%, not 100%.
+**SMT is not the same as "two cores."** Two real cores can genuinely run two instructions at once. An SMT pair can only do so if the two threads need *different* execution resources at the same moment. Measured SMT speedups on multi-threaded workloads are usually in the tens of percent (commonly cited ranges are 15–30%), not 100% — the exact number varies widely per workload and microarchitecture.
 
 > Interview trap: "My CPU has 8 cores and 16 threads." What they mean is 8 physical cores with SMT, giving 16 logical processors. "16 threads" here is a marketing shorthand for hardware threads, not software threads.
 
@@ -102,7 +102,7 @@ The short answers:
 
 - **CPU-bound work:** roughly `Environment.ProcessorCount` concurrent threads. More just causes context switching.
 - **I/O-bound work:** use `async/await` instead of extra threads — blocked threads still occupy memory and the ThreadPool.
-- **Mixed workloads:** let the ThreadPool figure it out; it has a built-in heuristic (hill-climbing) that adjusts the worker count based on throughput.
+- **Mixed workloads:** let the ThreadPool figure it out. The docs describe it as creating and destroying worker threads "in order to optimize throughput, which is defined as the number of tasks that complete per unit of time" ([MS Learn — The managed thread pool](https://learn.microsoft.com/en-us/dotnet/standard/threading/the-managed-thread-pool)).
 
 This is the bridge to the [Concurrency and Parallelism](../05-concurrency-and-parallelism/README.md) section, which goes deep on how to *use* these threads correctly — locks, races, deadlocks, async/await.
 
