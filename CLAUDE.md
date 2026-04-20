@@ -253,7 +253,7 @@ Anything that a reader could challenge with "where does it say that?":
 | 15 | Reliability and SRE | `15-reliability-and-sre/` |
 | 16 | Distributed Systems | `16-distributed-systems/` |
 | 17 | System Design | `17-system-design/` |
-| 18 | Angular | `18-angular/` |
+| 18 | Frontend | `18-frontend/` |
 | 19 | AI | `19-ai/` |
 | 20 | Soft Skills | `20-soft-skills/` |
 | 21 | Self-Assessment | `21-self-assessment/` |

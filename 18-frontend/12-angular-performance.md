@@ -318,4 +318,4 @@ Angular 17 introduced built-in control flow blocks (`@if`, `@for`, `@switch`) th
 
 ---
 
-[← Previous: SignalR with Angular](02-signalr-with-angular.md) | [Next: RxJS Fundamentals →](04-rxjs-fundamentals.md) | [Back to index](README.md)
+[← Previous: RxJS Fundamentals](11-rxjs-fundamentals.md) | [Next: SignalR with Angular →](13-signalr-with-angular.md) | [Back to index](README.md)
