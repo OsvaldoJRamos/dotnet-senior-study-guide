@@ -22,61 +22,64 @@ Every topic includes **concise explanations**, **code examples**, and **practica
 ### [02 - Collections and LINQ](02-collections-and-linq/README.md)
 IEnumerable, IQueryable, ICollection, IList, yield return.
 
-### [03 - Memory and Performance](03-memory-and-performance/README.md)
+### [03 - Computer Architecture](03-computer-architecture/README.md)
+CPU internals (fetch-decode-execute, pipeline, branch prediction), cores and threads (SMT/Hyper-Threading, OS scheduling, .NET mapping), memory hierarchy (L1/L2/L3 cache, locality, cache lines).
+
+### [04 - Memory and Performance](04-memory-and-performance/README.md)
 Stack/Heap, Garbage Collector, memory optimization, memory leaks, structs vs classes.
 
-### [04 - Concurrency and Parallelism](04-concurrency-and-parallelism/README.md)
+### [05 - Concurrency and Parallelism](05-concurrency-and-parallelism/README.md)
 Parallel, Task, async/await, race conditions, deadlocks, SemaphoreSlim.
 
-### [05 - Algorithms and Data Structures](05-algorithms-and-data-structures/README.md)
+### [06 - Algorithms and Data Structures](06-algorithms-and-data-structures/README.md)
 Big O, sorting, searching, recursion, trees, graphs, dynamic programming, greedy — all with C# examples and complexity analysis.
 
-### [06 - Architecture and Patterns](06-architecture-and-patterns/README.md)
+### [07 - Architecture and Patterns](07-architecture-and-patterns/README.md)
 SOLID, Design Patterns, Clean Architecture, CQRS, Microservices, Messaging.
 
-### [07 - HTTP and Web](07-http-and-web/README.md)
+### [08 - HTTP and Web](08-http-and-web/README.md)
 HTTP semantics, MIME types, REST API design, web security.
 
-### [08 - ASP.NET Core](08-aspnet-core/README.md)
+### [09 - ASP.NET Core](09-aspnet-core/README.md)
 DI, lifetimes, OAuth, resilience, middleware, caching, Minimal APIs, SignalR.
 
-### [09 - Data Access](09-data-access/README.md)
+### [10 - Data Access](10-data-access/README.md)
 ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization, sharding, replication, CDC, data modeling.
 
-### [10 - Security](10-security/README.md)
+### [11 - Security](11-security/README.md)
 OWASP Top 10, authentication (Cookies/JWT/OIDC), authorization (RBAC/ABAC/policy), secrets management, threat modeling, supply chain, cryptography.
 
-### [11 - Testing](11-testing/README.md)
+### [12 - Testing](12-testing/README.md)
 Testing pyramid, mocking (Moq), best practices, stress/load testing (k6, NBomber).
 
-### [12 - DevOps](12-devops/README.md)
+### [13 - DevOps](13-devops/README.md)
 CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
 
-### [13 - Cloud](13-cloud/README.md)
+### [14 - Cloud](14-cloud/README.md)
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
-### [14 - Observability](14-observability/README.md)
+### [15 - Observability](15-observability/README.md)
 Three pillars (logs/metrics/traces), structured logging, .NET Metrics API, OpenTelemetry, correlation IDs, SLI/SLO/SLA, alerting.
 
-### [15 - Reliability and SRE](15-reliability-and-sre/README.md)
+### [16 - Reliability and SRE](16-reliability-and-sre/README.md)
 Retries/backoff/jitter, circuit breaker, bulkhead, timeouts, chaos engineering, incident response, postmortems, error budgets.
 
-### [16 - Distributed Systems](16-distributed-systems/README.md)
+### [17 - Distributed Systems](17-distributed-systems/README.md)
 CAP theorem, consistency models, idempotency, outbox pattern, saga, distributed transactions, consensus (Raft/Paxos), clocks and ordering.
 
-### [17 - System Design](17-system-design/README.md)
+### [18 - System Design](18-system-design/README.md)
 Interview framework, capacity estimation, scaling, load balancing, caching, rate limiting, case studies (URL shortener, news feed, chat).
 
-### [18 - Frontend](18-frontend/README.md)
+### [19 - Frontend](19-frontend/README.md)
 Browser rendering, DOM, CDN, iframes, Web Storage, Core Web Vitals, PWA/Service Workers, SPA/SSR/SSG, accessibility, plus Angular (Promises/Observables, RxJS, performance, SignalR).
 
-### [19 - AI](19-ai/README.md)
+### [20 - AI](20-ai/README.md)
 Tensors, embeddings, OpenAI API, prompt engineering, Semantic Kernel, RAG, MCP, architecture scenarios.
 
-### [20 - Soft Skills](20-soft-skills/README.md)
+### [21 - Soft Skills](21-soft-skills/README.md)
 Requirements, stakeholders, elicitation, user stories, communication, technology selection.
 
-### [21 - Self-Assessment](21-self-assessment/README.md)
+### [22 - Self-Assessment](22-self-assessment/README.md)
 Test your knowledge — questions with hidden answers.
 
 ## How to use

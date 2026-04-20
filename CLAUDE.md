@@ -44,7 +44,7 @@ XX-section-name/
 When adding a new section:
 1. Determine where it naturally fits in the basic-to-complex progression (see the "Current Sections" table below for the reference order).
 2. Renumber every downstream section (including `self-assessment/`) and update ALL cross-references.
-3. Update section README titles (`# XX - Section Name`), the root `README.md`, the CLAUDE.md "Current Sections" table, and any `../XX-section-name/` paths in other files (including `21-self-assessment/`).
+3. Update section README titles (`# XX - Section Name`), the root `README.md`, the CLAUDE.md "Current Sections" table, and any `../XX-section-name/` paths in other files (including `22-self-assessment/`).
 4. Verify with `grep` that no stale `XX-section-name` paths remain.
 
 Never insert a new section after self-assessment, and never add content files inside it that belong in a dedicated topic section.
@@ -169,7 +169,7 @@ Training-data cutoffs drift. Preview SDKs rename types between minor versions. B
 6. **Update navigation links** — add "Next" to the previous file, "Previous" to the new file
 7. **Update root README** — if the section description should change
 8. **Cross-reference** — if the topic is mentioned in other files, link to it
-9. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `21-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
+9. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `22-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
 10. **Re-verify against official docs + community discussions** — see "Source Verification". Do this AFTER the content is written, before committing.
 
 ## When Modifying Content
@@ -181,7 +181,7 @@ Training-data cutoffs drift. Preview SDKs rename types between minor versions. B
 - Use tables for comparisons (X vs Y)
 - Use blockquotes (`>`) for tips and warnings
 - Keep files focused — one topic per file, not everything in one giant file
-- **Always add/update self-assessment questions** in `21-self-assessment/` when modifying topic content
+- **Always add/update self-assessment questions** in `22-self-assessment/` when modifying topic content
 
 ## Reviewing a PR (MANDATORY)
 
@@ -238,22 +238,23 @@ Anything that a reader could challenge with "where does it say that?":
 |---|---------|-----------|
 | 01 | C# Fundamentals | `01-csharp-fundamentals/` |
 | 02 | Collections and LINQ | `02-collections-and-linq/` |
-| 03 | Memory and Performance | `03-memory-and-performance/` |
-| 04 | Concurrency and Parallelism | `04-concurrency-and-parallelism/` |
-| 05 | Algorithms and Data Structures | `05-algorithms-and-data-structures/` |
-| 06 | Architecture and Patterns | `06-architecture-and-patterns/` |
-| 07 | HTTP and Web | `07-http-and-web/` |
-| 08 | ASP.NET Core | `08-aspnet-core/` |
-| 09 | Data Access | `09-data-access/` |
-| 10 | Security | `10-security/` |
-| 11 | Testing | `11-testing/` |
-| 12 | DevOps | `12-devops/` |
-| 13 | Cloud | `13-cloud/` |
-| 14 | Observability | `14-observability/` |
-| 15 | Reliability and SRE | `15-reliability-and-sre/` |
-| 16 | Distributed Systems | `16-distributed-systems/` |
-| 17 | System Design | `17-system-design/` |
-| 18 | Frontend | `18-frontend/` |
-| 19 | AI | `19-ai/` |
-| 20 | Soft Skills | `20-soft-skills/` |
-| 21 | Self-Assessment | `21-self-assessment/` |
+| 03 | Computer Architecture | `03-computer-architecture/` |
+| 04 | Memory and Performance | `04-memory-and-performance/` |
+| 05 | Concurrency and Parallelism | `05-concurrency-and-parallelism/` |
+| 06 | Algorithms and Data Structures | `06-algorithms-and-data-structures/` |
+| 07 | Architecture and Patterns | `07-architecture-and-patterns/` |
+| 08 | HTTP and Web | `08-http-and-web/` |
+| 09 | ASP.NET Core | `09-aspnet-core/` |
+| 10 | Data Access | `10-data-access/` |
+| 11 | Security | `11-security/` |
+| 12 | Testing | `12-testing/` |
+| 13 | DevOps | `13-devops/` |
+| 14 | Cloud | `14-cloud/` |
+| 15 | Observability | `15-observability/` |
+| 16 | Reliability and SRE | `16-reliability-and-sre/` |
+| 17 | Distributed Systems | `17-distributed-systems/` |
+| 18 | System Design | `18-system-design/` |
+| 19 | Frontend | `19-frontend/` |
+| 20 | AI | `20-ai/` |
+| 21 | Soft Skills | `21-soft-skills/` |
+| 22 | Self-Assessment | `22-self-assessment/` |
