@@ -289,4 +289,71 @@ Deep dive: [Supply Chain Security](../11-security/06-supply-chain-security.md)
 
 ---
 
+### 13. What is the difference between authentication and authorization?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Authentication (AuthN)** — proves **who you are**. Password, TOTP, passkey, certificate, OIDC ID token. Answers: "Is this really Alice?"
+- **Authorization (AuthZ)** — decides **what you can do**. Policies, roles, claims, resource ownership. Answers: "Can Alice edit this order?"
+
+They are always separate steps, even when they live in the same middleware. In ASP.NET Core:
+
+```csharp
+app.UseAuthentication(); // establishes HttpContext.User
+app.UseAuthorization();  // evaluates [Authorize] requirements
+```
+
+Order matters — `UseAuthentication` must come before `UseAuthorization` so the policy engine has a user to inspect.
+
+Common mistake: returning `401 Unauthorized` when you should return `403 Forbidden`. `401` means "you're not authenticated"; `403` means "you're authenticated but not allowed."
+
+Deep dive: [Authentication Patterns](../11-security/02-authentication-patterns.md) · [Authorization](../11-security/03-authorization.md)
+
+</details>
+
+---
+
+### 14. What is the difference between RBAC, ABAC, and policy-based authorization?
+
+<details>
+<summary>Reveal answer</summary>
+
+Three common authorization models:
+
+| Model | Decision based on | Example |
+|-------|-------------------|---------|
+| **RBAC** (role-based) | The user's **role** | "Admins can delete orders" |
+| **ABAC** (attribute-based) | Arbitrary **attributes** of user + resource + environment | "Managers can approve expenses ≤ $10k in their own department during business hours" |
+| **Policy-based** (ASP.NET Core) | A named policy composed of **requirements + handlers** | `[Authorize(Policy = "CanEditOrder")]` checks ownership via `IAuthorizationHandler<CanEditOrderRequirement, Order>` |
+
+ASP.NET Core's `AddAuthorization(opts => opts.AddPolicy(...))` is the .NET primitive that implements both RBAC (simple role requirements) and ABAC (custom handlers inspecting resources). Prefer resource-based authorization (`AuthorizeAsync(user, resource, policy)`) over role-only checks — it scales to ownership rules that pure role checks can't express.
+
+Deep dive: [Authorization](../11-security/03-authorization.md)
+
+</details>
+
+---
+
+### 15. How should secrets be stored and accessed in a production .NET app?
+
+<details>
+<summary>Reveal answer</summary>
+
+Never put secrets in `appsettings.json`, environment variables committed to source, or Docker images. Real options:
+
+- **Local development** — `dotnet user-secrets` stores values outside the repo (`secrets.json` under the user profile).
+- **Production** — a dedicated secret manager: **Azure Key Vault**, **AWS Secrets Manager** / **Parameter Store (SecureString)**, **HashiCorp Vault**.
+- **Access** — use a **managed identity** (Azure) or **IAM role** (AWS) so the app fetches secrets *without* storing credentials itself. `DefaultAzureCredential` / IMDS handles the token exchange.
+- **Rotation** — assume secrets will be rotated; cache with a short TTL and re-fetch on 401/403, don't require a deploy to pick up a rotated value.
+- **Audit** — every secret read should be logged by the vault; review access regularly.
+
+Threat model to defend against: repo leak, build artifact leak, log leak, memory dump, rogue insider. Managed identity + short-lived tokens beats a long-lived connection string on every axis.
+
+Deep dive: [Secrets Management](../11-security/04-secrets-management.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

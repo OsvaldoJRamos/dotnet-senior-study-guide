@@ -243,3 +243,72 @@ This is why keeping data sorted (or using balanced BSTs / B-trees) enables extre
 </details>
 
 ---
+
+### 13. When do you use BFS vs DFS on a graph?
+
+<details>
+<summary>Reveal answer</summary>
+
+Both visit every vertex once (O(V + E)), but the order — and therefore what they're good for — is different.
+
+| Algorithm | Data structure | Typical problems |
+|-----------|---------------|------------------|
+| **BFS** | Queue (FIFO) | Shortest path on **unweighted** graphs, level-order traversal, finding the minimum number of steps to a goal |
+| **DFS** | Stack (or recursion) | Cycle detection, topological sort, connected components, path existence, backtracking search |
+
+BFS explores layer by layer, so the first time it reaches a node is guaranteed to be the shortest hop count. DFS dives deep first, so it's natural for "explore all paths" problems.
+
+For **weighted** graphs with non-negative weights, use **Dijkstra**. With negative weights, **Bellman-Ford**. With a heuristic to a known target, **A***.
+
+Deep dive: [Trees and Graphs](../06-algorithms-and-data-structures/07-trees-and-graphs.md)
+
+</details>
+
+---
+
+### 14. What is the two-pointer technique, and when is it useful?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Two pointers** walk through a collection (often a sorted array) using two indices moving under coordinated rules — converging from both ends, chasing each other, or sliding a window.
+
+Common applications:
+- **Sorted-array pair-sum** — one pointer at each end; move inward based on comparison. O(n), no extra space.
+- **Remove duplicates in place** — a slow pointer writes uniques, a fast pointer scans.
+- **Sliding window** — expand the right pointer, shrink the left when a constraint breaks (longest substring without repeating characters, min-length subarray with sum ≥ target).
+- **Linked-list cycle detection** — Floyd's tortoise and hare (slow +1, fast +2).
+
+Wins: replaces an O(n²) nested loop with O(n), and usually uses O(1) extra space.
+
+Deep dive: [Arrays and Linked Lists](../06-algorithms-and-data-structures/02-arrays-and-linked-lists.md)
+
+</details>
+
+---
+
+### 15. What are the key operations and complexities of a heap / priority queue?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **binary heap** is a complete binary tree kept in array form where every parent obeys a heap property (min-heap: parent ≤ children). It backs a **priority queue**.
+
+| Operation | Complexity |
+|-----------|-----------|
+| `Peek` (top) | O(1) |
+| `Enqueue` / insert | O(log n) |
+| `Dequeue` / extract top | O(log n) |
+| `Heapify` from array | O(n) |
+
+`PriorityQueue<TElement, TPriority>` (.NET 6+) is a min-heap by default: `new PriorityQueue<Job, int>()` dequeues the lowest priority first. Pass a custom comparer (or negate the priority) for max-heap behavior.
+
+Classic uses: Dijkstra / A*, top-k problems (use a size-k min-heap to keep the k largest), merging k sorted streams, task schedulers.
+
+Note: `PriorityQueue<TElement, TPriority>` is **not thread-safe** — wrap it with your own synchronization for concurrent use.
+
+Deep dive: [Trees and Graphs](../06-algorithms-and-data-structures/07-trees-and-graphs.md)
+
+</details>
+
+---

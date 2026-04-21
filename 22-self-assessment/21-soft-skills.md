@@ -246,4 +246,79 @@ Deep dive: [Stakeholders](../21-soft-skills/03-stakeholders.md) and [Requirement
 
 ---
 
+### 13. What makes a good user story, and what does INVEST stand for?
+
+<details>
+<summary>Reveal answer</summary>
+
+**INVEST** (Bill Wake) is a checklist for user stories:
+
+- **I**ndependent — can be built and delivered without waiting on another story.
+- **N**egotiable — captures intent, not a fixed contract; the team refines details with the PO.
+- **V**aluable — delivers clear value to a user or stakeholder. "Refactor module X" is a task, not a story.
+- **E**stimable — small and clear enough that the team can size it.
+- **S**mall — fits in a sprint; larger items are **epics** and must be split.
+- **T**estable — has acceptance criteria that can be verified objectively.
+
+Format: *"As a \<persona\>, I want \<capability\>, so that \<outcome\>."* The **so that** clause is the one most teams skip — and the one that saves you when scope creeps.
+
+Pair stories with **acceptance criteria** (Given/When/Then is a clean format) so "done" isn't subjective.
+
+Deep dive: [User Stories and BDD](../21-soft-skills/04-user-stories-and-bdd.md)
+
+</details>
+
+---
+
+### 14. How do you adapt technical communication for different audiences?
+
+<details>
+<summary>Reveal answer</summary>
+
+The same system needs very different framings for different readers. A senior engineer's job includes choosing the frame.
+
+| Audience | What they want | What you lead with |
+|----------|---------------|--------------------|
+| **Peer engineers** | Correctness, trade-offs, edge cases | API shape, failure modes, benchmarks |
+| **Tech lead / staff** | Architecture fit, long-term maintenance | Design decisions, alternatives considered, rollback plan |
+| **Engineering manager** | Delivery, risk, team capacity | Scope, milestones, dependencies, blockers |
+| **Product manager** | Customer impact, timeline, trade-offs | Behavior change, launch dates, what's NOT in scope |
+| **Executive / sponsor** | Outcome, cost, risk in one page | One-line summary, business impact, ask |
+
+Rules that apply everywhere:
+- **Lead with the answer** (BLUF — Bottom Line Up Front). Detail goes below for those who want it.
+- **Show the shape of the decision**, not just the recommendation — two or three alternatives with reasons to pick each.
+- **Name the trade-off explicitly.** A senior write-up makes the unavoidable cost visible; a junior one hides it.
+- **Use the other side's vocabulary.** Don't make execs read microservice jargon; don't make architects read MBA slides.
+
+Deep dive: [Communication and Audience](../21-soft-skills/06-communication-and-audience.md)
+
+</details>
+
+---
+
+### 15. How would you evaluate two competing technologies for a green-field project?
+
+<details>
+<summary>Reveal answer</summary>
+
+A structured comparison, not a vote. Typical axes:
+
+1. **Problem fit** — does it solve the actual problem, or only most of it? List the must-haves.
+2. **Team expertise** — the tool we'll be productive with in 2 weeks beats the ideal tool we'd be productive with in 6 months.
+3. **Operational maturity** — monitoring, backup, upgrade story, managed offerings. Pretty at hello-world, ugly at 3 a.m.
+4. **Total cost of ownership** — license, infra, people. Open-source is not free; vendor-managed isn't always expensive.
+5. **Community / ecosystem** — Stack Overflow answers, GitHub issue responsiveness, third-party libraries. A dead tool is a liability.
+6. **Lock-in and exit path** — can we migrate off if we need to? What does that cost?
+7. **Compliance / security** — data residency, certifications (SOC 2, HIPAA), vulnerability history.
+8. **Performance against *our* workload** — not against synthetic benchmarks. Prototype it.
+
+Output: a **short decision doc** (ADR) with the criteria, the scores, and the chosen option. Date it and link from the README. Six months later, when someone asks "why did we pick X?", the answer is one link away.
+
+Deep dive: [Technology Selection](../21-soft-skills/07-technology-selection.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

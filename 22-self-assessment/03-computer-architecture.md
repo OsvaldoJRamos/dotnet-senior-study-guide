@@ -218,4 +218,55 @@ Deep dive: [Memory Hierarchy](../03-computer-architecture/03-memory-hierarchy.md
 
 ---
 
+### 11. Why is iterating an array of structs often faster than an array of class instances?
+
+<details>
+<summary>Reveal answer</summary>
+
+An array of **structs** (`Point[]` where `Point` is a value type) stores the data contiguously in memory — iterating the array walks a straight line of cache lines, and the hardware prefetcher predicts the next read trivially.
+
+An array of **class** instances (`Point[]` where `Point` is a reference type) stores only references in the array; the actual objects are scattered across the heap. Every element access is a **pointer chase** that can miss the cache and stall the CPU for dozens of cycles.
+
+This is called "cache-unfriendly" access. Data-oriented design (structure of arrays, tight struct layouts) exploits the cache; class-heavy object graphs fight it.
+
+Deep dive: [Memory Hierarchy](../03-computer-architecture/03-memory-hierarchy.md)
+
+</details>
+
+---
+
+### 12. What is a branch mispredict, and how can it tank performance?
+
+<details>
+<summary>Reveal answer</summary>
+
+Modern CPUs **speculatively execute** instructions past a branch (`if`, `while`, `switch`) based on the **branch predictor's** guess. If the guess is right, work is committed for free. If it's wrong, the pipeline is **flushed** and work started on the wrong path is discarded — typically a 10–20 cycle penalty per mispredict.
+
+Well-predicted branches (same outcome repeatedly) are nearly free. Pathological cases (branching on random data) can double or triple the cost of a tight loop.
+
+The classic demo: sorting an array *before* summing only the elements above a threshold runs faster than summing the unsorted array, because the sorted version's branch is predictable.
+
+Deep dive: [CPU Internals](../03-computer-architecture/01-cpu-internals.md)
+
+</details>
+
+---
+
+### 13. What is the difference between a physical core, a logical core, and a .NET thread?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Physical core** — a real execution unit on the CPU die. Has its own execution resources (ALU, FPU) and a share of the cache.
+- **Logical core** — what the OS sees. With **Simultaneous Multithreading** (Intel Hyper-Threading, AMD SMT), one physical core exposes 2 logical cores by interleaving instructions from two threads to hide memory-access stalls. Throughput gain is usually 15–30%, not 2×.
+- **.NET thread** — a software construct. The OS scheduler maps runnable threads onto logical cores. There can be far more threads than cores; the scheduler time-slices them.
+
+`Environment.ProcessorCount` returns **logical** cores — the number .NET uses to size its thread pool and `Parallel.ForEach` degree of parallelism by default.
+
+Deep dive: [Cores and Threads](../03-computer-architecture/02-cores-and-threads.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

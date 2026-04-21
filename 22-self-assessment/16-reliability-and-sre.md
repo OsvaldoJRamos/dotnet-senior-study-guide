@@ -276,4 +276,69 @@ Deep dive: [Error Budgets](../16-reliability-and-sre/08-error-budgets.md) and [I
 
 ---
 
+### 13. What is exponential backoff with jitter, and why does "jitter" matter?
+
+<details>
+<summary>Reveal answer</summary>
+
+On a retry, wait `base × 2^n` seconds (exponential). **Jitter** adds randomness so retries don't all hit the downstream at the same time.
+
+Without jitter → **thundering herd**. 10 000 clients retry together after 1 s, together after 2 s, together after 4 s. The dependency gets periodic waves and never recovers.
+
+With jitter → retries are smeared across the window, the dependency sees a gentler curve.
+
+Variants (from the AWS Architecture Blog):
+- **Full jitter** — `sleep = random(0, base × 2^n)`. Recommended default.
+- **Equal jitter** — half the expected delay is fixed, half random.
+- **Decorrelated jitter** — each attempt's delay is a random function of the previous attempt's delay.
+
+Polly v8 / `Microsoft.Extensions.Http.Resilience` enables jitter by default when you call `AddStandardResilienceHandler()` — inspect the retry strategy before turning it off.
+
+Deep dive: [Retries, Backoff, Jitter](../16-reliability-and-sre/01-retries-backoff-jitter.md)
+
+</details>
+
+---
+
+### 14. What problem does the bulkhead pattern solve?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **bulkhead** isolates resources (connections, threads, semaphores) per dependency so a meltdown in one cannot drain resources that other dependencies need.
+
+Concrete scenario: your service depends on a user API, an orders API, and a payments API, all through one shared `HttpClient` with a connection pool of 100. The user API starts hanging. Within seconds, every one of those 100 connections is stuck waiting on the user API. Orders and payments traffic can no longer get a connection — your whole service goes down because of one sick dependency.
+
+With bulkheads: 30 connections reserved for users, 30 for orders, 30 for payments, 10 spare. User API hangs → only the user bulkhead fills up. Orders and payments keep working.
+
+In Polly v8 / `Microsoft.Extensions.Http.Resilience`, the bulkhead is expressed as `AddConcurrencyLimiter()` per named / typed client. Size it so the dependency's worst-case latency × the limiter's concurrency ≤ the downstream's real capacity.
+
+Deep dive: [Bulkhead Pattern](../16-reliability-and-sre/03-bulkhead-pattern.md)
+
+</details>
+
+---
+
+### 15. What is a postmortem, and what makes one "blameless"?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **postmortem** is a structured write-up after an incident: what happened, timeline, root cause(s), customer impact, action items. It's a learning artifact, not a punishment tool.
+
+**Blameless** means:
+- Focus on **systems and conditions**, not individuals. "The deploy tool accepted a config with a typo" — not "Alice typed a bad config."
+- Assume everyone acted reasonably with the information they had at the time. Hindsight bias is the enemy.
+- Action items target **systems** (guardrails, tests, alerts, docs, training) — not people ("be more careful").
+
+Why it matters: engineers who know they'll be blamed will **hide** mistakes — delaying detection next time. Blameless postmortems surface the weak points the next incident would have found anyway.
+
+Google's SRE book has a good template; keep the artifact public to the org so the whole team learns, not just the on-call who ran it.
+
+Deep dive: [Postmortems](../16-reliability-and-sre/07-postmortems.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

@@ -294,4 +294,74 @@ Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-a
 
 ---
 
+### 12. What is the Large Object Heap (LOH) and why is it different?
+
+<details>
+<summary>Reveal answer</summary>
+
+Objects **≥ 85,000 bytes** (arrays, strings, large buffers) go on the **Large Object Heap** instead of the regular generational heap. LOH rules differ:
+
+- LOH is **not compacted by default** — GC marks free segments in place, which fragments the heap over time.
+- LOH collections are **Gen2 collections**, so they trigger full GCs (expensive).
+- You can force one-time compaction by setting `GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce` before the next GC, but this is a hammer.
+
+Consequences:
+- Frequent allocation of large arrays leads to LOH fragmentation and Gen2 pressure.
+- Prefer **`ArrayPool<T>.Shared`** or **`MemoryPool<T>`** to reuse large buffers instead of allocating fresh ones.
+- Pre-size collections when you know the final size to avoid doubling reallocations that graduate to LOH.
+
+Deep dive: [Garbage Collector](../04-memory-and-performance/02-garbage-collector.md)
+
+</details>
+
+---
+
+### 13. When would you use `ArrayPool<T>`, and what's the risk?
+
+<details>
+<summary>Reveal answer</summary>
+
+`ArrayPool<T>.Shared.Rent(minLength)` returns a reusable array from a thread-safe pool, avoiding allocation on hot paths. Call `Return(array)` when done.
+
+Use it for:
+- Short-lived buffers in hot paths (parsers, serializers, network I/O).
+- Buffers that would otherwise hit the LOH (≥ 85,000 bytes).
+
+Risks:
+- **Forgetting to return** — the array leaks from the pool (GC still collects it, but pool efficiency drops).
+- **Returning the wrong array** — caller keeps a reference after `Return`, then reads/writes it. Another caller rents it and sees corrupted data. Always clear your local reference after return.
+- **Rented arrays can be longer than requested** — the pool gives you the next power-of-two size. Track the logical length separately.
+- **Clear-on-return**: call `Return(array, clearArray: true)` if the buffer held sensitive data (tokens, PII) to avoid leaking it to the next renter.
+
+Deep dive: [Memory Optimization](../04-memory-and-performance/03-memory-optimization.md)
+
+</details>
+
+---
+
+### 14. What is the difference between Server GC and Workstation GC?
+
+<details>
+<summary>Reveal answer</summary>
+
+The .NET runtime offers two GC flavors:
+
+| Aspect | Workstation GC | Server GC |
+|--------|----------------|-----------|
+| Default | Client apps, short-running processes | ASP.NET Core, server apps (default in many templates) |
+| Heap layout | One heap | One heap **per logical core** |
+| Pause model | Optimized for responsiveness | Optimized for throughput; pauses can be longer but rarer |
+| Threads | Single GC thread (background) | One GC thread per core |
+| Memory | Lower footprint | Higher footprint (one heap per core) |
+
+Toggle via `<ServerGarbageCollection>true</ServerGarbageCollection>` in the `.csproj` (or `DOTNET_gcServer=1`). Pair with `<ConcurrentGarbageCollection>` (background GC) for lower pause times.
+
+Rule of thumb: use Server GC for backend services with many cores; Workstation for desktop apps or small processes where memory matters more than throughput.
+
+Deep dive: [Garbage Collector](../04-memory-and-performance/02-garbage-collector.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

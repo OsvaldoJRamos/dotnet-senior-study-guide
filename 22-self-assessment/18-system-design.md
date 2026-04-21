@@ -251,4 +251,85 @@ Deep dive: [System Design Interview Framework](../18-system-design/01-system-des
 
 ---
 
+### 13. Walk through capacity estimation for a URL shortener doing 100 M new URLs / month and 10× that many reads. Roughly how big and how fast?
+
+<details>
+<summary>Reveal answer</summary>
+
+Back-of-envelope math (show the reasoning — interviewers grade the approach, not the final digit):
+
+**Writes**
+- 100 M / month ≈ 100 M / (30 × 86 400 s) ≈ **~40 writes/sec** average.
+- Peak (say 5×) ≈ **~200 writes/sec**.
+
+**Reads**
+- 10× writes → ~400 reads/sec avg, ~2 k reads/sec at peak.
+
+**Storage**
+- Per URL: ~500 bytes (original URL, short code, user ID, timestamps) → 100 M × 500 B ≈ **50 GB / month** ≈ **600 GB / year**. Cheap for any modern RDBMS / KV store.
+
+**Bandwidth**
+- 2 k reads/sec × ~1 KB response (301 redirect) ≈ 2 MB/s egress — trivial.
+
+**Cache**
+- Hot 20% of URLs absorb 80% of reads → cache top ~20 GB in Redis. Hit ratio ~85–95% is realistic.
+
+**Design implications**
+- No sharding needed for year one. Single Postgres / DynamoDB with a Redis cache is enough.
+- Short-code generation: base62(incrementing ID) or a Snowflake-style ID — not hashing (collisions).
+- Writes are light; reads are dominated by redirects → CDN edge-cache the redirect for anonymous traffic if product allows.
+
+Deep dive: [Capacity Estimation](../18-system-design/02-capacity-estimation.md) and [Case Study: URL Shortener](../18-system-design/07-case-study-url-shortener.md)
+
+</details>
+
+---
+
+### 14. What caching strategies would you compare, and when does each win?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Strategy | How it works | Wins when |
+|----------|-------------|-----------|
+| **Cache-aside (lazy)** | App checks cache; on miss, reads DB and populates cache | General-purpose; you control TTL and invalidation |
+| **Read-through** | Cache is in front of DB; reads always go through it | Simplifies app code; cache provider handles misses |
+| **Write-through** | Every write goes through the cache to the DB synchronously | Cache never goes stale; write latency is DB+cache |
+| **Write-behind (write-back)** | Write to cache; async flush to DB | Absorbs write bursts; risk of data loss on cache crash |
+| **Refresh-ahead** | Cache proactively refreshes entries before TTL | Hot keys with predictable access; reduces tail latency |
+
+Key concerns across all:
+- **Invalidation** is harder than caching — prefer short TTLs + event-driven invalidation over clever distributed cache-purge protocols.
+- **Stampede / thundering herd** on cache expiry of hot keys — use request coalescing (`single-flight`), jittered TTLs, or "stale while revalidate."
+- **Negative caching** — cache "not found" for a short period to protect the DB from repeated misses on the same missing key.
+
+Deep dive: [Caching Strategies](../18-system-design/05-caching-strategies.md)
+
+</details>
+
+---
+
+### 15. Why should rate limiting live at the edge or in Redis, not in-process?
+
+<details>
+<summary>Reveal answer</summary>
+
+An in-process rate limiter enforces **per-instance** limits. Ten instances behind a load balancer each allow 100 req/s — effective cap is 1 000 req/s, not 100. Your "rate limit" is really a random variable.
+
+Real solutions:
+- **Edge / API gateway** — CloudFront, Azure Front Door, Kong, Nginx, Cloudflare. Global view, DDoS-grade, cheap because requests die before hitting your app.
+- **Centralized store** — Redis with atomic INCR + TTL, or a fixed-/sliding-window algorithm via Lua. Every instance increments the same counter.
+- **Token bucket / leaky bucket** — smooth burstiness by refilling at a steady rate rather than hard-capping per window.
+
+Other issues to mention:
+- **Scope** — per-user, per-IP, per-API-key, per-endpoint. "IP" alone breaks behind NAT / corporate proxies.
+- **Response** — `429 Too Many Requests` with `Retry-After` header; log it but don't alert unless abuse spikes.
+- **Cost protection** for paid downstream APIs (OpenAI, SMS providers) — rate limiting is a **business control**, not just security.
+
+Deep dive: [Rate Limiting](../18-system-design/06-rate-limiting.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

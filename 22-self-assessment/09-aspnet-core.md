@@ -366,3 +366,65 @@ Deep dive: [API Resilience](../09-aspnet-core/04-api-resilience.md)
 </details>
 
 ---
+
+### 18. How do refresh tokens work, and why not just use a long-lived access token?
+
+<details>
+<summary>Reveal answer</summary>
+
+A long-lived access token is risky: if stolen, the attacker has extended access, and JWTs can't be revoked cheaply (they're stateless).
+
+**Refresh token flow**:
+1. User authenticates → gets a short-lived access token (5–15 min) + refresh token (days/weeks).
+2. Access token expires → client sends refresh token to the auth server.
+3. Auth server validates, **rotates** the refresh token (old one is invalidated), and issues a new access token.
+
+Benefits: **access tokens expire quickly** (limited damage if stolen), and **refresh tokens can be revoked** server-side (stored in DB, indexed by user/session).
+
+Important: treat refresh tokens like passwords — store them HttpOnly/Secure, detect reuse (if an already-rotated refresh token is presented, invalidate the entire chain).
+
+Deep dive: [OAuth 2.0](../09-aspnet-core/03-oauth2.md)
+
+</details>
+
+---
+
+### 19. What is the difference between OAuth 2.0 and OpenID Connect?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **OAuth 2.0** is an **authorization** framework (RFC 6749). It answers "can this app access this resource on behalf of the user?" and issues **access tokens**. It says nothing about who the user is.
+- **OpenID Connect (OIDC)** is an **authentication** layer built on top of OAuth 2.0. It adds an **ID token** (a JWT) with standardized claims (`sub`, `name`, `email`) so the client can know who logged in, plus a `UserInfo` endpoint and discovery metadata (`/.well-known/openid-configuration`).
+
+Rule of thumb:
+- "Let this app post to my Twitter" → OAuth 2.0.
+- "Log in with Google" → OIDC.
+
+In ASP.NET Core, `AddOpenIdConnect(...)` handles the OIDC dance and populates `HttpContext.User`.
+
+Deep dive: [OAuth 2.0](../09-aspnet-core/03-oauth2.md)
+
+</details>
+
+---
+
+### 20. What is the difference between `IHttpClientFactory` and `new HttpClient()`?
+
+<details>
+<summary>Reveal answer</summary>
+
+Creating `new HttpClient()` per request leaks **sockets** (SocketException / port exhaustion under load) because each client holds its own connection pool. Reusing a static `HttpClient` avoids that but locks DNS entries — if an IP changes, you keep hitting the old one.
+
+`IHttpClientFactory` (from `Microsoft.Extensions.Http`) solves both: it manages a pool of `HttpMessageHandler` instances with a configurable lifetime (default 2 minutes), so sockets are reused *and* DNS is refreshed.
+
+Three usage patterns:
+- **Named clients**: `factory.CreateClient("github")` with a preconfigured base address + headers.
+- **Typed clients**: `builder.Services.AddHttpClient<IGitHubApi, GitHubApi>()` — DI injects `GitHubApi` directly.
+- **Polly handlers**: add `.AddStandardResilienceHandler()` (Microsoft.Extensions.Http.Resilience) for retries, circuit breaker, and timeouts.
+
+Deep dive: [API Resilience](../09-aspnet-core/04-api-resilience.md)
+
+</details>
+
+---

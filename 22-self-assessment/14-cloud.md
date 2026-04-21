@@ -337,3 +337,95 @@ Deep dive: [AWS In Depth](../14-cloud/02-aws-in-depth.md)
 </details>
 
 ---
+
+### 13. What is DynamoDB, and when would you choose it over RDS?
+
+<details>
+<summary>Reveal answer</summary>
+
+**DynamoDB** is AWS's fully managed key-value / document NoSQL database. Single-digit-millisecond reads/writes at any scale, serverless, no servers to patch.
+
+Choose DynamoDB when:
+- **Access patterns are known up front** — you design the primary key and GSIs to match the queries you'll run.
+- **You need predictable low latency at high scale** — gaming leaderboards, session stores, IoT telemetry, shopping carts.
+- **Horizontal scale matters more than ad-hoc queries** — DynamoDB partitions automatically.
+
+Stay with **RDS** (PostgreSQL, MySQL, SQL Server) when:
+- Queries are **exploratory** — JOINs, aggregations, ad-hoc reporting.
+- You need **ACID transactions across many entities** — DynamoDB has transactions but is partition-aware and limited (up to 100 items, one region).
+- You need strong relational integrity, constraints, or complex reporting.
+
+Common hybrid: RDS for transactional + relational, DynamoDB for high-scale lookups, Redshift / Athena for analytics.
+
+Deep dive: [AWS Services](../14-cloud/01-aws-services.md)
+
+</details>
+
+---
+
+### 14. What is a CDN, and what does "origin" mean?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **CDN (Content Delivery Network)** is a globally distributed cache of **edge** servers that serves content close to end users. Requests hit the nearest edge; only cache misses (or uncacheable requests) travel back to your **origin** — your actual server, S3 bucket, or load balancer.
+
+Managed offerings: **CloudFront** (AWS), **Azure Front Door / CDN**, **Cloudflare**, **Fastly**.
+
+Why it matters:
+- **Latency** — geography, not bandwidth, is the bottleneck on the open internet.
+- **Cost** — egress from S3 / EC2 is pricey; edge bandwidth is cheaper.
+- **Origin protection** — the CDN absorbs traffic spikes and some DDoS.
+
+Cache keys are derived from URL + specified headers / cookies. Control freshness with `Cache-Control`, bust with versioned URLs (`/assets/app.abc123.js`) or invalidations (slow, expensive).
+
+Deep dive: [AWS Services](../14-cloud/01-aws-services.md)
+
+</details>
+
+---
+
+### 15. What is the difference between S3 bucket policies, IAM policies, and ACLs?
+
+<details>
+<summary>Reveal answer</summary>
+
+Three access-control layers on S3, evaluated together:
+
+- **IAM policies** — attached to IAM users / roles. Answer "what can this principal do across AWS?" Best for cross-resource permissions.
+- **Bucket policies** — attached to the bucket. Answer "who can access *this* bucket?" Use for sharing with another AWS account, enforcing TLS (`aws:SecureTransport`), or denying unencrypted uploads.
+- **ACLs (Access Control Lists)** — legacy per-object/per-bucket grants. AWS now recommends **disabling ACLs** (Object Ownership = Bucket owner enforced) and using IAM + bucket policies exclusively.
+
+Effective permission = union of all **allows**, minus any explicit **deny**. Always pair with **Block Public Access** at the account level to catch accidental public buckets.
+
+Deep dive: [AWS In Depth](../14-cloud/02-aws-in-depth.md)
+
+</details>
+
+---
+
+### 16. How do you design a multi-region AWS deployment for high availability?
+
+<details>
+<summary>Reveal answer</summary>
+
+Single-region with multi-AZ handles zone failure; **multi-region** handles full region outages (rare but devastating).
+
+Key building blocks:
+- **Route 53** with latency- or failover-based routing to send users to the nearest healthy region.
+- **DynamoDB Global Tables** or **Aurora Global Database** for cross-region data replication (async, eventual).
+- **S3 Cross-Region Replication** for static assets and backups.
+- **Infrastructure as Code** — everything defined in Terraform/CloudFormation so a region can be re-created deterministically.
+
+Decide your **RTO / RPO** first — those drive the pattern:
+- **Active-active** — both regions take writes. Hardest because of replication conflicts and split-brain; needed only for the strictest RTO.
+- **Active-passive (warm standby)** — one region serves live traffic, the other is ready to take over. DB replicates asynchronously; failover promotes the replica.
+- **Pilot light** — core data replicated, compute scaled to zero. Cheap but slow to spin up.
+
+Don't forget: DNS TTLs, stateful services (web sockets, sticky sessions), and the cost of the second region when it's idle.
+
+Deep dive: [AWS In Depth](../14-cloud/02-aws-in-depth.md)
+
+</details>
+
+---
