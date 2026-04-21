@@ -296,4 +296,65 @@ Deep dive: [Alerting and Dashboards](../15-observability/07-alerting-and-dashboa
 
 ---
 
+### 13. What are the three pillars of observability, and what does each answer?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Pillar | Format | Answers |
+|--------|--------|---------|
+| **Logs** | Timestamped records of discrete events | *What happened at this moment?* |
+| **Metrics** | Aggregated numeric time series | *How often / how much / how long?* |
+| **Traces** | Causally linked spans across services | *Where did time go for this request?* |
+
+They're complementary, not substitutes:
+- **Logs** are great for forensic deep-dives but expensive at high cardinality.
+- **Metrics** are cheap, real-time, and dashboardable but lose per-request detail.
+- **Traces** show the shape of a distributed call chain but sample a tiny fraction in production.
+
+Modern stacks unify them under **OpenTelemetry** — one SDK emitting all three, one exporter, one correlation model (TraceId / SpanId).
+
+Deep dive: [Three Pillars](../15-observability/01-three-pillars.md)
+
+</details>
+
+---
+
+### 14. What is the difference between SLI, SLO, and SLA?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **SLI (Service Level Indicator)** — a **measurement** of service behavior. E.g., "% of requests under 300 ms," "successful requests / total requests." Pick a small set that actually reflects user experience.
+- **SLO (Service Level Objective)** — an **internal target** on an SLI. E.g., "99.9% of requests under 300 ms over a rolling 28 days." Drives engineering priorities and the **error budget** (100% − SLO).
+- **SLA (Service Level Agreement)** — an **external, contractual** promise with consequences (credits, fines) if you miss. SLA targets are **always laxer** than SLOs, so you have internal headroom before contractual breach.
+
+Hierarchy: SLI ⊆ SLO ⊆ SLA. You measure (SLI), commit internally (SLO), promise externally (SLA).
+
+Deep dive: [SLI / SLO / SLA](../15-observability/06-sli-slo-sla.md)
+
+</details>
+
+---
+
+### 15. Why use a correlation ID, and where should it come from?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **correlation ID** (or trace ID) is a single identifier attached to every log line, metric label, and downstream call for one logical request. It lets you reconstruct "what the user saw" across services without guessing.
+
+Where it comes from (in order of preference):
+1. **Trust upstream if present** — if the request arrives with `traceparent` (W3C Trace Context) or `X-Correlation-Id`, reuse it. Enables end-to-end correlation across system boundaries.
+2. **Generate on first ingress** — at your API gateway or the outermost middleware, generate a GUID / W3C trace ID and propagate.
+3. **Propagate on every outbound call** — HTTP headers, message properties (Kafka, RabbitMQ), gRPC metadata.
+
+OpenTelemetry's `Activity` / `ActivitySource` in .NET handle this automatically — the SDK reads and writes `traceparent`. Log `Activity.Current?.TraceId` with every entry (via `ILogger` scopes or a structured logging field).
+
+Deep dive: [Correlation IDs](../15-observability/05-correlation-ids.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

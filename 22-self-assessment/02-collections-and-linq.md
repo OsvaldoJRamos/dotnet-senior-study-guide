@@ -331,4 +331,53 @@ Deep dive: [Collections Overview](../02-collections-and-linq/04-collections-over
 
 ---
 
+### 14. What's the difference between `Select`, `SelectMany`, and when do you use each?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **`Select`** transforms each element one-to-one: `users.Select(u => u.Name)` returns an `IEnumerable<string>` of the same length as `users`.
+- **`SelectMany`** projects each element to a **sequence** and **flattens** the result: `users.SelectMany(u => u.Roles)` returns one flat `IEnumerable<Role>` across all users.
+
+Mental model: `Select` is `map`; `SelectMany` is `flatMap`. Using `Select` where you need `SelectMany` gives you `IEnumerable<IEnumerable<T>>` — a common LINQ gotcha.
+
+```csharp
+// Returns IEnumerable<IEnumerable<Role>> — nested!
+users.Select(u => u.Roles);
+
+// Returns IEnumerable<Role> — flat
+users.SelectMany(u => u.Roles);
+
+// With a result selector (pair parent + child)
+users.SelectMany(u => u.Roles, (u, r) => new { u.Name, r.RoleName });
+```
+
+Deep dive: [IEnumerable vs IQueryable](../02-collections-and-linq/01-ienumerable-vs-iqueryable.md)
+
+</details>
+
+---
+
+### 15. Why does `IEnumerable` cause "multiple enumeration" warnings, and how do you fix it?
+
+<details>
+<summary>Reveal answer</summary>
+
+`IEnumerable<T>` is a **sequence you can walk**, not data you already have. Each `foreach` / LINQ terminal operator (`Count`, `Any`, `First`, `ToList`) walks it again from the beginning.
+
+If the source is a LINQ query over a DB, that means **two round-trips**. If the source is a lazy generator (`yield return`), side effects fire twice. If the source was a one-shot iterator, the second pass may be empty or throw.
+
+Fixes:
+- **Materialize once** — `var list = source.ToList();` then use `list` repeatedly. Costs memory but caps the walks at one.
+- **Use `IReadOnlyList<T>`** as the parameter type when a method needs `Count` plus iteration — signals to callers "I need a snapshot."
+- **Branch the enumeration carefully** — if you only need one of "any" vs "count", pick the cheaper operator.
+
+Rider / ReSharper warn about "Possible multiple enumeration of IEnumerable"; treat it as a real smell, not noise.
+
+Deep dive: [IEnumerable vs IQueryable](../02-collections-and-linq/01-ienumerable-vs-iqueryable.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

@@ -231,4 +231,68 @@ Deep dive: [Distributed Transactions](../17-distributed-systems/06-distributed-t
 
 ---
 
+### 13. What is the CAP theorem, and why is it often misunderstood?
+
+<details>
+<summary>Reveal answer</summary>
+
+CAP (Brewer) says: in a distributed system, during a **network partition (P)**, you must choose between **Consistency (C)** and **Availability (A)**. Partitions are inevitable in real networks, so the real daily trade-off is C vs A.
+
+Common misreadings:
+- *"Pick 2 of 3."* — outside a partition, you get C and A simultaneously; the trade-off only fires *during* a partition.
+- *"My database is CP so it's always consistent."* — only during partitions; outside, many "CP" stores give you linearizable reads but you still pay in latency.
+- *"Eventually consistent means bad."* — it's a design choice. Shopping carts and social feeds survive brief staleness; transfers and inventory don't.
+
+A sharper model is **PACELC**: under **P**artition, trade **A** vs **C**; **E**lse, trade **L**atency vs **C**onsistency. That captures the real day-to-day cost — you pay latency for every synchronous quorum even when the network is healthy.
+
+Deep dive: [CAP Theorem](../17-distributed-systems/01-cap-theorem.md)
+
+</details>
+
+---
+
+### 14. What is the outbox pattern, and what problem does it solve?
+
+<details>
+<summary>Reveal answer</summary>
+
+The outbox pattern addresses the **dual-write problem**: you need to persist a state change *and* publish an event, but the database and the broker are separate systems — no single transaction covers both. Without a fix, you'll eventually write the row but fail to publish (or vice versa).
+
+The fix: inside the **same DB transaction** as the business change, write a row to an `outbox` table describing the event. A background **relay** reads the outbox and publishes to the broker with **at-least-once** semantics, then marks the row sent (or deletes it).
+
+Properties:
+- The DB is the single source of truth — if the transaction commits, the event will eventually be published; if it rolls back, nothing leaks.
+- Consumers must be **idempotent** (deduplicate on the event's UUID / outbox row ID) because the relay may republish after a crash.
+- Alternative: **Change Data Capture (CDC)** — Debezium streams the outbox table from the WAL, no polling.
+
+Deep dive: [Outbox Pattern](../17-distributed-systems/04-outbox-pattern.md)
+
+</details>
+
+---
+
+### 15. What is the difference between a choreography saga and an orchestration saga?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **saga** is a sequence of local transactions across services, with **compensations** to undo earlier steps if a later one fails. Two styles:
+
+| Style | Control | How it works |
+|-------|---------|--------------|
+| **Choreography** | Distributed | Each service listens for events and reacts. No central coordinator. |
+| **Orchestration** | Centralized | A saga orchestrator explicitly invokes each step and decides what to do on failure. |
+
+Trade-offs:
+- **Choreography** — loose coupling, easy to add new participants (just subscribe). But global flow is **implicit**; debugging "where are we in the saga?" is hard, and cycles are easy to create.
+- **Orchestration** — explicit state machine, easy to reason about and monitor. But the orchestrator is a central point that knows about every participant, trending back toward coupling.
+
+Rule of thumb: start with orchestration when the flow is critical and has branching recovery logic (payments, order fulfillment). Use choreography for fan-out of domain events where no single owner needs to drive the whole flow.
+
+Deep dive: [Saga Pattern](../17-distributed-systems/05-saga-pattern.md)
+
+</details>
+
+---
+
 [Back to index](README.md)
