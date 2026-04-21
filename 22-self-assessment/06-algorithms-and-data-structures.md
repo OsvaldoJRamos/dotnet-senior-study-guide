@@ -292,7 +292,7 @@ Deep dive: [Arrays and Linked Lists](../06-algorithms-and-data-structures/02-arr
 <details>
 <summary>Reveal answer</summary>
 
-A **binary heap** is a complete binary tree kept in array form where every parent obeys a heap property (min-heap: parent ≤ children). It backs a **priority queue**.
+A **heap** is an array-backed tree where every parent obeys a heap property (min-heap: parent ≤ children). A binary heap is the textbook form; many implementations use d-ary heaps (e.g., 4-ary) for better cache behavior. Heaps back a **priority queue**.
 
 | Operation | Complexity |
 |-----------|-----------|
@@ -301,7 +301,7 @@ A **binary heap** is a complete binary tree kept in array form where every paren
 | `Dequeue` / extract top | O(log n) |
 | `Heapify` from array | O(n) |
 
-`PriorityQueue<TElement, TPriority>` (.NET 6+) is a min-heap by default: `new PriorityQueue<Job, int>()` dequeues the lowest priority first. Pass a custom comparer (or negate the priority) for max-heap behavior.
+`PriorityQueue<TElement, TPriority>` (.NET 6+) is an array-backed **quaternary (4-ary) min-heap** — lowest priority dequeues first: `new PriorityQueue<Job, int>()`. Pass a custom comparer (or negate the priority) for max-heap behavior.
 
 Classic uses: Dijkstra / A*, top-k problems (use a size-k min-heap to keep the k largest), merging k sorted streams, task schedulers.
 

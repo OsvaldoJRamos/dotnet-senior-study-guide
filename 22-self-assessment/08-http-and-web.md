@@ -294,13 +294,13 @@ Deep dive: [HTTP Semantics](../08-http-and-web/01-http-semantics.md)
 <details>
 <summary>Reveal answer</summary>
 
-**HTTP/2** (2015, RFC 9113):
+**HTTP/2** — originally RFC 7540 (2015), revised and obsoleted by **RFC 9113 (June 2022)**:
 - **Binary** framing instead of plain text.
 - **Multiplexing** — multiple requests/responses on a single TCP connection (no more head-of-line blocking at the HTTP layer).
 - **Header compression** (HPACK).
 - **Server push** (rarely used, mostly deprecated by browsers).
 
-**HTTP/3** (2022, RFC 9114):
+**HTTP/3** — RFC 9114 (June 2022):
 - Runs on **QUIC** over UDP instead of TCP.
 - Eliminates TCP head-of-line blocking (each stream has its own loss recovery).
 - **0-RTT** connection resumption for return visits.
