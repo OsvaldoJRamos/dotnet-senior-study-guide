@@ -4,53 +4,127 @@
 
 ---
 
-### 1. What is the difference between value types and reference types in C#?
+### 1. What is the difference between .NET, C#, and the CLR?
 
 <details>
 <summary>Reveal answer</summary>
 
-- **Value types** (`int`, `bool`, `struct`, `enum`) are stored on the **stack** (or inline in the containing object). Assignment copies the value.
-- **Reference types** (`class`, `interface`, `string`, `delegate`) are stored on the **heap**. Assignment copies the reference, not the object.
+- **C#** is a programming language — syntax, type system, features like `async`, pattern matching, records.
+- **.NET** is the platform — the SDK, the runtime, the BCL (`System.*`), the tooling (`dotnet` CLI, MSBuild, NuGet), and higher-level stacks (ASP.NET Core, EF Core).
+- **CLR (Common Language Runtime)** is the execution engine inside the runtime — it loads assemblies, JIT-compiles IL to machine code, manages memory (GC), and enforces type safety.
 
-```csharp
-int a = 10;
-int b = a;   // b is an independent copy
-b = 20;      // a is still 10
+One way to line it up: you **write** C# (language) → it compiles to **IL** in assemblies (platform artifact) → the **CLR** runs those assemblies. Other languages (F#, VB.NET) also target the CLR.
 
-var list1 = new List<int> { 1 };
-var list2 = list1;   // both point to the same object
-list2.Add(2);        // list1 also has 2 elements now
-```
+"The .NET ecosystem" also includes adjacent pieces — Roslyn (the compiler platform), the runtime libraries, ASP.NET Core, EF Core, ML.NET. Knowing which belongs where is a senior-level cue.
 
-Deep dive: [Stack and Heap](../04-memory-and-performance/01-stack-and-heap.md)
+Deep dive: [.NET Ecosystem](../01-csharp-fundamentals/01-dotnet-ecosystem.md) and [CLR and IL](../01-csharp-fundamentals/03-clr-and-il.md)
 
 </details>
 
 ---
 
-### 2. What is boxing and unboxing? When does it happen and why should you care?
+### 2. What is IL, and what does JIT compilation do?
 
 <details>
 <summary>Reveal answer</summary>
 
-- **Boxing**: wrapping a value type in an `object` (allocates on the heap).
-- **Unboxing**: extracting the value type back from the `object`.
+**IL (Intermediate Language)** — also called MSIL or CIL — is the CPU-independent bytecode that C#/F#/VB.NET all compile to. It's stored in the assembly (`.dll`/`.exe`) alongside metadata.
 
-```csharp
-int x = 42;
-object boxed = x;        // boxing — heap allocation
-int y = (int)boxed;      // unboxing — type check + copy
-```
+**JIT (Just-In-Time) compilation** — at runtime, the CLR takes the IL for a method and compiles it **to native machine code the first time the method is called**. Subsequent calls run the native code directly.
 
-It matters because boxing causes **heap allocations** and **GC pressure**. Common traps: using value types with non-generic collections (`ArrayList`), string interpolation before C# 10 with value types, and `Equals(object)` on structs.
+Consequences:
+- The same `.dll` runs on x64, ARM64, Linux, Windows — the CLR produces the right machine code for the host.
+- First-call overhead is real. **Tiered compilation** (on by default since .NET Core 3.x) mitigates it by generating a fast, unoptimized version first, then recompiling hot methods with full optimizations.
+- **ReadyToRun (R2R)** and **Native AOT** let you pre-compile IL to native ahead of time for faster startup — useful for serverless / CLI tools at the cost of some runtime optimizations.
 
-Deep dive: [Stack and Heap](../04-memory-and-performance/01-stack-and-heap.md)
+Deep dive: [CLR and IL](../01-csharp-fundamentals/03-clr-and-il.md)
 
 </details>
 
 ---
 
-### 3. What is the difference between `Equals()` and `==` in C#?
+### 3. When do you use `decimal` vs `double` vs `float` in C#?
+
+<details>
+<summary>Reveal answer</summary>
+
+They're not interchangeable — pick based on **precision** vs **range/speed**.
+
+| Type | Size | Kind | Precision | Use for |
+|------|------|------|-----------|---------|
+| `float` | 32-bit | Binary IEEE 754 | ~7 digits | GPU / graphics / ML where 32-bit floats are the norm |
+| `double` | 64-bit | Binary IEEE 754 | ~15–17 digits | Scientific / engineering / statistics |
+| `decimal` | 128-bit | Base-10 | 28–29 digits | **Money** and anything where rounding to cents must be exact |
+
+Classic trap: `0.1 + 0.2` in `double` is `0.30000000000000004` because 0.1 has no exact binary representation. In `decimal` it's exactly `0.3` because decimal is base-10.
+
+Always use `decimal` (or a dedicated money type) for financial calculations. Use `double`/`float` for measurements and math; never for currency.
+
+Deep dive: [Numeric Types](../01-csharp-fundamentals/04-numeric-types.md)
+
+</details>
+
+---
+
+### 4. What are the access modifiers in C#, and what does each do?
+
+<details>
+<summary>Reveal answer</summary>
+
+Six access modifiers (the last two are combinations):
+
+| Modifier | Visible from |
+|----------|--------------|
+| `public` | Anywhere — any assembly, any type |
+| `private` | Only the containing type (default for class members) |
+| `protected` | Containing type + derived types (any assembly) |
+| `internal` | Anywhere in the **same assembly** (default for top-level types) |
+| `protected internal` | Same assembly **OR** any derived type |
+| `private protected` | Same assembly **AND** a derived type |
+
+Some extras worth knowing:
+- **File-scoped types** (C# 11, `file class Foo`) are visible only within the same source file — useful in source generators.
+- `internal` members can be exposed to specific assemblies via `[InternalsVisibleTo("Other.Tests")]` in the project file — the usual pattern for unit-testing internals.
+
+Rule of thumb: start as restrictive as possible (`private`), widen only when a real consumer needs the access. It's far easier to widen access than to narrow it later.
+
+Deep dive: [Modifiers](../01-csharp-fundamentals/05-modifiers.md)
+
+</details>
+
+---
+
+### 5. What do `sealed`, `abstract`, `virtual`, `override`, and `new` do on class members?
+
+<details>
+<summary>Reveal answer</summary>
+
+They control inheritance and polymorphism:
+
+- **`virtual`** — marks a method/property as **overridable** in a derived class. Base class provides a default implementation.
+- **`override`** — in a derived class, **replaces** the base implementation. Resolves via the runtime type, not the declared type.
+- **`abstract`** — on a class: cannot be instantiated. On a member: has no body; derived classes **must** override.
+- **`sealed`** — on a class: cannot be inherited. On an overridden method: prevents **further** overrides down the chain.
+- **`new`** (method modifier, not the operator) — **hides** an inherited member rather than overriding it. Resolution uses the declared type. Usually a smell — you probably meant `override`.
+
+```csharp
+class Animal {
+    public virtual string Speak() => "...";
+}
+class Dog : Animal {
+    public override string Speak() => "Woof";      // polymorphic
+    public new string ToString() => "dog";         // hides, compiler warns if implicit
+}
+sealed class Puppy : Dog { }                       // no further inheritance
+```
+
+Deep dive: [Modifiers](../01-csharp-fundamentals/05-modifiers.md)
+
+</details>
+
+---
+
+### 6. What is the difference between `Equals()` and `==` in C#?
 
 <details>
 <summary>Reveal answer</summary>
@@ -71,7 +145,7 @@ Deep dive: [Equals vs ==](../01-csharp-fundamentals/06-equals-vs-operator.md)
 
 ---
 
-### 4. Explain generic constraints. What is covariance and contravariance?
+### 7. Explain generic constraints. What is covariance and contravariance?
 
 <details>
 <summary>Reveal answer</summary>
@@ -96,7 +170,7 @@ Deep dive: [Generics](../01-csharp-fundamentals/07-generics.md)
 
 ---
 
-### 5. What are delegates, Func, Action, and events? How do they relate?
+### 8. What are delegates, Func, Action, and events? How do they relate?
 
 <details>
 <summary>Reveal answer</summary>
@@ -120,7 +194,7 @@ Deep dive: [Delegates and Events](../01-csharp-fundamentals/08-delegates-and-eve
 
 ---
 
-### 6. What is the difference between a record, a class, and a struct?
+### 9. What is the difference between a record, a class, and a struct?
 
 <details>
 <summary>Reveal answer</summary>
@@ -139,7 +213,7 @@ Records give you `Equals`, `GetHashCode`, `ToString`, and `with` expressions for
 
 ---
 
-### 7. Why are strings immutable in C#? When should you use StringBuilder?
+### 10. Why are strings immutable in C#? When should you use StringBuilder?
 
 <details>
 <summary>Reveal answer</summary>
@@ -169,7 +243,7 @@ For a small, known number of concatenations, `string.Concat` or interpolation is
 
 ---
 
-### 8. What are nullable reference types and why were they introduced?
+### 11. What are nullable reference types and why were they introduced?
 
 <details>
 <summary>Reveal answer</summary>
@@ -192,7 +266,7 @@ They were introduced because `NullReferenceException` is the most common runtime
 
 ---
 
-### 9. How does pattern matching work in C#? Give practical examples.
+### 12. How does pattern matching work in C#? Give practical examples.
 
 <details>
 <summary>Reveal answer</summary>
@@ -227,54 +301,7 @@ Pattern matching replaces long `if-else` chains and makes code more declarative 
 
 ---
 
-### 10. What happens under the hood when you use async/await?
-
-<details>
-<summary>Reveal answer</summary>
-
-The compiler transforms the `async` method into a **state machine** (a struct that implements `IAsyncStateMachine`). Each `await` becomes a state transition:
-
-1. The method runs synchronously until the first `await` on an incomplete `Task`.
-2. The state machine captures the current state and registers a continuation.
-3. The thread is **released** (no blocking).
-4. When the awaited task completes, the continuation resumes on the captured `SynchronizationContext` (or thread pool if `ConfigureAwait(false)`).
-
-The method does **not** create a new thread — it just frees the current one to do other work. This is what makes async I/O scalable.
-
-Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md)
-
-</details>
-
----
-
-### 11. Explain IDisposable and the `using` statement. When do you need them?
-
-<details>
-<summary>Reveal answer</summary>
-
-`IDisposable` provides a **deterministic cleanup** mechanism for unmanaged resources (file handles, DB connections, sockets). The `using` statement guarantees `Dispose()` is called even if an exception occurs.
-
-```csharp
-// Classic
-using (var conn = new SqlConnection(connStr))
-{
-    // use connection
-} // Dispose() called here
-
-// C# 8+ using declaration
-using var stream = File.OpenRead("data.txt");
-// Dispose() called when the variable goes out of scope
-```
-
-You need `IDisposable` when your class holds unmanaged resources or wraps other disposables. If you don't dispose, you risk **memory leaks**, **connection pool exhaustion**, and **file locks**.
-
-Deep dive: [Memory Leaks](../04-memory-and-performance/04-memory-leak.md)
-
-</details>
-
----
-
-### 12. What are `ref`, `out`, and `in` parameters?
+### 13. What are `ref`, `out`, and `in` parameters?
 
 <details>
 <summary>Reveal answer</summary>
@@ -299,7 +326,7 @@ void Display(in DateTime date) => Console.WriteLine(date); // cannot modify date
 
 ---
 
-### 13. What is the difference between an interface and an abstract class?
+### 14. What is the difference between an interface and an abstract class?
 
 <details>
 <summary>Reveal answer</summary>
@@ -319,7 +346,7 @@ Use **interfaces** when unrelated types share a behavior (`ISerializable`, `ICom
 
 ---
 
-### 14. How do you properly implement equality for a custom class?
+### 15. How do you properly implement equality for a custom class?
 
 <details>
 <summary>Reveal answer</summary>
@@ -352,7 +379,7 @@ Deep dive: [Equals vs ==](../01-csharp-fundamentals/06-equals-vs-operator.md)
 
 ---
 
-### 15. What is the difference between `const` and `readonly`?
+### 16. What is the difference between `const` and `readonly`?
 
 <details>
 <summary>Reveal answer</summary>
@@ -377,7 +404,7 @@ Deep dive: [Modifiers](../01-csharp-fundamentals/05-modifiers.md)
 
 ---
 
-### 16. How does the `switch` expression differ from the `switch` statement? When would you use each?
+### 17. How does the `switch` expression differ from the `switch` statement? When would you use each?
 
 <details>
 <summary>Reveal answer</summary>
@@ -404,6 +431,61 @@ switch (status)
 ```
 
 Use **switch expressions** when mapping a value to another value. Use **switch statements** when each case triggers complex side effects.
+
+</details>
+
+---
+
+### 18. What are namespaces, and why do they matter in larger codebases?
+
+<details>
+<summary>Reveal answer</summary>
+
+A **namespace** is a logical grouping of types. It prevents name collisions and gives callers a hint about where something lives. Nothing about a namespace is enforced at runtime — it's purely a compile-time / organization tool.
+
+```csharp
+// File-scoped namespace (C# 10+)
+namespace MyApp.Orders;
+
+public class OrderService { ... }
+```
+
+Practical points:
+- **File-scoped** namespaces (C# 10) remove one indent level vs the block form.
+- `global using` declarations (C# 10) let you declare common usings once per project in a single file.
+- **Namespace ≠ assembly**. One assembly can contain many namespaces; one namespace can span several assemblies.
+- Large projects typically mirror namespaces to folder structure — not required by the compiler, but tooling (Rider/VS refactorings) assumes it.
+
+Deep dive: [Namespace](../01-csharp-fundamentals/02-namespace.md)
+
+</details>
+
+---
+
+### 19. What is the difference between `IDisposable` and `IAsyncDisposable`?
+
+<details>
+<summary>Reveal answer</summary>
+
+Both provide **deterministic cleanup** of resources the GC can't handle on its own (file handles, DB connections, sockets).
+
+- **`IDisposable`** exposes `void Dispose()`. Cleanup is synchronous.
+- **`IAsyncDisposable`** exposes `ValueTask DisposeAsync()`. Cleanup is async — for things like network flushes, DB connection closes that shouldn't block a thread.
+
+```csharp
+// Sync
+using (var conn = new SqlConnection(connStr)) { ... }   // Dispose() on exit
+
+// Async — use 'await using' (not just 'using')
+await using var stream = File.OpenRead("data.txt");     // DisposeAsync() on exit
+```
+
+Rules of thumb:
+- A type that does I/O during cleanup should implement `IAsyncDisposable` (and usually `IDisposable` too, for sync callers).
+- If a type implements both, call `DisposeAsync` when possible — `using` on such a type falls back to the synchronous path.
+- Always `await using` inside `async` methods; plain `using` on an `IAsyncDisposable` calls the sync `Dispose()` which may block.
+
+Deep dive: [Memory Leaks](../04-memory-and-performance/04-memory-leak.md)
 
 </details>
 

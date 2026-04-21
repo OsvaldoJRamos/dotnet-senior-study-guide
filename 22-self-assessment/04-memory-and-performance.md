@@ -364,4 +364,33 @@ Deep dive: [Garbage Collector](../04-memory-and-performance/02-garbage-collector
 
 ---
 
+### 15. What is boxing and unboxing? When does it happen and why should you care?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Boxing** — wrapping a value type in an `object` reference. The value is copied onto the heap and a reference returned.
+- **Unboxing** — extracting the value back from the `object`. Requires a type check; fails with `InvalidCastException` if the target type doesn't match.
+
+```csharp
+int x = 42;
+object boxed = x;        // boxing — heap allocation
+int y = (int)boxed;      // unboxing — type check + copy
+```
+
+Why you care: boxing causes **heap allocations** and therefore **GC pressure**. Common traps:
+
+- Value types stored in non-generic collections (`ArrayList`, `Hashtable`) — every insert boxes.
+- Calling `Equals(object)` or `ToString()` on a struct that doesn't override them — the struct is boxed to satisfy the signature.
+- Capturing a value type in a closure that promotes it to a heap-allocated field.
+- `string.Format(...)` / interpolation with value types in older targets (modern interpolated strings avoid boxing for built-in types).
+
+Fixes: use generic collections (`List<int>`, `Dictionary<int, string>`), override `Equals`/`GetHashCode` on performance-critical structs, use `Span<T>` and ref struct types where appropriate.
+
+Deep dive: [Stack and Heap](../04-memory-and-performance/01-stack-and-heap.md)
+
+</details>
+
+---
+
 [Back to index](README.md)
