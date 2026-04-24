@@ -32,7 +32,7 @@ var cepList = await Task.WhenAll(cepTaskList);
 
 One-line rule: `await` frees the caller when the work is done by something other than a managed thread (kernel, hardware, or a different pool thread). Otherwise someone still has to run the code.
 
-> The async docs state it directly: "The `async` and `await` keywords don't cause additional threads to be created." Concurrency comes from the wait being delegated — not from spinning up threads.
+> The async docs state it directly: "The `async` and `await` keywords don't cause extra threads to be created. Async methods don't require multithreading because an async method doesn't run on its own thread." Concurrency comes from the wait being delegated — not from spinning up threads.
 
 ## 4. PLINQ (Parallel LINQ)
 
