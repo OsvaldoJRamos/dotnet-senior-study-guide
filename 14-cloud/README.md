@@ -9,6 +9,11 @@
 5. [AWS Load Balancers](05-aws-load-balancers.md) - ALB, NLB, target groups, health checks, SSL
 6. [AWS Logging and Monitoring](06-aws-logging-and-monitoring.md) - CloudWatch Logs, X-Ray, Kinesis Firehose, CloudTrail
 
+## Useful Links
+
+- [What is a CDN? (Cloudflare Learning)](https://www.cloudflare.com/learning/cdn/what-is-a-cdn/) — vendor-neutral overview of CDNs, edge caching, and origin offload.
+- [Serverless Architectures (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/serverless-architectures/) — serverless concepts, FaaS, BaaS, trade-offs.
+
 ---
 
 [Back to index](../README.md)

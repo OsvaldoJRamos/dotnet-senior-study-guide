@@ -120,6 +120,18 @@ Different test frameworks instantiate and tear down fixtures differently. Senior
 
 **Testcontainers.NET** (`Testcontainers` NuGet) is the senior-standard approach for integration tests that need a real database, message broker, or other service. It spins up throwaway Docker containers per test run (Postgres, SQL Server, RabbitMQ, Redis, etc.), giving you real SQL semantics and real transactions — without the drawbacks of EF Core's InMemory provider or shared dev databases.
 
+## Anti-pattern: the "ice cream cone"
+
+The inverse of the pyramid — many slow, brittle E2E tests sitting on top of a thin layer of unit tests. Symptoms:
+
+- CI takes 30+ minutes because every change runs the full UI suite
+- Tests fail intermittently (flaky), so the team starts ignoring red builds
+- A small refactor breaks dozens of E2E tests because they couple to UI structure
+
+**Fix:** push tests down the pyramid. If an E2E test catches something a unit test should have caught, write the missing unit test and delete the E2E. Reserve E2E for the few user journeys that genuinely need full-stack coverage.
+
+> Test **observable behavior, not implementation**. Refactoring should not break tests — if it does, the tests are coupled to internal structure instead of what the code does.
+
 ## Test Doubles
 
 Objects that replace real dependencies in tests:

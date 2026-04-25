@@ -16,6 +16,13 @@
 12. [Change Data Capture](12-change-data-capture.md) - Debezium, Kafka Connect, log-based vs trigger-based, SQL Server CDC, PostgreSQL logical decoding, use cases
 13. [Data Modeling](13-data-modeling.md) - Normalization (1NF-BCNF), denormalization trade-offs, document embed vs reference, Cassandra partition keys, DynamoDB single-table design
 
+## Useful Links
+
+- [MongoDB Drivers (official docs)](https://www.mongodb.com/docs/drivers/) — driver documentation across languages (.NET, Node, Python, Java, etc.).
+- [SQL Performance Tuning (GeeksforGeeks)](https://www.geeksforgeeks.org/sql/sql-performance-tuning/) — overview of indexing, query rewriting, and execution-plan analysis.
+- [Transaction in DBMS (GeeksforGeeks)](https://www.geeksforgeeks.org/dbms/transaction-in-dbms/) — ACID, transaction states, schedules, recovery basics.
+- [Types of NoSQL Databases (AWS Whitepaper)](https://docs.aws.amazon.com/whitepapers/latest/choosing-an-aws-nosql-database/types-of-nosql-databases.html) — key-value, document, column-family, graph; trade-offs and AWS service mapping.
+
 ---
 
 [Back to index](../README.md)

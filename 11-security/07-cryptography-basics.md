@@ -208,4 +208,4 @@ Regulated environments (US government, banking) often require FIPS 140 validatio
 
 ---
 
-[← Previous: Supply Chain Security](06-supply-chain-security.md) | [Back to index](README.md)
+[← Previous: Supply Chain Security](06-supply-chain-security.md) | [Next: Network and Perimeter Security →](08-network-perimeter-security.md) | [Back to index](README.md)

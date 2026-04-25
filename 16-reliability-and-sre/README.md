@@ -12,6 +12,14 @@ Reliability is not a bolt-on feature — it is what keeps a system useful under 
 6. [Incident Response](06-incident-response.md) - Incident Command System (IC / Ops / Comms / Planning), severity levels, runbooks, communication cadence
 7. [Postmortems](07-postmortems.md) - Blameless culture, root cause vs contributing factors, 5 Whys pitfalls, action items (Google SRE workbook)
 8. [Error Budgets](08-error-budgets.md) - Definition, burn rate, relationship with SLOs, feature-freeze policy
+9. [High Availability and Redundancy](09-high-availability-and-redundancy.md) - Nines table, MTBF/MTTR, redundancy types, N+1 vs 2N, active-passive vs active-active, failover, multi-AZ vs multi-region, HA vs DR
+
+## Useful Links
+
+- [Availability in System Design (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/availability-in-system-design/) — availability formulas and patterns.
+- [What is High Availability? (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/what-is-high-availability-in-system-design/) — active-passive vs active-active, failover.
+- [Design Patterns for High Availability (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/design-patterns-for-high-availability/) — replication, failover cluster, load balancing, redundant components.
+- [Redundancy in System Design (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/redundancy-system-design/) — hardware/software/data/geographic redundancy.
 
 ---
 

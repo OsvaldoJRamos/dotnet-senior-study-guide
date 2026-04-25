@@ -12,6 +12,10 @@ Observability is the ability to answer arbitrary questions about a running syste
 6. [SLI, SLO, SLA](06-sli-slo-sla.md) - Definitions, error budgets, burn-rate math, examples (latency SLI, availability SLI), Google SRE model
 7. [Alerting and Dashboards](07-alerting-and-dashboards.md) - Symptom-based vs cause-based alerts, multi-window multi-burn-rate, dashboard design principles
 
+## Useful Links
+
+- [Distributed Tracing in Microservices (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/distributed-tracing-in-microservices/) — overview of trace/span concepts, propagation, and sampling.
+
 ---
 
 [Back to index](../README.md)

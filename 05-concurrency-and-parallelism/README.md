@@ -10,6 +10,10 @@
 6. [SemaphoreSlim](06-semaphore-slim.md) - Asynchronous concurrency control
 7. [Locks in Depth](07-locks-in-depth.md) - `lock`, `Monitor`, `System.Threading.Lock`, `ReaderWriterLockSlim`, `Mutex`, `SpinLock`, `Interlocked`, `Volatile`
 
+## Useful Links
+
+- [Concurrency vs Parallelism (Oxylabs)](https://oxylabs.io/blog/concurrency-vs-parallelism) — implementation-focused walkthrough with concrete benchmarks (Python examples, but the concepts apply broadly).
+
 ---
 
 [Back to index](../README.md)

@@ -9,6 +9,10 @@
 5. [Azure Pipelines](05-azure-pipelines.md) - CI/CD YAML, multi-stage, templates
 6. [Git Essentials](06-git-essentials.md) - Merge vs rebase, undo, interactive rebase, conflicts, reflog
 
+## Useful Links
+
+- [Docker Documentation](https://docs.docker.com/) — official Docker docs (Dockerfile reference, Compose, networking, volumes, build, registry).
+
 ---
 
 [Back to index](../README.md)

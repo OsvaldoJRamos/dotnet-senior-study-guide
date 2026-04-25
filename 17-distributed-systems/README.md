@@ -13,6 +13,16 @@ The foundational theory behind microservices, event-driven architectures, and cl
 7. [Consensus — Raft and Paxos](07-consensus-raft-paxos.md) - Why consensus is needed, Raft leader election and log replication, etcd and Consul usage
 8. [Clocks and Ordering](08-clocks-and-ordering.md) - Physical vs logical clocks, Lamport timestamps, vector clocks, hybrid logical clocks
 
+## Useful Links
+
+- [Async Processing and Message Queues (Hookdeck)](https://medium.com/hookdeck/an-introduction-to-asynchronous-processing-and-message-queues-218af596bf1b) — primer on async processing, queue semantics, and decoupling.
+- [Message Queues in System Design (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/message-queues-system-design/) — queue fundamentals, producer/consumer, ordering, delivery guarantees.
+- [Event-Driven Architecture (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/event-driven-architecture-system-design/) — EDA building blocks, event broker vs mediator, choreography vs orchestration.
+- [ACID vs BASE (AWS)](https://aws.amazon.com/compare/the-difference-between-acid-and-base-database/) — side-by-side comparison and trade-offs.
+- [CAP Theorem (GeeksforGeeks)](https://www.geeksforgeeks.org/dbms/the-cap-theorem-in-dbms/) — additional perspective on CAP, complementary to Gilbert/Lynch's paper.
+- [Consistency in System Design (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/consistency-in-system-design/) — strong/eventual/causal consistency walkthrough.
+- [Data Replication: A Key Component (ByteByteGo)](https://blog.bytebytego.com/p/data-replication-a-key-component) — sync vs async replication, leader-follower, multi-leader, leaderless.
+
 ---
 
 [Back to index](../README.md)

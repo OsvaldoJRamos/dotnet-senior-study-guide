@@ -107,4 +107,4 @@ A good heuristic: measure current p99 performance for a month, pick an SLO that 
 
 ---
 
-[← Previous: Postmortems](07-postmortems.md) | [Back to index](README.md)
+[← Previous: Postmortems](07-postmortems.md) | [Next: High Availability and Redundancy →](09-high-availability-and-redundancy.md) | [Back to index](README.md)
