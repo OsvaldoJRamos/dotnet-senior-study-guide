@@ -487,7 +487,7 @@ Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-a
 
 An unawaited `Task` is fire-and-forget — nobody is observing it. Three problems:
 
-1. **Lost exceptions.** A faulted task whose exception is never observed only raises `TaskScheduler.UnobservedTaskException` when the GC finalizes the task — the delay is unpredictable and the event is easy to miss.
+1. **Lost exceptions.** A faulted task's unobserved exception only surfaces via `TaskScheduler.UnobservedTaskException` when the runtime is about to trigger exception escalation policy — the timing is delayed and unpredictable, and the event is easy to miss.
 2. **Shutdown can cut it mid-flight.** The host doesn't know a background task is still running.
 3. **`async void` is worse.** Exceptions rethrow on the captured `SynchronizationContext`, bypassing the caller's `try`/`catch` and potentially crashing a UI or classic ASP.NET app.
 

@@ -121,7 +121,7 @@ DoWorkAsync();
 
 Three problems:
 
-1. **Exceptions are easy to lose.** A faulted task whose exception is never observed raises `TaskScheduler.UnobservedTaskException` only when the task is finalized by the GC — the delay is unpredictable and the event is easy to miss in production.
+1. **Exceptions are easy to lose.** A faulted task's unobserved exception only surfaces via `TaskScheduler.UnobservedTaskException` when the runtime is about to trigger exception escalation policy — the timing is delayed and unpredictable, and the event is easy to miss in production.
 2. **Shutdown can cut it mid-flight.** No one knows when it finished, so graceful shutdown may terminate the process before the work completes.
 3. **`async void` is the worst variant.** Exceptions thrown from an `async void` method are re-raised on the `SynchronizationContext` that was active when the method started, bypassing the caller's `try`/`catch`. On a UI or classic ASP.NET context this can crash the app.
 
