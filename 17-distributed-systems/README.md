@@ -22,6 +22,7 @@ The foundational theory behind microservices, event-driven architectures, and cl
 - [CAP Theorem (GeeksforGeeks)](https://www.geeksforgeeks.org/dbms/the-cap-theorem-in-dbms/) — additional perspective on CAP, complementary to Gilbert/Lynch's paper.
 - [Consistency in System Design (GeeksforGeeks)](https://www.geeksforgeeks.org/system-design/consistency-in-system-design/) — strong/eventual/causal consistency walkthrough.
 - [Data Replication: A Key Component (ByteByteGo)](https://blog.bytebytego.com/p/data-replication-a-key-component) — sync vs async replication, leader-follower, multi-leader, leaderless.
+- [Fallacies of Distributed Computing (Wikipedia)](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) — Deutsch's eight assumptions that every distributed-systems failure traces back to.
 
 ---
 

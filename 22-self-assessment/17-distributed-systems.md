@@ -314,4 +314,30 @@ Deep dive: [CAP Theorem](../17-distributed-systems/01-cap-theorem.md)
 
 ---
 
+### 17. Name the eight Fallacies of Distributed Computing — and pair each with the pattern that mitigates it.
+
+<details>
+<summary>Reveal answer</summary>
+
+Deutsch (Sun, 1994):
+
+| # | Fallacy | Mitigation |
+|---|---|---|
+| 1 | The network is reliable | Retries with backoff + idempotency |
+| 2 | Latency is zero | Async messaging, caching, edge / CDN |
+| 3 | Bandwidth is infinite | Compression, payload size limits, pagination |
+| 4 | The network is secure | TLS everywhere, mTLS for service-to-service, zero-trust |
+| 5 | Topology doesn't change | Service discovery, health checks, retry on different host |
+| 6 | There's one administrator | RBAC, audit logs, IaC, change management |
+| 7 | Transport cost is zero | Batching, gRPC over JSON for hot paths, payload shaping |
+| 8 | The network is homogeneous | Standard protocols, MTU-aware design, multi-region testing |
+
+Senior signal: every "weird production bug in the staging environment" eventually traces back to a violated fallacy. Patterns aren't decoration — they're how you survive the fallacy you forgot to plan for.
+
+Deep dive: [CAP Theorem](../17-distributed-systems/01-cap-theorem.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

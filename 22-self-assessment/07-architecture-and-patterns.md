@@ -678,4 +678,29 @@ Deep dive: [Microservices](../07-architecture-and-patterns/09-microservices.md)
 
 ---
 
+### 28. Name Lewis & Fowler's nine characteristics of microservices. Which two separate "microservices" from "distributed monolith"?
+
+<details>
+<summary>Reveal answer</summary>
+
+The 2014 article (Lewis & Fowler) lists nine traits:
+
+1. **Componentization via Services** — independent deployability, not just buildability.
+2. **Organized around Business Capabilities** — vertical-slice teams, Conway's Law in action.
+3. **Products not Projects** — "you build it, you run it" — full lifecycle ownership.
+4. **Smart Endpoints, Dumb Pipes** — logic in the service, simple transport (REST, lightweight messaging).
+5. **Decentralized Governance** — each team picks the right tool; share via libraries, not standards committees.
+6. **Decentralized Data Management** — DB-per-service; cross-service consistency is eventual, with sagas / compensating transactions.
+7. **Infrastructure Automation** — continuous delivery, automated provisioning, immutable deploys.
+8. **Design for Failure** — circuit breakers, timeouts, bulkheads, fallbacks — mandatory.
+9. **Evolutionary Design** — boundaries are emergent, not designed up front.
+
+The two that separate the real thing from a distributed monolith are **#7 (Infrastructure Automation)** and **#8 (Design for Failure)**. Without continuous delivery for every service, "independent deployment" is theoretical. Without resilience patterns, one service's slowness brings down the rest — you've built distributed coupling instead of microservices.
+
+Deep dive: [Microservices](../07-architecture-and-patterns/09-microservices.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

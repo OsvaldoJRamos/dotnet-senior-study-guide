@@ -129,6 +129,22 @@ Tools: YARP (.NET), Kong, Ocelot, Azure API Management
 
 > "If you can't build a well-made monolith, you won't be able to build microservices." -- Simon Brown
 
+## Lewis & Fowler's nine characteristics (2014)
+
+The seminal article (Lewis & Fowler, 2014) defines microservices not by service size but by nine traits. A senior should recognize them by name:
+
+1. **Componentization via Services** — components are independently deployable, not just independently buildable libraries.
+2. **Organized around Business Capabilities** — teams own a vertical slice (UI + logic + DB), not a horizontal layer. Reflects Conway's Law.
+3. **Products not Projects** — "you build it, you run it" (Werner Vogels, Amazon). The team owns the service across its full lifecycle.
+4. **Smart Endpoints, Dumb Pipes** — business logic lives in the service; the bus is just a transport (REST, lightweight messaging). Anti-pattern: the heavy ESB.
+5. **Decentralized Governance** — let each team pick the right tool, share via libraries instead of standards committees. Netflix's "polyglot programming."
+6. **Decentralized Data Management** — each service owns its database. Cross-service consistency is eventual, with sagas and compensating transactions instead of distributed 2PC.
+7. **Infrastructure Automation** — continuous delivery, automated provisioning, immutable deploys. Without it, the operational cost crushes the team.
+8. **Design for Failure** — services *will* fail. Circuit breakers, timeouts, bulkheads, fallback paths are mandatory, not optional.
+9. **Evolutionary Design** — services are split as the model reveals seams. The article is explicit that good microservice boundaries are *emergent*, not designed up front.
+
+Fowler and Lewis are explicit that this list isn't a checklist — a system that scores 7/9 may be microservice-style enough. But missing the operational pieces (#7, #8) is what separates "microservices" from "distributed monolith."
+
 ## The microservice premium
 
 Martin Fowler's explicit warning: *"Microservices introduce complexity on their own account. This adds a premium to a project's cost and risk."* The premium covers:

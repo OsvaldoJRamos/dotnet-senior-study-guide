@@ -1,5 +1,20 @@
 # CAP Theorem
 
+## The Fallacies of Distributed Computing (prerequisite)
+
+Before CAP, you need to internalize the eight assumptions that almost every junior dev makes — and that every distributed-systems failure ultimately traces back to. L. Peter Deutsch (Sun, 1994) and James Gosling listed them; the Azure Architecture Center still leads its design-patterns catalog with them:
+
+1. **The network is reliable.** Packets drop. Connections die.
+2. **Latency is zero.** It isn't. A round trip across continents is ~150 ms minimum, set by the speed of light.
+3. **Bandwidth is infinite.** Bandwidth is shared, capped, and metered.
+4. **The network is secure.** Anyone on the path can read or modify traffic without TLS — and even with TLS, certificates can be misissued.
+5. **Topology doesn't change.** It does — every deploy, every autoscale event, every BGP withdrawal.
+6. **There's one administrator.** In a real system there are dozens, with conflicting priorities and access patterns.
+7. **Transport cost is zero.** Serialization, deserialization, and bytes on the wire have a real cost in CPU and dollars.
+8. **The network is homogeneous.** It isn't — different segments have different MTUs, latencies, and reliability profiles.
+
+Every CAP / consistency / retry / circuit-breaker discussion exists because one of these assumptions is wrong in production. Patterns like Retry, Circuit Breaker, Bulkhead, Idempotency, and Outbox are mitigations for these fallacies — not optional extras.
+
 ## The formal statement
 
 Brewer conjectured it (PODC 2000). **Gilbert and Lynch proved it** ("Brewer's Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services", 2002). The formal definitions are:
