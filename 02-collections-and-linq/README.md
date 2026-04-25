@@ -8,6 +8,10 @@
 4. [Collections Overview](04-collections-overview.md) - Map of all collections in .NET and when to use each
 5. [LinkedList vs List](05-linkedlist-vs-list.md) - Memory layout, complexity, and why List usually wins
 
+## Useful Links
+
+- [.NET Collections (JetBrains Guide)](https://www.jetbrains.com/guide/dotnet/tutorials/dotnet-collections/) — companion tutorial series covering arrays, `List<T>`, `Dictionary<T>`, `HashSet<T>`, `LinkedList<T>`, `Queue<T>` / `Stack<T>`, and `SortedSet<T>` with practical examples.
+
 ---
 
 [Back to index](../README.md)
