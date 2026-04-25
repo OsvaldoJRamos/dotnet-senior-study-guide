@@ -442,4 +442,102 @@ Deep dive: [Locks in Depth](../05-concurrency-and-parallelism/07-locks-in-depth.
 
 ---
 
+### 17. Why does `await` release the thread for I/O work but not for pure CPU work?
+
+<details>
+<summary>Reveal answer</summary>
+
+`await` frees the calling thread only when the awaited `Task` depends on something **outside a managed thread** to complete.
+
+- **I/O-bound**: the wait is handled by the kernel / network stack / disk controller. Once the operation is in flight, no managed thread has to sit on it, so the state machine registers a continuation and the thread goes back to the pool.
+- **CPU-bound without `Task.Run`**: there is no external wait — executing the code *is* the work. Whatever thread entered the method runs it. `await` has nothing to release.
+- **CPU-bound wrapped in `Task.Run`**: the work is explicitly moved onto a pool thread, so the caller now has something external to observe and can suspend.
+
+Rule: `await` releases the caller when the work is being done by something *other* than a managed thread (kernel, hardware, another pool thread). Otherwise someone still has to run the code.
+
+Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md)
+
+</details>
+
+---
+
+### 18. Why should `Task.Run` stay in the caller instead of being hidden inside a library method?
+
+<details>
+<summary>Reveal answer</summary>
+
+`Task.Run` is a decision about **which thread runs the work**. A library has no business making that call for its consumer:
+
+- The caller may already be on a background thread — hiding `Task.Run` inside doubles the hop.
+- The caller may need UI-thread affinity for what follows — a library hop silently breaks it.
+- The work may be cheap enough that the thread switch costs more than it saves.
+
+Library contract: expose synchronous work as synchronous and genuine async work as async. Let the caller decide when to offload with `Task.Run`. This is also why a method that just wraps `Task.Run(() => Sync())` and calls itself async is called **fake async** — it fools the caller into thinking the method is scalable when it still costs one thread per call.
+
+Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md)
+
+</details>
+
+---
+
+### 19. What makes fire-and-forget dangerous, and how do you make it safe?
+
+<details>
+<summary>Reveal answer</summary>
+
+An unawaited `Task` is fire-and-forget — nobody is observing it. Three problems:
+
+1. **Lost exceptions.** A faulted task's unobserved exception only surfaces via `TaskScheduler.UnobservedTaskException` when the runtime is about to trigger exception escalation policy — the timing is delayed and unpredictable, and the event is easy to miss.
+2. **Shutdown can cut it mid-flight.** The host doesn't know a background task is still running.
+3. **`async void` is worse.** Exceptions rethrow on the captured `SynchronizationContext`, bypassing the caller's `try`/`catch` and potentially crashing a UI or classic ASP.NET app.
+
+Safe patterns:
+
+```csharp
+// Minimum viable: catch and log.
+_ = Task.Run(async () =>
+{
+    try { await DoWorkAsync(); }
+    catch (Exception ex) { _logger.LogError(ex, "Background work failed"); }
+});
+```
+
+Better: hand the work to a `Channel<T>` or a hosted `BackgroundService` that owns lifecycle, cancellation, and error handling. `Task.Run` with a catch is a bandage, not a design.
+
+Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md)
+
+</details>
+
+---
+
+### 20. A request reads from a database, runs a heavy transform, then writes to storage. How do you structure the `await`s?
+
+<details>
+<summary>Reveal answer</summary>
+
+Pick the tool per workload, not one tool for everything:
+
+```csharp
+public async Task<Report> GenerateReportAsync(int userId, CancellationToken ct)
+{
+    var data      = await _db.GetUserDataAsync(userId, ct);         // I/O — thread released
+    var processed = await Task.Run(() => HeavyTransform(data), ct); // CPU — runs on a pool thread
+    await _storage.SaveAsync(processed, ct);                        // I/O — thread released
+    return new Report(processed);
+}
+```
+
+Three `await`s, three distinct reasons to suspend:
+
+- The DB and storage calls are **I/O**: `await` delegates the wait to the OS and returns the thread to the pool.
+- The transform is **CPU**: `Task.Run` is needed to keep the calling thread responsive. Without it, the method would run the transform synchronously on the caller, even though the signature says `async`.
+
+If `HeavyTransform` were cheap, you'd drop `Task.Run` entirely — the thread switch would cost more than the work.
+
+Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

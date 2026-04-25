@@ -13,6 +13,13 @@ A comprehensive .NET senior study guide — organized markdown files covering C#
 - PR title should be concise and descriptive
 - After creating the PR, share the URL with the user for review
 
+## External Links Policy
+
+- **NEVER add external links automatically.** Do not infer, search, or generate URLs for any section README or content file based on training-data recall.
+- **Only add a link when the user explicitly provides the URL** in the conversation. The user is the sole source of links.
+- When the user provides a link, place it in the appropriate section README (or content file, if specified) under a clearly labeled section (e.g., `## Useful Links` or `## References`).
+- Preserve the URL exactly as the user sent it — no rewriting, no "canonicalizing", no following redirects to a different path.
+
 ## Language Rules
 
 - **All content must be in English** — headings, explanations, code comments, variable names, class names, string literals
