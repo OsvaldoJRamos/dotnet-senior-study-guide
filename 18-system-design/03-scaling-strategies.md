@@ -99,6 +99,15 @@ Static assets (images, JS, CSS, video segments) **should never touch your origin
 - Absorbs traffic spikes and DDoS.
 - Reduces origin egress cost dramatically.
 
+### Architectural details worth knowing
+
+Cloudflare's explainer makes the architecture explicit:
+
+- **PoPs at Internet Exchange Points (IXPs)** — CDN providers place data centers at IXPs (the locations where ISPs interconnect to exchange traffic). This minimizes hops and keeps RTT low even for cross-network requests.
+- **Anycast routing for failover** — multiple data centers advertise the same IP. If a PoP goes down, BGP withdraws its route and traffic automatically flows to the next-closest healthy PoP — no DNS change, no client-side logic.
+- **TLS optimization** — modern CDNs reuse TLS connections and use TLS false start / 0-RTT (TLS 1.3) to cut handshake latency on repeat visits.
+- **Push vs pull** — *pull CDN* fetches from origin on first miss (default for most public sites; Cloudflare, Fastly). *Push CDN* requires you to upload assets ahead of time (used when you want explicit control over what's cached and when).
+
 When to use:
 
 - Any public image, JS bundle, video, downloadable file.
