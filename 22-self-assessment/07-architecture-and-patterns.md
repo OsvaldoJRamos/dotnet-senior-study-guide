@@ -663,4 +663,19 @@ Deep dive: [Design Docs, C4 and ADRs](../07-architecture-and-patterns/17-design-
 
 ---
 
+### 27. What is the "microservice premium," and what does Fowler observe about teams that start with microservices instead of extracting them from a monolith?
+
+<details>
+<summary>Reveal answer</summary>
+
+Martin Fowler's framing: *"Microservices introduce complexity on their own account. This adds a premium to a project's cost and risk."* The premium covers operational maturity (many services to deploy, monitor, secure), distributed-systems failure modes (partial failure, eventual consistency, idempotency requirements), cross-service tracing, and contract testing.
+
+His empirical observation: *almost every successful microservice system was decomposed from a monolith that revealed real bounded contexts*. Systems built as microservices from scratch usually end up in trouble — the seams placed up-front rarely match the ones that emerge from real usage. Interview-safe answer: **monolith-first, then extract**.
+
+Deep dive: [Microservices](../07-architecture-and-patterns/09-microservices.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

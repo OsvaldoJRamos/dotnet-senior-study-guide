@@ -2,6 +2,19 @@
 
 Scaling is the art of removing the next bottleneck — not of building infinitely scalable systems upfront. Senior signal: pick the cheapest strategy that buys you another order of magnitude, then stop.
 
+## Scalability vs elasticity
+
+The two terms get used interchangeably. They are not the same:
+
+| | Scalability | Elasticity |
+|---|---|---|
+| Time horizon | Long-term, planned growth | Short-term, reactive to spikes |
+| Trigger | Capacity planning meeting | Auto-scaling rule (CPU, QPS, queue depth) |
+| Direction | Usually one-way (scale up over months) | Up *and* down (provision for spike, release after) |
+| Example | Adding a permanent shard as user base grows year-over-year | Doubling instance count for Black Friday, scaling back Tuesday |
+
+A system can be scalable (the architecture supports growth) without being elastic (it can't react in seconds). Pure on-prem servers are often scalable but not elastic. Cloud auto-scaling groups give you both — when configured right.
+
 ## Vertical vs horizontal
 
 | | Vertical (scale up) | Horizontal (scale out) |

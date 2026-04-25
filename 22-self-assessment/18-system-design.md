@@ -332,4 +332,24 @@ Deep dive: [Rate Limiting](../18-system-design/06-rate-limiting.md)
 
 ---
 
+### 16. Scalability vs elasticity — what's the difference?
+
+<details>
+<summary>Reveal answer</summary>
+
+| | Scalability | Elasticity |
+|---|---|---|
+| Time horizon | Long-term, planned growth | Short-term, reactive to spikes |
+| Trigger | Capacity planning | Auto-scaling rule (CPU, QPS, queue depth) |
+| Direction | Usually one-way (scale up over months) | Up *and* down (provision for spike, release after) |
+| Example | Adding a permanent shard as user base grows year-over-year | Doubling instance count for Black Friday, scaling back Tuesday |
+
+A system can be scalable without being elastic — the architecture supports growth, but it can't react in seconds. Pure on-prem servers are typically scalable but not elastic. Cloud auto-scaling groups give you both, when configured right. Mixing the two terms is a common interview tell — the senior signal is calling out which one the question actually requires.
+
+Deep dive: [Scaling Strategies](../18-system-design/03-scaling-strategies.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

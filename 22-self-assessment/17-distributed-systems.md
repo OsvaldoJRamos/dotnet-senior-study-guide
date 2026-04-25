@@ -295,4 +295,23 @@ Deep dive: [Saga Pattern](../17-distributed-systems/05-saga-pattern.md)
 
 ---
 
+### 16. What does BASE stand for, and how does it relate to ACID?
+
+<details>
+<summary>Reveal answer</summary>
+
+BASE — coined by Eric Brewer — is the AP-system counterpart to ACID:
+
+- **B**asically **A**vailable — system stays responsive even when nodes fail.
+- **S**oft state — replicas may diverge; their state changes over time without input.
+- **E**ventually consistent — given enough time without writes, replicas converge.
+
+It is **not** "weaker ACID." It's a deliberate trade for distributed systems: you give up immediate consistency to keep responding under partition. ACID still applies to single-node operations on those systems; what BASE describes is the cross-node guarantee. Cassandra, DynamoDB, Riak — BASE. SQL Server, PostgreSQL — ACID. Cosmos DB — configurable along the spectrum.
+
+Deep dive: [CAP Theorem](../17-distributed-systems/01-cap-theorem.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

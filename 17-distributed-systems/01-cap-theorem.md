@@ -54,6 +54,16 @@ Common misreadings to push back on in an interview:
 - **"You can't have both strong consistency and low latency."** True only at scale — at small replica counts with a fast, reliable network, the cost is small. The honest statement is PACELC's "in the E case, consistency costs latency."
 - **"Spanner beats CAP."** Spanner uses TrueTime (GPS + atomic clocks) to make the partition window small enough to be negligible, but it still chooses C over A during a partition — it's CP.
 
+## ACID vs BASE
+
+The traditional ACID acronym (Atomicity, Consistency, Isolation, Durability) describes the contract a relational database honours during transactions. BASE is the AP-system counterpart, coined by Eric Brewer:
+
+- **Basically Available** — the system stays responsive even when some nodes fail.
+- **Soft state** — replicas may diverge; their state changes over time without input.
+- **Eventually consistent** — given enough time without writes, replicas converge.
+
+BASE is not "weaker ACID." It's a deliberate trade: AP systems give up immediate consistency to keep responding under partition. ACID still applies to single-node operations on those systems; what changes is the cross-node guarantee.
+
 ## Practical implications for .NET architects
 
 When you pick a data store or messaging layer, its CAP/PACELC profile dictates failure behaviour your code must handle:
