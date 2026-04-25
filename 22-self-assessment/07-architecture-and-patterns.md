@@ -663,4 +663,44 @@ Deep dive: [Design Docs, C4 and ADRs](../07-architecture-and-patterns/17-design-
 
 ---
 
+### 27. What is the "microservice premium," and what does Fowler observe about teams that start with microservices instead of extracting them from a monolith?
+
+<details>
+<summary>Reveal answer</summary>
+
+Martin Fowler's *MicroservicePremium* (May 2015): microservices introduce complexity on their own account, and that *"adds a premium to a project's cost and risk - one that often gets projects into serious trouble."* The premium covers operational maturity (many services to deploy, monitor, secure), distributed-systems failure modes (partial failure, eventual consistency, idempotency requirements), cross-service tracing, and contract testing.
+
+Fowler's companion *MonolithFirst* bliki (June 2015) is even blunter: *"Almost all the successful microservice stories have started with a monolith that got too big and was broken up,"* and *"almost all the cases where I've heard of a system that was built as a microservice system from scratch, it has ended up in serious trouble."* Interview-safe answer: **monolith-first, then extract**.
+
+Deep dive: [Microservices](../07-architecture-and-patterns/09-microservices.md)
+
+</details>
+
+---
+
+### 28. Name Lewis & Fowler's nine characteristics of microservices. Which two separate "microservices" from "distributed monolith"?
+
+<details>
+<summary>Reveal answer</summary>
+
+The 2014 article (Lewis & Fowler) lists nine traits:
+
+1. **Componentization via Services** — independent deployability, not just buildability.
+2. **Organized around Business Capabilities** — vertical-slice teams, Conway's Law in action.
+3. **Products not Projects** — "you build it, you run it" — full lifecycle ownership.
+4. **Smart Endpoints, Dumb Pipes** — logic in the service, simple transport (REST, lightweight messaging).
+5. **Decentralized Governance** — each team picks the right tool; share via libraries, not standards committees.
+6. **Decentralized Data Management** — DB-per-service; cross-service consistency is eventual, with sagas / compensating transactions.
+7. **Infrastructure Automation** — continuous delivery, automated provisioning, immutable deploys.
+8. **Design for Failure** — circuit breakers, timeouts, bulkheads, fallbacks — mandatory.
+9. **Evolutionary Design** — boundaries are emergent, not designed up front.
+
+The two that separate the real thing from a distributed monolith are **#7 (Infrastructure Automation)** and **#8 (Design for Failure)**. Without continuous delivery for every service, "independent deployment" is theoretical. Without resilience patterns, one service's slowness brings down the rest — you've built distributed coupling instead of microservices.
+
+Deep dive: [Microservices](../07-architecture-and-patterns/09-microservices.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

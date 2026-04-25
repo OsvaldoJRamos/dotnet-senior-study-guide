@@ -295,4 +295,49 @@ Deep dive: [Saga Pattern](../17-distributed-systems/05-saga-pattern.md)
 
 ---
 
+### 16. What does BASE stand for, and how does it relate to ACID?
+
+<details>
+<summary>Reveal answer</summary>
+
+BASE — coined by Eric Brewer — is the AP-system counterpart to ACID:
+
+- **B**asically **A**vailable — system stays responsive even when nodes fail.
+- **S**oft state — replicas may diverge; their state changes over time without input.
+- **E**ventually consistent — given enough time without writes, replicas converge.
+
+It is **not** "weaker ACID." It's a deliberate trade for distributed systems: you give up immediate consistency to keep responding under partition. ACID still applies to single-node operations on those systems; what BASE describes is the cross-node guarantee. Cassandra, DynamoDB, Riak — BASE. SQL Server, PostgreSQL — ACID. Cosmos DB — configurable along the spectrum.
+
+Deep dive: [CAP Theorem](../17-distributed-systems/01-cap-theorem.md)
+
+</details>
+
+---
+
+### 17. Name the eight Fallacies of Distributed Computing — and pair each with the pattern that mitigates it.
+
+<details>
+<summary>Reveal answer</summary>
+
+Deutsch (Sun, 1994):
+
+| # | Fallacy | Mitigation |
+|---|---|---|
+| 1 | The network is reliable | Retries with backoff + idempotency |
+| 2 | Latency is zero | Async messaging, caching, edge / CDN |
+| 3 | Bandwidth is infinite | Compression, payload size limits, pagination |
+| 4 | The network is secure | TLS everywhere, mTLS for service-to-service, zero-trust |
+| 5 | Topology doesn't change | Service discovery, health checks, retry on different host |
+| 6 | There is one administrator | RBAC, audit logs, IaC, change management |
+| 7 | Transport cost is zero | Batching, gRPC over JSON for hot paths, payload shaping |
+| 8 | The network is homogeneous | Standard protocols, MTU-aware design, multi-region testing |
+
+Senior signal: every "weird production bug in the staging environment" eventually traces back to a violated fallacy. Patterns aren't decoration — they're how you survive the fallacy you forgot to plan for.
+
+Deep dive: [CAP Theorem](../17-distributed-systems/01-cap-theorem.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

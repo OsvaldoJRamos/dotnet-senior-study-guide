@@ -9,6 +9,11 @@
 5. [RAG](05-rag.md) - Retrieval-Augmented Generation, chunking, vector databases, hybrid search
 6. [MCP](06-mcp.md) - Model Context Protocol, architecture, building MCP servers
 7. [AI Architecture Scenarios](07-ai-architecture.md) - Real-world patterns, resilience, testing, cost optimization
+8. [Spec-Driven Development](08-spec-driven-development.md) - Vibe coding → Plan Mode → SDD; multi-phase collaboration; enterprise adoption barriers
+
+## Useful Links
+
+- [Enterprise Spec-Driven Development (InfoQ)](https://www.infoq.com/articles/enterprise-spec-driven-development/) — the canonical reference for the SDD progression and enterprise adoption challenges.
 
 ---
 

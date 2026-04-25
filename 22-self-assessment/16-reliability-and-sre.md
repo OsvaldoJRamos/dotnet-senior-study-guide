@@ -341,4 +341,71 @@ Deep dive: [Postmortems](../16-reliability-and-sre/07-postmortems.md)
 
 ---
 
+### 16. What does "99.99% availability" actually allow as downtime — and why is "five nines" hard?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Target | Allowed downtime / year | Allowed downtime / month |
+|---|---|---|
+| 99% | ~3.65 days | ~7.20 hours |
+| 99.9% | ~8.77 hours | ~43.83 minutes |
+| 99.99% | ~52.60 minutes | ~4.38 minutes |
+| 99.999% | ~5.26 minutes | ~26.30 seconds |
+
+Five nines is hard because every minute of recovery counts. You need:
+
+- Multi-region with automated failover (no human in the loop — humans take more than 5 minutes to notice and act).
+- Replicated data with sub-second consistency requirements that survive a region loss.
+- Continuous deployment with progressive rollouts, automatic rollback on SLO regression.
+- Capacity that absorbs an entire region's load on the surviving region.
+
+The lever you actually pull is **MTTR**, not MTBF. `Availability ≈ MTBF / (MTBF + MTTR)`. Hardware fails on its own clock; you control how fast you recover.
+
+Deep dive: [High Availability and Redundancy](../16-reliability-and-sre/09-high-availability-and-redundancy.md)
+
+</details>
+
+---
+
+### 17. Active-passive vs active-active — when do you pick which?
+
+<details>
+<summary>Reveal answer</summary>
+
+| | Active-passive | Active-active |
+|---|---|---|
+| Traffic | Only primary serves; standby idle/replicating | All nodes serve simultaneously |
+| Failover window | Seconds-to-minutes (promotion + DNS/LB redirect) | None — surviving nodes absorb load |
+| Cost | Lower — standby underutilized | Higher — full capacity always running |
+| Data consistency | Replication lag; potential data loss on failover | Must solve write conflicts (quorum, LWW, CRDTs) |
+| When to use | Cost-sensitive; minutes of RTO acceptable | Sub-second RTO; high traffic; consistency you can afford to design for |
+
+Active-active is "more available and uses idle capacity," but the bill comes due in **consistency design** — you cannot just put a load balancer in front of two databases and call it active-active. Active-passive is conceptually simpler; the trade-off you accept is the failover window.
+
+Common mistake: assuming active-active automatically gives you HA + capacity for free. The architecture is harder. Pick it only if you've actually solved the conflict resolution problem.
+
+Deep dive: [High Availability and Redundancy](../16-reliability-and-sre/09-high-availability-and-redundancy.md)
+
+</details>
+
+---
+
+### 18. What is "split-brain", and what prevents it?
+
+<details>
+<summary>Reveal answer</summary>
+
+After a network partition between cluster nodes, both sides may decide they are primary — each accepting writes independently. When the partition heals, the two divergent histories must be reconciled, and there is no automatic correct answer.
+
+Standard prevention: **quorum-based consensus**. A cluster of `N` nodes requires `⌈N/2⌉ + 1` agreeing on the leader. With `N = 3`, two nodes form a quorum; the isolated minority side cannot elect a leader, so it cannot accept writes.
+
+This is why production HA setups use 3 (or 5) nodes, not 2. With only 2 nodes and a partition, neither side has a majority — either both stop (correct, available = no), or both proceed (split-brain). Implementations: etcd (Raft), ZooKeeper (Zab), Consul (Raft), PostgreSQL with Patroni, SQL Server Always On with witness.
+
+Deep dive: [High Availability and Redundancy](../16-reliability-and-sre/09-high-availability-and-redundancy.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

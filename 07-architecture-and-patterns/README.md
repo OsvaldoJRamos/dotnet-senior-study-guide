@@ -22,6 +22,18 @@
 18. [NFR-Driven Architecture](18-nfr-driven-architecture.md) - ISO/IEC 25010, how NFRs drive architecture, PACELC
 19. [UML Diagrams](19-uml-diagrams.md) - Use case, sequence, activity, class, state, ER, deployment
 
+## Useful Links
+
+- [Refactoring (refactoring.guru)](https://refactoring.guru/refactoring) — catalog of refactorings, code smells, before/after examples.
+- [What is a Design Pattern? (refactoring.guru)](https://refactoring.guru/design-patterns/what-is-pattern) — primer on what patterns are and when to use them.
+- [DDD Starter Modelling Process (GitHub)](https://github.com/RenatoAugustoFS/ddd-starter-modelling-process) — practical DDD modeling steps (event storming → context mapping → tactical design).
+- [Microservices (Martin Fowler)](https://martinfowler.com/microservices/) — Fowler's hub on microservices, including the original article and follow-ups.
+- [Microservices article — Lewis & Fowler 2014](https://martinfowler.com/articles/microservices.html) — the seminal piece defining microservices via nine characteristics; mandatory reading for the architecture interview.
+- [Cloud Design Patterns (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/architecture/patterns/) — full Azure catalog of 41 cloud design patterns (Ambassador, Bulkhead, Cache-Aside, CQRS, Saga, Sidecar, Strangler Fig, Valet Key, etc.) mapped to the Well-Architected Framework pillars.
+- [Cache-Aside pattern (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside) — load-on-demand cache pattern, when it fits, common pitfalls.
+- [CQRS pattern (AWS Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/cqrs-pattern.html) — AWS take on CQRS, including pairing with Event Sourcing.
+- [Antipatterns (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/architecture/antipatterns/) — Azure Architecture Center catalog of architectural antipatterns.
+
 ---
 
 [Back to index](../README.md)

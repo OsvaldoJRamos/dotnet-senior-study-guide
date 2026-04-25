@@ -71,6 +71,10 @@ Three tools, in increasing order of effort:
 
 **Prefer delete over update.** Updating requires you to know the write shape; deleting forces a subsequent miss to refresh from the authoritative source. Update-on-write also races with concurrent cache-asides re-populating stale data.
 
+### Order matters: write-then-invalidate
+
+The Microsoft Cache-Aside guidance is explicit: **update the data store first, then invalidate the cache** — not the other way around. If you delete first, a concurrent reader can miss, fetch the still-stale row from the data store, and put it back in the cache. You end up with stale data and a clean cache invalidation that did nothing.
+
 ## TTL strategy
 
 - **Short TTL (seconds-to-minutes)** for mutable data (product prices, inventory, user profiles).

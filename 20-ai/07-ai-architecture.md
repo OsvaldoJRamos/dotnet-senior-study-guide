@@ -133,4 +133,4 @@ When you change a prompt, run the full test suite. Track metrics across versions
 
 ---
 
-[← Previous: MCP](06-mcp.md) | [Back to index](README.md)
+[← Previous: MCP](06-mcp.md) | [Next: Spec-Driven Development →](08-spec-driven-development.md) | [Back to index](README.md)

@@ -356,4 +356,61 @@ Deep dive: [Secrets Management](../11-security/04-secrets-management.md)
 
 ---
 
+### 16. What are the three categories of DDoS attacks, and how do you defend against each?
+
+<details>
+<summary>Reveal answer</summary>
+
+| Category | Targets | Defense |
+|---|---|---|
+| **Volumetric** | Bandwidth (UDP/ICMP flood, DNS amplification) | Anycast + scrubbing centers (Cloudflare, AWS Shield, Azure Front Door) — absorb upstream of origin |
+| **Protocol** | Connection state (SYN flood, fragmented packets) | SYN cookies, TCP intercept at the LB, conntrack tuning |
+| **Application-layer (L7)** | Request handlers (slow-loris, HTTP flood) | WAF + rate limiting on identity, CAPTCHA / JS challenge, autoscaling for graceful degradation |
+
+A senior never says "we have a firewall." The realistic answer is layered: edge provider for L3/L4, WAF + rate limiting for L7, autoscaling and circuit breakers so the app degrades gracefully instead of falling over.
+
+Deep dive: [Network and Perimeter Security](../11-security/08-network-perimeter-security.md)
+
+</details>
+
+---
+
+### 17. WAF rule models — when do you use a blocklist (negative security) versus an allowlist (positive security)?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Blocklist (negative security)** — block requests matching known attack signatures. Default for most public web apps because it's operationally cheap. Powered by rulesets like the **OWASP CRS** (Core Rule Set), originally built for ModSecurity and now also used with Coraza and other compatible WAFs. Risk: zero-days slip through until a signature is published.
+- **Allowlist (positive security)** — only allow requests matching a defined schema (URL, method, parameter types). Stronger against zero-days, but every legitimate change to the API requires a WAF rule update. Common in regulated/financial environments where the API is small and stable.
+- **Anomaly scoring** — modern hybrid: signatures + behavioral scoring; high score → block. AWS WAF, Cloudflare, Azure Front Door WAF all support this.
+
+A WAF is defense-in-depth, not the primary defense. It can be bypassed (custom encoding, binary protocols, encrypted payloads) and tuning generates false positives that block real users. It does not replace parameterized queries, output encoding, or auth.
+
+Deep dive: [Network and Perimeter Security](../11-security/08-network-perimeter-security.md)
+
+</details>
+
+---
+
+### 18. Why is VPN losing ground to ZTNA for application access?
+
+<details>
+<summary>Reveal answer</summary>
+
+A traditional VPN gives the user a flat tunnel into a private network and **trusts everything inside it**. Once a laptop is on the VPN, it can reach any reachable service. That model fails the moment a user (or their machine) is compromised.
+
+**Zero Trust Network Access (ZTNA)** — Cloudflare Access, Tailscale, AWS Verified Access, Azure Entra Application Proxy — flips it:
+
+- Authenticate per-request, not per-tunnel.
+- Authorize each connection against an identity-aware policy (user + device posture + app + context).
+- No flat network. The user's machine never sees IPs that aren't explicitly granted.
+
+VPN still has a role for site-to-site (cloud ↔ on-prem) and for reaching primitives that can't sit behind an identity-aware proxy (raw SSH to a bastion, legacy admin tools). For end-user app access, ZTNA is the modern answer.
+
+Deep dive: [Network and Perimeter Security](../11-security/08-network-perimeter-security.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

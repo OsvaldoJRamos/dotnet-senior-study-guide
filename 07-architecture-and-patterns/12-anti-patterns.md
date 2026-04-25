@@ -110,6 +110,25 @@ Layers of generic interfaces, base classes, and extension points designed for fl
 
 > YAGNI: *"You Aren't Gonna Need It."* Build for today's requirements plus the known near-term ones; not for the imaginary future.
 
+## Performance antipatterns (Azure Architecture Center)
+
+The Azure team catalogs ten antipatterns that specifically degrade performance under load — distinct from the design antipatterns above. Worth recognizing by name in interviews:
+
+| Antipattern | One-liner |
+|---|---|
+| **Busy Database** | The database does work the app should do (heavy stored procs, business logic in triggers). |
+| **Busy Front End** | Resource-intensive work runs on the request thread; should be offloaded to background. |
+| **Chatty I/O** | Many small network requests where one batched call would do (see also: N+1). |
+| **Extraneous Fetching** | `SELECT *` over the wire when the caller only needs three fields. |
+| **Improper Instantiation** | Repeatedly creating objects designed to be reused (`HttpClient`, `DbContext`). |
+| **Monolithic Persistence** | One database forced to serve workloads with very different access patterns. |
+| **No Caching** | Hitting the source for data that is read often and changes rarely. |
+| **Noisy Neighbor** | One tenant consumes a disproportionate share of shared resources. |
+| **Retry Storm** | Retries amplify load on an already-failing dependency until everything collapses. |
+| **Synchronous I/O** | Blocking the calling thread on I/O instead of using async — kills throughput at scale. |
+
+Each of these is documented with sample code and remediation in the Azure Architecture Center catalog (linked in the section README).
+
 ## Why this matters
 
 Most production fires trace back to an anti-pattern someone introduced months or years earlier — not to a single bad commit. The interview signal is whether a candidate can:

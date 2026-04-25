@@ -14,6 +14,20 @@ Unlike a relational database, most are neither a transactional database nor an a
 
 Searches in NoSQL databases need to be **planned and indexed in advance**. NoSQL databases tend to be databases that run in clusters, with shards, meaning no single server has all the data you need at the same time, and if your search is poorly planned, it will have to scan across all nodes in the network, which costs processing and time — a lot of time.
 
+### Five NoSQL families
+
+The AWS whitepaper *Choosing an AWS NoSQL Database* groups NoSQL into five families, each optimized for a different access pattern:
+
+| Family | Optimized for | AWS service | Examples |
+|---|---|---|---|
+| **Key-value** | Simple lookup by primary key, predictable cost | DynamoDB, MemoryDB | Redis (in key-value mode), Riak |
+| **Document** | Flexible nested schema, secondary indexes, partial reads | DocumentDB | MongoDB, Couchbase |
+| **Wide-column / column-family** | Massive write throughput, time-bucketed reads | Keyspaces (Cassandra-compatible) | Cassandra, ScyllaDB, HBase |
+| **Graph** | Traversal queries (friends-of-friends, fraud rings) | Neptune | Neo4j, JanusGraph |
+| **Time series** | Append-only timestamped data, range scans on time | Timestream | InfluxDB, TimescaleDB |
+
+This file covers MongoDB, Cassandra, and Redis in detail because they are the three most likely to come up for a backend engineer. Graph and time series are less common in interview questions but worth recognising by name.
+
 ## Relational Databases
 
 In a relational database, what costs the most in terms of performance is writing, more than reading. Writes need to have ACID guaranteed: **atomicity, consistency, isolation, and durability**. Written data must be guaranteed to be on disk so that an unexpected crash doesn't cause data loss.
