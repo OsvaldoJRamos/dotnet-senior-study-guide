@@ -9,7 +9,7 @@ Before CAP, you need to internalize the eight assumptions that almost every juni
 3. **Bandwidth is infinite.** Bandwidth is shared, capped, and metered.
 4. **The network is secure.** Anyone on the path can read or modify traffic without TLS — and even with TLS, certificates can be misissued.
 5. **Topology doesn't change.** It does — every deploy, every autoscale event, every BGP withdrawal.
-6. **There's one administrator.** In a real system there are dozens, with conflicting priorities and access patterns.
+6. **There is one administrator.** In a real system there are dozens, with conflicting priorities and access patterns.
 7. **Transport cost is zero.** Serialization, deserialization, and bytes on the wire have a real cost in CPU and dollars.
 8. **The network is homogeneous.** It isn't — different segments have different MTUs, latencies, and reliability profiles.
 

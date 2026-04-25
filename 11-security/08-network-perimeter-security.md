@@ -34,7 +34,7 @@ Client → CDN → WAF → Load balancer → App
 
 ### Rule models
 
-- **Negative security (blocklist)** — block requests that match known attack signatures. Most common; powered by rulesets like the **OWASP ModSecurity Core Rule Set (CRS)**.
+- **Negative security (blocklist)** — block requests that match known attack signatures. Most common; powered by rulesets like the **OWASP CRS** (Core Rule Set), originally built for ModSecurity and now also used with Coraza and other compatible WAFs.
 - **Positive security (allowlist)** — only allow requests that match a defined schema (URL, method, parameter types). Stronger but operationally expensive to maintain.
 - **Anomaly scoring** — modern WAFs combine signatures + behavioral scoring; high score → block.
 
@@ -65,7 +65,7 @@ An encrypted tunnel that makes two endpoints behave as if they were on the same 
 
 | Protocol | Notes |
 |---|---|
-| **WireGuard** | Modern, lean (~4k LOC), fast, opinionated crypto. Default for new deployments. |
+| **WireGuard** | Modern, deliberately small codebase, fast, opinionated crypto. Default for new deployments. |
 | **IPsec / IKEv2** | Industry-standard, ubiquitous in cloud-to-cloud and corporate VPN appliances. |
 | **OpenVPN** | SSL/TLS-based, very portable, slower than WireGuard. |
 | **L2TP/IPsec** | Legacy; avoid for new work. |

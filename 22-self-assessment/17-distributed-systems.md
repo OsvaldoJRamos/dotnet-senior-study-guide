@@ -328,7 +328,7 @@ Deutsch (Sun, 1994):
 | 3 | Bandwidth is infinite | Compression, payload size limits, pagination |
 | 4 | The network is secure | TLS everywhere, mTLS for service-to-service, zero-trust |
 | 5 | Topology doesn't change | Service discovery, health checks, retry on different host |
-| 6 | There's one administrator | RBAC, audit logs, IaC, change management |
+| 6 | There is one administrator | RBAC, audit logs, IaC, change management |
 | 7 | Transport cost is zero | Batching, gRPC over JSON for hot paths, payload shaping |
 | 8 | The network is homogeneous | Standard protocols, MTU-aware design, multi-region testing |
 

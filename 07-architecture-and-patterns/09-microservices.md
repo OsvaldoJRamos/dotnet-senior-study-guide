@@ -147,14 +147,14 @@ Fowler and Lewis are explicit that this list isn't a checklist — a system that
 
 ## The microservice premium
 
-Martin Fowler's explicit warning: *"Microservices introduce complexity on their own account. This adds a premium to a project's cost and risk."* The premium covers:
+Martin Fowler's explicit warning, captured in his bliki post *MicroservicePremium* (May 2015): microservices introduce complexity on their own account, and that *"adds a premium to a project's cost and risk - one that often gets projects into serious trouble."* The premium covers:
 
 - **Operational maturity** — many services to deploy, monitor, secure, and roll back. Without that capability, the architecture costs more than it saves.
 - **Distributed systems failure modes** — network partitions, partial failure, eventual consistency, retries / idempotency.
 - **Cross-service tracing and debugging** — logs and breakpoints aren't enough; you need distributed tracing.
 - **Testing complexity** — contract tests between services, plus integration environments that mirror production topology.
 
-Fowler's empirical observation: nearly every successful microservice system was decomposed from a monolith that had revealed real bounded contexts. Systems built as microservices from scratch usually end up in trouble. The interview-safe answer: **monolith-first, then extract** — the seams emerge from real usage, not whiteboard speculation.
+Fowler's companion bliki *MonolithFirst* (June 2015) is even blunter: *"Almost all the successful microservice stories have started with a monolith that got too big and was broken up,"* and *"almost all the cases where I've heard of a system that was built as a microservice system from scratch, it has ended up in serious trouble."* The interview-safe answer: **monolith-first, then extract** — the seams emerge from real usage, not whiteboard speculation.
 
 ---
 

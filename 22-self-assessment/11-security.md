@@ -380,7 +380,7 @@ Deep dive: [Network and Perimeter Security](../11-security/08-network-perimeter-
 <details>
 <summary>Reveal answer</summary>
 
-- **Blocklist (negative security)** — block requests matching known attack signatures. Default for most public web apps because it's operationally cheap. Powered by rulesets like the **OWASP ModSecurity Core Rule Set (CRS)**. Risk: zero-days slip through until a signature is published.
+- **Blocklist (negative security)** — block requests matching known attack signatures. Default for most public web apps because it's operationally cheap. Powered by rulesets like the **OWASP CRS** (Core Rule Set), originally built for ModSecurity and now also used with Coraza and other compatible WAFs. Risk: zero-days slip through until a signature is published.
 - **Allowlist (positive security)** — only allow requests matching a defined schema (URL, method, parameter types). Stronger against zero-days, but every legitimate change to the API requires a WAF rule update. Common in regulated/financial environments where the API is small and stable.
 - **Anomaly scoring** — modern hybrid: signatures + behavioral scoring; high score → block. AWS WAF, Cloudflare, Azure Front Door WAF all support this.
 
