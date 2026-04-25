@@ -20,6 +20,24 @@ A comprehensive .NET senior study guide — organized markdown files covering C#
 - When the user provides a link, place it in the appropriate section README (or content file, if specified) under a clearly labeled section (e.g., `## Useful Links` or `## References`).
 - Preserve the URL exactly as the user sent it — no rewriting, no "canonicalizing", no following redirects to a different path.
 
+### Handling a user-provided link
+
+When the user sends a link, do not just append it. Treat the link as a content trigger:
+
+1. **Fetch and analyze the link.** Open the URL with `WebFetch` and read it carefully. Identify the topic, the key concepts, and any concrete claims (APIs, version numbers, defaults, behavioral rules) the page makes.
+2. **Locate the right place in the repo.** Decide which section/file the topic belongs to. Use the "Current Sections" table and existing files as the reference. Grep for related terms before assuming the topic is missing.
+3. **If the topic does NOT exist in the repo**, add new content for it:
+   - Follow the file format rules (heading, navigation links, code style, `<details>` blocks for self-assessment).
+   - Apply the Source Verification rules — every claim must be backed by the user's link or another official source. The user's link counts as one source; cross-check against the primary docs in the source-verification table when relevant.
+   - Add or update self-assessment questions in `22-self-assessment/` for the new content.
+   - Update the section README and the root README if the new file changes the section's index.
+4. **If the topic already exists**, do a gap analysis:
+   - Read the existing file(s) and compare with what the link covers.
+   - Add only what is missing or genuinely improves accuracy. Do not duplicate existing content.
+   - If the link contradicts an existing claim, treat it as a source-verification finding: re-verify against the primary source and correct or hedge as needed.
+5. **Always add the link itself** under a `## Useful Links` (or `## References`) section in the relevant file, even after expanding the content — the link is the citation.
+6. **Confirm before large rewrites.** If the link implies a substantial new section or restructuring, surface the plan to the user before writing.
+
 ## Language Rules
 
 - **All content must be in English** — headings, explanations, code comments, variable names, class names, string literals
