@@ -14,7 +14,7 @@ Attacks where many compromised hosts (a botnet) flood a target to exhaust capaci
 
 ### Mitigation patterns
 
-- **Anycast + scrubbing centers** — provider routes traffic through globally distributed PoPs (CloudFront, Cloudflare, Azure Front Door, AWS Shield) that absorb floods before they reach origin.
+- **Anycast + DDoS protection at the edge** — provider routes traffic through globally distributed PoPs that absorb floods before they reach origin. AWS uses **AWS Shield** (the dedicated DDoS service, integrated with CloudFront / ELB / Route 53). Azure uses **Azure DDoS Protection** (integrated with Front Door / Application Gateway). Cloudflare and Akamai bundle DDoS mitigation into their CDN platforms.
 - **Rate limiting** — at the WAF / gateway / API tier, on identity (token, API key) or IP. ASP.NET Core has built-in rate limiting (`Microsoft.AspNetCore.RateLimiting`).
 - **Connection-level defenses** — SYN cookies, TCP intercept, conntrack tuning at the load balancer.
 - **CAPTCHA / challenge** — for L7 floods; surface a JS challenge or interactive proof when traffic patterns look automated.
@@ -43,8 +43,9 @@ Client → CDN → WAF → Load balancer → App
 | Type | Examples |
 |---|---|
 | **Cloud / managed** | AWS WAF, Cloudflare, Azure Front Door / Application Gateway WAF, Akamai |
-| **Self-hosted** | ModSecurity (Apache/Nginx), open-source Coraza |
-| **In-process** | Lightweight middleware (e.g., NWebsec) — limited scope |
+| **Self-hosted / library** | ModSecurity (Apache / Nginx), Coraza (Go, Apache 2.0; ModSecurity-compatible engine for Caddy / Envoy / HAProxy) |
+
+> Full WAF functionality is rarely embedded in-process in a .NET app. The closer-to-app concerns (security headers, anti-forgery, input validation) are handled by ASP.NET Core middleware, not by a WAF.
 
 ### Limitations
 
@@ -72,7 +73,7 @@ An encrypted tunnel that makes two endpoints behave as if they were on the same 
 
 ### Where VPNs are losing ground
 
-For app access, VPN is being displaced by **Zero Trust Network Access (ZTNA)** — identity-aware proxies (Cloudflare Access, Tailscale, AWS Verified Access) that authenticate per-request instead of granting blanket network access. A senior should mention this trade-off: VPN gives you a flat tunnel and trusts everything inside; ZTNA enforces auth and policy at every connection.
+For app access, VPN is being displaced by **Zero Trust Network Access (ZTNA)** — identity-aware proxies that authenticate per-request instead of granting blanket network access. Examples explicitly positioned as ZTNA: Cloudflare Access, AWS Verified Access, Microsoft Entra Application Proxy. Mesh VPNs like **Tailscale** (built on WireGuard) overlap functionally — per-device identity, ACL-based access — but officially position themselves as a "modern VPN," not under the ZTNA brand. A senior should mention this trade-off: classic VPN gives you a flat tunnel and trusts everything inside; ZTNA enforces auth and policy at every connection.
 
 > **For the interview:** know the three perimeter layers (DDoS provider → WAF → app), the dominant VPN protocols, and that ZTNA is the modern replacement for "VPN into the office network."
 

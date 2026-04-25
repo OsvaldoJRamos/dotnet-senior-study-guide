@@ -61,7 +61,7 @@ The act of moving traffic from a failed primary to a healthy replacement.
 - **Detection** — heartbeat, health check, observed error rate. Tune thresholds: too sensitive → flapping; too loose → long outages.
 - **Promotion** — replica becomes primary (e.g., PostgreSQL `pg_ctl promote`, SQL Server AG manual failover, Redis Sentinel auto-promote).
 - **Traffic redirection** — DNS update (slow, TTL-bounded), load balancer reconfig (faster), or anycast withdrawal (fastest).
-- **Pitfall: split-brain** — both nodes believe they are primary after a network partition. Quorum (3+ nodes, etcd/ZooKeeper/Raft) is the standard fix.
+- **Pitfall: split-brain** — both nodes believe they are primary after a network partition. Quorum-based consensus is the standard fix: etcd and Consul use **Raft**, ZooKeeper uses **Zab** (ZooKeeper Atomic Broadcast). You need 3+ nodes so a split produces a clear minority and majority — with only 2 nodes, neither side has a quorum and you're stuck.
 
 ## Geographic redundancy
 
