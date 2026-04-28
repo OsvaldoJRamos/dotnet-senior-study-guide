@@ -10,6 +10,9 @@
 6. [Async and Memory](06-async-and-memory.md) - Async state machine allocations, Task vs ValueTask, Memory<T> across await
 7. [JIT and Runtime](07-jit-and-runtime.md) - Tiered compilation, Dynamic PGO, devirtualization, escape analysis
 8. [Diagnostics](08-diagnostics.md) - BenchmarkDotNet, dotnet-counters/trace/dump/gcdump, PerfView, dotMemory
+9. [System.IO.Pipelines](09-pipelines.md) - PipeReader/PipeWriter, ReadOnlySequence<T>, IBufferWriter<T>
+10. [Memory Model](10-memory-model.md) - Visibility vs ordering, acquire-release, lock-free patterns, double-checked locking
+11. [Modern String APIs](11-modern-string-apis.md) - SearchValues<T>, string.Create, DefaultInterpolatedStringHandler, u8 literals
 
 ---
 
