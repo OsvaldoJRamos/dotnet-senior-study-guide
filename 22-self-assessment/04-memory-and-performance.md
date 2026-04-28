@@ -393,4 +393,174 @@ Deep dive: [Stack and Heap](../04-memory-and-performance/01-stack-and-heap.md)
 
 ---
 
+### 16. Where do POH (Pinned Object Heap) objects live, what version of .NET introduced it, and what's the type restriction?
+
+<details>
+<summary>Reveal answer</summary>
+
+The POH was introduced in .NET 5. Allocate via `GC.AllocateArray<T>(length, pinned: true)`. Pinned objects sit on this dedicated heap rather than the regular SOH, so they don't disrupt heap compaction.
+
+Per the official MS Learn `GC.AllocateArray<T>` docs: in **.NET 7 and earlier versions**, when `pinned` is `true`, `T` must not be a reference type or a type that contains object references. The reason is design-level — POH objects are not scanned for cross-generation references because by definition they cannot hold them.
+
+POH and LOH are physically separate from SOH but **logically collected together with Gen 2**.
+
+Deep dive: [Garbage Collector](../04-memory-and-performance/02-garbage-collector.md)
+
+</details>
+
+---
+
+### 17. Workstation vs Server GC: what differs, and which is the default?
+
+<details>
+<summary>Reveal answer</summary>
+
+| | Workstation | Server |
+|---|---|---|
+| GC threads | One | One per logical processor |
+| Heaps | One | One per logical processor |
+| Pause profile | Lower latency, lower throughput | Higher throughput, larger pauses |
+| Hardware requirement | Any | Requires 2+ logical processors |
+
+Per the official runtime config docs, the **default is Workstation GC** at the raw runtime level. ASP.NET Core templates flip it to Server GC via `<ServerGarbageCollection>true</ServerGarbageCollection>` in the project file.
+
+**Background GC** (concurrent) is a separate axis, **enabled by default**. It does most of the Gen 2 collection work in parallel with application threads, with only short stop-the-world pauses at the start and end. Gen 0 and Gen 1 collections are still stop-the-world (they're already short).
+
+Deep dive: [Garbage Collector](../04-memory-and-performance/02-garbage-collector.md)
+
+</details>
+
+---
+
+### 18. What is DATAS, and when did it become the default?
+
+<details>
+<summary>Reveal answer</summary>
+
+DATAS (Dynamic Adaptation To Application Sizes) sizes the GC heap based on the application's actual workload rather than the machine's core count. Per the official runtime config docs:
+
+- **.NET 8**: introduced as opt-in (`DOTNET_GCDynamicAdaptationMode=1`)
+- **.NET 9**: enabled by default
+
+The motivation is containerized workloads where memory has a real cost. Without DATAS, Server GC on a 48-core machine could grow a large heap even with light traffic. DATAS targets a **Throughput Cost Percentage** (default 2%) that combines GC pause time and allocation wait time, and adapts heap size accordingly.
+
+Disable via `System.GC.DynamicAdaptationMode: 0` if you have a hot-from-first-request workload that can't tolerate the heap-growth ramp.
+
+Deep dive: [Garbage Collector](../04-memory-and-performance/02-garbage-collector.md)
+
+</details>
+
+---
+
+### 19. ValueTask vs Task — when does ValueTask actually pay off, and what restrictions does it carry?
+
+<details>
+<summary>Reveal answer</summary>
+
+`ValueTask<T>` is a struct that can wrap either an already-available value (no heap allocation) or a `Task<T>` (when the slow path is unavoidable). It pays off in methods where the **synchronous-completion path is common** (cache hits, data already in buffer, etc.).
+
+The official MS Learn docs are explicit about what you must not do:
+
+- Awaiting the instance multiple times
+- Calling `AsTask` multiple times
+- Using `.Result` or `.GetAwaiter().GetResult()` when the operation hasn't yet completed, or using them multiple times
+- Using more than one of these techniques to consume the instance
+
+> "If you do any of the above, the results are undefined." — MS Learn
+
+Subtle nuance: `ValueTask<T>` is a struct with **multiple fields**, while `Task<T>` is a reference type passed by **a single pointer**. Returning a `ValueTask` copies more bytes than returning a `Task`. So if the slow path dominates, `Task` is cheaper overall — `ValueTask` only wins when sync completion is common.
+
+Microsoft's official recommendation: *"the default choice for any asynchronous method should be to return a Task or Task<TResult>. Only if performance analysis proves it worthwhile should a ValueTask<TResult> be used."*
+
+Deep dive: [Async and Memory](../04-memory-and-performance/06-async-and-memory.md)
+
+</details>
+
+---
+
+### 20. WeakReference vs ConditionalWeakTable — when do you reach for each?
+
+<details>
+<summary>Reveal answer</summary>
+
+| | `WeakReference<T>` | `ConditionalWeakTable<TKey, TValue>` |
+|---|---|---|
+| What it does | Holds a reference to a single object without preventing GC | Associates extra data with an object you don't own; entry disappears when the key is collected |
+| Type constraints | Any reference type | Both `TKey` and `TValue` must be reference types |
+| Equality | N/A (single target) | **Reference identity only** — overrides of `Equals`/`GetHashCode` on the key are ignored |
+| Typical use | Hand-rolled cache that mustn't pin memory; breaking observer cycles | Attached properties, framework instrumentation, anywhere you need to "tag" external objects |
+
+The official `ConditionalWeakTable` docs are explicit: *"Two keys are equal if passing them to the `Object.ReferenceEquals` method returns `true`."* This is **not** what `Dictionary<K,V>` does — and is the key to its leak-free behavior.
+
+For "real" caches with TTL and size limits, prefer `IMemoryCache` over either of these. Both `WeakReference` and `ConditionalWeakTable` are tools for specific problems, not a substitute for proper cache infrastructure.
+
+Deep dive: [Memory Leak](../04-memory-and-performance/04-memory-leak.md)
+
+</details>
+
+---
+
+### 21. Tiered compilation and Dynamic PGO — when did each become default, and what do they do?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Tiered compilation** (per MS Learn `compilation` runtime config docs):
+
+- .NET Core 2.1 / 2.2: disabled by default
+- .NET Core 3.0 and later: enabled by default
+
+It compiles methods twice — Tier 0 (Quick JIT) for fast startup, Tier 1 (full optimization) once a method is observed to be hot. By default, Quick JIT does **not** apply to methods containing loops, since a long-running loop has no method-call boundary at which to swap in optimized code.
+
+**Dynamic PGO** (per the official .NET 8 performance announcement):
+
+- .NET 6: previewed, off by default
+- .NET 7: improved, off by default
+- .NET 8: *"now on by default"*
+
+PGO instruments running code, observes which types and branches dominate, and feeds that info into Tier-1 recompilation. It enables guarded devirtualization of interface/virtual calls, smarter inlining decisions, block reordering for cache locality, and (in .NET 10) more aggressive escape analysis.
+
+Practical takeaway: idiomatic patterns (`foreach` over `IEnumerable<T>`, lambdas, virtual calls) pay less abstraction tax in modern .NET than they did in .NET Framework. Re-benchmark before assuming an old "perf rule" still holds.
+
+Deep dive: [JIT and Runtime](../04-memory-and-performance/07-jit-and-runtime.md)
+
+</details>
+
+---
+
+### 22. You suspect a memory leak in production. What's the toolchain and workflow?
+
+<details>
+<summary>Reveal answer</summary>
+
+The standard sequence:
+
+1. **Live metrics first** — `dotnet-counters monitor -p <PID>` shows GC activity, allocation rate, working set, and Gen 2 collection frequency. Rising Gen 2 + growing working set strongly suggests a managed leak.
+
+2. **Capture two snapshots** with a workload between them:
+   ```bash
+   dotnet-gcdump collect -p <PID>   # snapshot 1, after warm-up
+   # run the suspected workload (e.g., 1000 requests)
+   dotnet-gcdump collect -p <PID>   # snapshot 2
+   ```
+
+3. **Compare the snapshots** in JetBrains dotMemory (best UI for this) or PerfView. Types whose count grew unexpectedly are the candidates. For each candidate, look at the **retention path** — what chain of references is keeping it alive.
+
+4. **The usual suspects, in order of frequency:**
+   - Event handlers not unsubscribed (`+= handler` without matching `-=`)
+   - Static collections that grow without bounds (caches without TTL/size limits)
+   - Timers not disposed (capture `this` and freeze the whole graph)
+   - `AsyncLocal` values captured by long-lived `ExecutionContext` (e.g., timer created while a heavy `AsyncLocal` was set)
+   - Closures capturing more than they need (lambdas pulling in `this` implicitly)
+
+5. **Validate locally** — write a focused BenchmarkDotNet test with `[MemoryDiagnoser]` confirming the fix removes the allocation; deploy and check `dotnet-counters` confirms the regression is gone in production.
+
+For production processes you can't restart, `dotnet-gcdump` is significantly cheaper than `dotnet-dump` (managed heap only, smaller files, no unmanaged state). Use the full `dotnet-dump` only when you need access to native state too.
+
+Deep dive: [Diagnostics](../04-memory-and-performance/08-diagnostics.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

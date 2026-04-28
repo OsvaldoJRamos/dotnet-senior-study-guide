@@ -213,6 +213,127 @@ using (var stream = new FileStream("data.txt", FileMode.Open))
 // This ensures resource release with Dispose().
 ```
 
+### 5. Timers retaining `this`
+
+`System.Threading.Timer` and `System.Timers.Timer` keep a strong reference to the callback. If the callback is an instance method, the timer keeps the **enclosing object** alive too — and everything the object references with it.
+
+```csharp
+public class DataRefresher : IDisposable
+{
+    private readonly Timer _timer;
+
+    public DataRefresher()
+    {
+        _timer = new Timer(Refresh, null, 0, 1000);
+        // The timer references Refresh, which references 'this'.
+    }
+
+    private void Refresh(object? state) { /* ... */ }
+
+    public void Dispose() => _timer.Dispose();
+}
+```
+
+If `Dispose` is forgotten, the entire object graph stays alive forever.
+
+For new code, prefer `PeriodicTimer` (.NET 6+) — it is async-friendly via `WaitForNextTickAsync(CancellationToken)`, implements `IDisposable`, and supports cancellation natively:
+
+```csharp
+using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
+while (await timer.WaitForNextTickAsync(stoppingToken))
+{
+    await DoWorkAsync(stoppingToken);
+}
+```
+
+### 6. AsyncLocal capture through ExecutionContext
+
+`AsyncLocal<T>` itself does not leak — its values are tied to a **transient `ExecutionContext`** that becomes collectable when that context goes out of use. The leak surfaces when something **long-lived captures the `ExecutionContext`** at creation time: a `Timer`, a long-running `Task`, an event handler registered into a static event. That captured context keeps every `AsyncLocal` value present at capture time alive.
+
+```csharp
+private static readonly AsyncLocal<HeavyContext> _ctx = new();
+
+public async Task ProcessRequestAsync()
+{
+    _ctx.Value = new HeavyContext { Data = new byte[10_000_000] };
+
+    // Timer captures the current ExecutionContext, keeping _ctx.Value alive
+    // for as long as the timer lives.
+    var timer = new Timer(_ => DoStuff(), null, 0, 60_000);
+    // If _timer is never disposed, the 10 MB stay rooted via the captured context.
+}
+```
+
+Mitigations:
+
+- Don't store heavy objects in `AsyncLocal` — prefer light identifiers / tokens
+- Suppress `ExecutionContext` flow when creating long-lived objects:
+  ```csharp
+  using (ExecutionContext.SuppressFlow())
+  {
+      _timer = new Timer(callback, state, dueTime, period);
+  }
+  ```
+- Clear the value explicitly at the end of the scope (`_ctx.Value = null`)
+
+`PeriodicTimer` is the modern replacement for periodic callbacks in async code — its async-await-cancellation triple is what `System.Threading.Timer` lacks.
+
+## Holding references without rooting them
+
+When you need to refer to an object **without keeping it alive**, the BCL gives you two tools.
+
+### `WeakReference<T>`
+
+A weak reference points at an object **without preventing GC**. You ask, at access time, whether the object is still alive.
+
+```csharp
+var obj = new ExpensiveObject();
+var weak = new WeakReference<ExpensiveObject>(obj);
+
+obj = null;
+GC.Collect();
+
+if (weak.TryGetTarget(out ExpensiveObject? alive))
+{
+    // still alive — use it
+}
+else
+{
+    // collected — recreate or skip
+}
+```
+
+Use cases: caches that must not block GC, breaking cycles in observer patterns, holding references in plugin systems where you don't own object lifetime.
+
+For "real" caches (with TTL, size limits, eviction strategy), prefer `IMemoryCache` from `Microsoft.Extensions.Caching.Memory` over hand-rolled weak-reference structures.
+
+### `ConditionalWeakTable<TKey, TValue>`
+
+A specialized table where:
+
+- **Keys are weak** (do not block their collection)
+- **Values stay alive while the key is alive** — when the key is collected, the value entry disappears automatically
+- **Both `TKey` and `TValue` must be reference types** (per the official MS Learn docs)
+- **Equality is by reference identity only** — overrides of `Equals`/`GetHashCode` on the key are ignored
+
+```csharp
+private static readonly ConditionalWeakTable<HttpRequest, RequestMetrics> _metrics = new();
+
+void OnRequestStart(HttpRequest req)
+    => _metrics.Add(req, new RequestMetrics { StartTime = DateTime.UtcNow });
+
+void OnRequestEnd(HttpRequest req)
+{
+    if (_metrics.TryGetValue(req, out var metrics))
+        Log.Info($"Request took {DateTime.UtcNow - metrics.StartTime}");
+    // No manual cleanup needed: when 'req' is collected, the entry is removed.
+}
+```
+
+This is the right tool when you want to **attach data to objects you don't own** (third-party types, framework objects) without holding them alive yourself. WPF uses it for attached properties; the DLR uses it for expandos.
+
+A naive `Dictionary<HttpRequest, RequestMetrics>` would keep every key alive forever — which is the leak this type was designed to avoid.
+
 ---
 
 [← Previous: Memory Optimization](03-memory-optimization.md) | [Back to index](README.md) | [Next: Structs vs Classes →](05-structs-vs-classes.md)
