@@ -563,4 +563,98 @@ Deep dive: [Diagnostics](../04-memory-and-performance/08-diagnostics.md)
 
 ---
 
+### 23. Why does System.IO.Pipelines exist, and what does `AdvanceTo(consumed, examined)` actually mean?
+
+<details>
+<summary>Reveal answer</summary>
+
+Pipelines exists because the naïve `stream.Read(buffer)` pattern can't cleanly express "I got 1.5 messages, please remember the half-message and give me more bytes when you have them" — you end up reinventing buffering, framing, and backpressure badly. Kestrel uses Pipelines internally; for any custom binary protocol server (gRPC, RESP/Redis-compatible, MQTT, MessagePack), Pipelines is the modern answer.
+
+`AdvanceTo(consumed, examined)` is the trick that makes it work:
+
+- **`consumed`** — bytes up to this point are processed; never give them to me again
+- **`examined`** — I looked at everything up to here but didn't have enough to make progress; if and only if more data arrives beyond `examined`, return from the next `ReadAsync`
+
+If you collapse them (`AdvanceTo(consumed)` single-arg overload, or pass the same position twice), the pipeline assumes consumed = examined, which can deadlock if you didn't have enough data to commit a message. The two-position form is what enables zero-copy buffered parsing across arbitrary chunk boundaries.
+
+The buffer returned by `ReadResult.Buffer` is a `ReadOnlySequence<byte>` — a logical view over multiple non-contiguous memory segments. Use `IsSingleSegment` for the fast path and `SequenceReader<byte>` for cross-segment parsing.
+
+Deep dive: [System.IO.Pipelines](../04-memory-and-performance/09-pipelines.md)
+
+</details>
+
+---
+
+### 24. Visibility vs ordering vs atomicity — what's the difference, and when do you need each?
+
+<details>
+<summary>Reveal answer</summary>
+
+These are three distinct concurrency concerns:
+
+| Concern | Definition | Example |
+|---|---|---|
+| **Atomicity** | A single operation can't be observed half-done | `int` reads/writes are atomic; `int++` is not (read-modify-write) |
+| **Visibility** | A write on thread A becomes observable to thread B | A worker spinning on `_stopRequested` may never see `Stop()` without a barrier |
+| **Ordering** | Operations on thread A appear to thread B in the order A wrote them | `_data = ...; _isReady = true;` — B can see `_isReady == true` while `_data` is still null |
+
+Tools per concern:
+
+- **Atomicity for read-modify-write**: `Interlocked.Increment`, `Interlocked.CompareExchange`. Use a `lock` for anything more complex than a single field.
+- **Visibility**: `volatile` keyword (field-level) or `Volatile.Read`/`Volatile.Write` (call-site). A `lock` enter implicitly inserts an acquire barrier, exit a release barrier.
+- **Ordering**: same tools as visibility — they implement **acquire-release** semantics. `Volatile.Read` is acquire (later ops can't move before it), `Volatile.Write` is release (earlier ops can't move past it).
+
+The `lock` block is the simplest correct answer because it's a **full barrier** at both entry and exit and gives mutual exclusion as a bonus. Reach for `Interlocked` and `Volatile` only when profiling shows the lock is the bottleneck, or for stop-flag-style single-field signaling.
+
+Deep dive: [Memory Model](../04-memory-and-performance/10-memory-model.md)
+
+</details>
+
+---
+
+### 25. SearchValues, string.Create, u8 literals — when does each pay off?
+
+<details>
+<summary>Reveal answer</summary>
+
+These are three modern .NET APIs that replace older patterns with allocation-free or allocation-reduced equivalents.
+
+**`SearchValues<T>` (.NET 8)** — replaces `IndexOfAny(char[])` for repeated searches with a known set:
+
+```csharp
+private static readonly SearchValues<char> _vowels = SearchValues.Create("aeiouAEIOU");
+public bool ContainsVowel(ReadOnlySpan<char> text) => text.IndexOfAny(_vowels) != -1;
+```
+
+The `SearchValues` instance pre-computes the optimal strategy (bitmap, range check, vectorized scan, etc.) once. Call sites use that pre-computed structure. Pays off with **3+ values, large inputs, and reuse** — not for one-off lookups.
+
+**`string.Create<TState>`** (since .NET Core 2.1) — write directly into the string's underlying buffer when you know the final length:
+
+```csharp
+public string FormatId(long n) => string.Create(16, n, (Span<char> span, long v) =>
+{
+    "ID-".CopyTo(span);
+    v.TryFormat(span[3..], out _, "D13");
+});
+```
+
+Per the official docs, **the buffer is undefined initially** — you must fill every char or end up with random heap data. Use when the length is known and a `StringBuilder` would be wasted overhead.
+
+**`u8` string literals (C# 11)** — produce a `ReadOnlySpan<byte>` containing the UTF-8 encoding, computed at compile time:
+
+```csharp
+private static ReadOnlySpan<byte> AuthBytes => "AUTH "u8;
+reader.ValueTextEquals("name"u8);  // no UTF-16 → UTF-8 conversion at runtime
+```
+
+The bytes live in the assembly's `.data` section — no allocation at the call site. Replaces hand-rolled `byte[]` arrays and `Encoding.UTF8.GetBytes(...)` calls in hot HTTP/protocol parsing paths. Note that `static readonly` fields can't hold `ReadOnlySpan<byte>` (it's a `ref struct`); use a static expression-bodied property instead.
+
+In C# 10+, `$"..."` interpolation also got dramatically faster via `DefaultInterpolatedStringHandler` — value types are no longer boxed into `object[]` for `string.Format`. You don't write the handler directly; the compiler emits it for you.
+
+Deep dive: [Modern String APIs](../04-memory-and-performance/11-modern-string-apis.md)
+
+</details>
+
+---
+
 [Back to index](README.md)

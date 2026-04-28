@@ -169,4 +169,4 @@ If your top allocators are these, the standard remedies (`StringBuilder`, `Value
 
 ---
 
-[← Previous: JIT and Runtime](07-jit-and-runtime.md) | [Back to index](README.md)
+[← Previous: JIT and Runtime](07-jit-and-runtime.md) | [Back to index](README.md) | [Next: Pipelines →](09-pipelines.md)
