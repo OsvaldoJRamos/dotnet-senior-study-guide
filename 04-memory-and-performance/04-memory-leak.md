@@ -236,7 +236,7 @@ public class DataRefresher : IDisposable
 
 If `Dispose` is forgotten, the entire object graph stays alive forever.
 
-For new code, prefer `PeriodicTimer` (.NET 6+) — it is async-friendly, supports cancellation natively, and does not capture `ExecutionContext`:
+For new code, prefer `PeriodicTimer` (.NET 6+) — it is async-friendly via `WaitForNextTickAsync(CancellationToken)`, implements `IDisposable`, and supports cancellation natively:
 
 ```csharp
 using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
@@ -276,7 +276,7 @@ Mitigations:
   ```
 - Clear the value explicitly at the end of the scope (`_ctx.Value = null`)
 
-`PeriodicTimer` does **not** capture `ExecutionContext` and is the modern replacement for periodic callbacks in async code.
+`PeriodicTimer` is the modern replacement for periodic callbacks in async code — its async-await-cancellation triple is what `System.Threading.Timer` lacks.
 
 ## Holding references without rooting them
 

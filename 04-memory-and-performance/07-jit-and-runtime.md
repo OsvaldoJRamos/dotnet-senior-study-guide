@@ -84,10 +84,13 @@ Practical takeaway: prefer `sealed` on classes that aren't designed for inherita
 
 Escape analysis decides whether an object **escapes** the method that allocated it. If the JIT can prove an object never escapes (not returned, not stored in a field, not passed to a method whose body it can't see), it can stack-allocate it instead of going to the heap, eliminate write barriers, or even decompose it into registers.
 
-Recent state (per Microsoft's runtime announcements):
+Recent state, per the official .NET 10 performance announcement, which highlights "Object Stack Allocation" as *"one of the most exciting areas of deabstraction progress in .NET 10"*:
 
-- **.NET 9:** escape analysis enters with limited stack allocation for narrow patterns
-- **.NET 10:** stack allocation widens significantly — small non-escaping arrays, non-escaping delegates with captured state, and field-sensitive analysis combined with PGO can stack-allocate enumerators in `foreach` over `IEnumerable<T>` when one concrete type dominates
+- **Stack allocation of delegates** — the JIT learned that delegate `Invoke` doesn't retain the `this` reference, enabling stack allocation when the delegate doesn't escape
+- **Stack allocation of arrays** — patterns like `Process(new string[] { "a", "b", "c" })` can avoid heap allocation entirely
+- **Span seeding** — the JIT can reason about `Span<T>` constructed from a stack-allocated array, keeping the whole chain off the heap
+
+Object stack allocation existed in earlier .NET versions in narrower forms, but .NET 10 is where the announcement explicitly calls it a major step forward.
 
 The takeaway is the same as for tiered compilation: **write idiomatic code and let the JIT do its job**. Patterns that used to pay an "abstraction tax" in .NET Framework are no longer the same trade-off in modern .NET.
 

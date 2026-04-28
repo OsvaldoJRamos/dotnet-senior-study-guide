@@ -96,7 +96,7 @@ Every `await` captures the current `SynchronizationContext` (or, if null, the cu
 When it matters:
 
 - **WPF / WinForms:** there *is* a `SynchronizationContext` that pins continuations to the UI thread. Without `ConfigureAwait(false)`, every `await` round-trips through the UI thread, which is bad for throughput and a deadlock risk for code that blocks on tasks.
-- **ASP.NET Core:** there is **no** `SynchronizationContext` by default. The behavioral effect of `ConfigureAwait(false)` is therefore minimal — but as Stephen Toub clarified in the official ConfigureAwait FAQ, the runtime still has to read `SynchronizationContext.Current` and `TaskScheduler.Current` on every await, so a tiny per-call cost remains. For application code, leave the call out and keep the noise down. For library code consumed in unknown contexts, keep `ConfigureAwait(false)`.
+- **ASP.NET Core:** there is **no** `SynchronizationContext` by default (Stephen Toub's official ConfigureAwait FAQ confirms this). The behavioral effect of `ConfigureAwait(false)` in app code is minimal — there's only a "small performance overhead" from `await` reading `SynchronizationContext.Current`/`TaskScheduler.Current` even when both are null. The FAQ's explicit guidance: *"if you're writing app-level code, do not use `ConfigureAwait(false)`"* and *"if you're writing general-purpose library code, use `ConfigureAwait(false)`."*
 
 ## `async void`
 

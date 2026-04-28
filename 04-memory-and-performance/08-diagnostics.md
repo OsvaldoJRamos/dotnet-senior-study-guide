@@ -48,10 +48,13 @@ Required attributes for any serious benchmark:
 
 ### Running benchmarks correctly
 
-- Build in **Release** configuration (`dotnet run -c Release`)
-- Run **without a debugger attached** (BenchmarkDotNet refuses to run if it detects one)
-- Don't run other heavy work on the same machine during a benchmark
-- For meaningful comparisons, run the same benchmark suite on the same hardware
+The BenchmarkDotNet good-practices guide is explicit:
+
+- Build in **Release** configuration. *"Never use the Debug build for benchmarking. Never. The debug version of the target method can run 10–100 times slower."*
+- Don't run with a debugger attached. *"Never use an attached debugger (e.g. Visual Studio or WinDbg) during the benchmarking."*
+- *"Turn off all of the applications except the benchmark process and the standard OS processes."*
+- For laptops, *"keep it plugged in and use the maximum performance mode."*
+- For meaningful comparisons, run the same benchmark suite on the same hardware.
 
 ## `dotnet-counters` — live runtime metrics
 
