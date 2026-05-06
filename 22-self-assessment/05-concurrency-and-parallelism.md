@@ -510,7 +510,382 @@ Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-a
 
 ---
 
-### 20. A request reads from a database, runs a heavy transform, then writes to storage. How do you structure the `await`s?
+### 20. The .NET thread pool tracks two separate categories of threads. What are they, and why does that distinction matter?
+
+<details>
+<summary>Reveal answer</summary>
+
+Worker threads and I/O completion threads are tracked independently — `ThreadPool.GetMinThreads`/`GetMaxThreads` return both numbers.
+
+| Category | Used for |
+|---|---|
+| Worker threads | CPU-bound work: `Task.Run`, `QueueUserWorkItem`, `Timer` callbacks, registered waits |
+| I/O completion threads | Completions from async I/O bound to the pool (Windows IOCP) |
+
+Why it matters: starving one category does not necessarily starve the other. A loop that hammers `Task.Run` with `.Result` blocks **worker** threads; if your monitoring only watches IOCP threads, the bug is invisible. When diagnosing thread pool issues, always check both — `GetAvailableThreads`, the `threadpool-queue-length` EventCounter, and the `ThreadCount` property all give signals per category.
+
+Deep dive: [The Thread Pool](../05-concurrency-and-parallelism/08-thread-pool.md)
+
+</details>
+
+---
+
+### 21. What is "thread pool starvation" and why does `SetMinThreads` not fix it properly?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Starvation** is when so many pool threads are blocked that throughput collapses and the pool can't grow fast enough to recover. The classic trigger is synchronous waits on async work:
+
+```csharp
+var data = httpClient.GetStringAsync(url).Result;   // blocks a pool thread
+```
+
+Each `.Result` parks one worker thread sitting on a network read. Multiply by N concurrent requests → N stuck threads → empty pool. Hill climbing tries to grow the pool, but new threads are added at a **rate-limited** pace, so latency spikes for every request until the pool catches up — sometimes 30+ seconds.
+
+`SetMinThreads(n, n)` raises the floor below which threads are created instantly — that masks the symptom for the first `n` blocked calls. But:
+
+- It doesn't fix the actual cause (blocking).
+- The next burst still hits the rate-limited path.
+- It can degrade steady-state throughput because hill climbing is overridden.
+
+The MS Learn `SetMinThreads` page explicitly says: *"In most cases, the thread pool will perform better with its own algorithm for allocating threads."*
+
+The real fix is being `async` end-to-end so threads are released during I/O and never sit on `.Result`/`.Wait()`.
+
+Deep dive: [The Thread Pool](../05-concurrency-and-parallelism/08-thread-pool.md)
+
+</details>
+
+---
+
+### 22. The thread pool uses local queues, a global queue, and work stealing. What is each used for?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Global queue** — receives work submitted from outside the pool (e.g., `Task.Run` called from a non-pool thread, an HTTP request handler scheduling a task).
+- **Per-thread local queue** — receives work submitted from inside the pool. When a pool thread does `Task.Run(...)`, the new task lands on **its own** local queue. Local queues use LIFO ordering, which exploits cache locality (the just-created task often touches hot data).
+- **Work stealing** — when a thread's local queue is empty, it checks the global queue, then steals from another thread's local queue.
+
+Confirmation from MS Learn (`SetMinThreads` remarks, on the cost of over-provisioning): *"Worker threads may take more CPU time in dequeuing work items due to having to scan more threads to **steal work** from."*
+
+Practical consequence: `Task.Run` from inside the pool is cheap (no global contention); `Task.Run` from outside hits the global queue and is slightly more expensive.
+
+Deep dive: [The Thread Pool](../05-concurrency-and-parallelism/08-thread-pool.md)
+
+</details>
+
+---
+
+### 23. What is `BoundedChannelFullMode` and why does the default value give you backpressure?
+
+<details>
+<summary>Reveal answer</summary>
+
+`BoundedChannelFullMode` controls what happens when a producer writes to a full bounded channel. The four modes (from MS Learn):
+
+| Mode | Behavior |
+|---|---|
+| `Wait` (default) | Waits for space to be available before completing the write. |
+| `DropNewest` | Removes and ignores the **newest** queued item to make room. |
+| `DropOldest` | Removes and ignores the **oldest** queued item to make room. |
+| `DropWrite` | Drops the **item being written**. |
+
+`Wait` is what gives you **backpressure**: the producer's `WriteAsync` simply doesn't complete until the consumer has freed a slot. The producer naturally throttles to the consumer's pace, and queue size is bounded by capacity.
+
+Without backpressure (unbounded channel, or a `Drop*` mode), a slow consumer either blows up memory (unbounded) or silently loses data (drop modes). `Drop*` modes are appropriate for telemetry/metrics where freshness beats completeness. For business data (orders, payments), `Wait` is the only safe choice.
+
+```csharp
+var channel = Channel.CreateBounded<Order>(new BoundedChannelOptions(1000));
+// FullMode defaults to Wait — Wait is the right default for almost everything
+```
+
+Deep dive: [Channels](../05-concurrency-and-parallelism/09-channels.md)
+
+</details>
+
+---
+
+### 24. What do `SingleReader` and `SingleWriter` do on a `Channel`?
+
+<details>
+<summary>Reveal answer</summary>
+
+They are **promises** the caller makes about the access pattern, not guards the runtime enforces. When set, the channel implementation switches to a specialized fast path with fewer locks (and in the single-reader case, fewer interlocked operations).
+
+From the official Stephen Toub article: *"When `SingleReader` is true, the implementation not only avoids locks when reading, it also avoids interlocked operations when reading, significantly reducing the overheads involved in consuming from the channel."*
+
+Set them whenever the access pattern matches — most pipelines have one consumer and a known set of producers. Lying about it (e.g., setting `SingleReader = true` and reading from two threads) is undefined behavior and can corrupt internal state.
+
+```csharp
+var channel = Channel.CreateBounded<Work>(new BoundedChannelOptions(100)
+{
+    SingleReader = true,   // I promise: at most one ReadAsync at a time
+    SingleWriter = false   // multiple producers
+});
+```
+
+Deep dive: [Channels](../05-concurrency-and-parallelism/09-channels.md)
+
+</details>
+
+---
+
+### 25. What is the `GetOrAdd` factory pitfall in `ConcurrentDictionary`, and how do you fix it?
+
+<details>
+<summary>Reveal answer</summary>
+
+The factory delegate passed to `GetOrAdd` (and `AddOrUpdate`) **runs outside the dictionary's locks**, which means **two threads racing on the same key can both run the factory**. Only one of the produced values wins the slot; the other is silently discarded.
+
+The MS Learn remarks state this directly: *"delegates for these methods are called outside the locks to avoid the problems that can arise from executing unknown code under a lock. Therefore, the code executed by these delegates is not subject to the atomicity of the operation."*
+
+For factories with side effects (logging, DB calls, file I/O) this is a real bug — the side effect runs N times, even though only one cache entry remains.
+
+Fix with `Lazy<T>`:
+
+```csharp
+private readonly ConcurrentDictionary<string, Lazy<Config>> _cache = new();
+
+public Config Get(string key) =>
+    _cache.GetOrAdd(key, k => new Lazy<Config>(() => LoadFromDb(k))).Value;
+```
+
+Multiple threads may build a `Lazy<Config>`, but only one wins the dictionary slot, and `Lazy<T>` ensures `LoadFromDb` runs at most once.
+
+Deep dive: [Concurrent Collections](../05-concurrency-and-parallelism/10-concurrent-collections.md)
+
+</details>
+
+---
+
+### 26. When is `ConcurrentBag<T>` the right pick, and when is it the *wrong* one?
+
+<details>
+<summary>Reveal answer</summary>
+
+The official remarks pin it down: *"`ConcurrentBag<T>` is a thread-safe bag implementation, optimized for scenarios where the same thread will be both producing and consuming data stored in the bag."*
+
+Each thread has its own local list. `Add` writes locally (zero contention), `TryTake` reads locally first and only **steals** from another thread's list when local is empty.
+
+**Right fit:** embarrassingly parallel work where each thread accumulates results, possibly drains its own results, with rare cross-thread takes. Example: `Parallel.ForEach` workers collecting partial sums or hashes into per-thread buckets.
+
+**Wrong fit:** classic producer/consumer with **distinct** producer threads and consumer threads. Every consume becomes a steal, which is more expensive than the dedicated FIFO path in `ConcurrentQueue` or the wait-aware path in `Channel<T>`. For that shape, use `ConcurrentQueue<T>` or `Channel<T>`.
+
+Deep dive: [Concurrent Collections](../05-concurrency-and-parallelism/10-concurrent-collections.md)
+
+</details>
+
+---
+
+### 27. You need an in-process producer/consumer pipeline. Should you use `BlockingCollection<T>` or `Channel<T>`?
+
+<details>
+<summary>Reveal answer</summary>
+
+Almost always `Channel<T>` in modern code.
+
+| | `BlockingCollection<T>` | `Channel<T>` |
+|---|---|---|
+| Wait semantics | Synchronous (`Take()` blocks the thread) | Async (`ReadAsync` returns `ValueTask<T>`) |
+| Thread cost while waiting | One full OS thread parked | Zero — thread released to pool |
+| Backpressure (bounded) | Yes (`Add` blocks) | Yes (`WriteAsync` async-waits) |
+| `IAsyncEnumerable<T>` consumer | No | Yes (`ReadAllAsync`) |
+| Allocation profile | Heap-y | `ValueTask`-based fast paths |
+| `Single*` optimizations | No | `SingleReader`/`SingleWriter` |
+
+`BlockingCollection<T>` still earns its keep in **synchronous-only** code (legacy console tools, simple worker loops without `async`). For anything that already uses `await`, `Channel<T>` is the right default — same producer/consumer shape, async-first.
+
+Deep dive: [Channels](../05-concurrency-and-parallelism/09-channels.md), [Concurrent Collections](../05-concurrency-and-parallelism/10-concurrent-collections.md)
+
+</details>
+
+---
+
+### 28. How many `TaskStatus` values are there, and which are terminal?
+
+<details>
+<summary>Reveal answer</summary>
+
+The `TaskStatus` enum has **exactly 8 values** (per MS Learn):
+
+| # | Name | Terminal? |
+|---|---|---|
+| 0 | `Created` | no |
+| 1 | `WaitingForActivation` | no |
+| 2 | `WaitingToRun` | no |
+| 3 | `Running` | no |
+| 4 | `WaitingForChildrenToComplete` | no |
+| 5 | `RanToCompletion` | **yes** |
+| 6 | `Canceled` | **yes** |
+| 7 | `Faulted` | **yes** |
+
+Three terminal states. Once a task lands on one, it never leaves.
+
+Most async-method tasks are born in `WaitingForActivation`, not `Created`. `Task.Run` produces tasks that go `WaitingToRun → Running → ...`. `Task.FromResult` produces tasks that are born already in `RanToCompletion`.
+
+Deep dive: [Task Lifecycle](../05-concurrency-and-parallelism/11-task-lifecycle.md)
+
+</details>
+
+---
+
+### 29. What's the difference between `Task.IsCompleted` and `Task.IsCompletedSuccessfully`?
+
+<details>
+<summary>Reveal answer</summary>
+
+`IsCompleted` is `true` for **any** terminal state — `RanToCompletion`, `Faulted`, **or** `Canceled`. It's a "did this task end?" check, not a "did this task succeed?" check.
+
+`IsCompletedSuccessfully` (introduced in .NET Core 2.0 / .NET Standard 2.1) is `true` only for `RanToCompletion` — per the docs, it "Gets whether the task ran to completion."
+
+The classic bug:
+
+```csharp
+// BUG — task may be Faulted or Canceled; .Result rethrows
+if (task.IsCompleted)
+    UseResult(task.Result);
+
+// CORRECT
+if (task.IsCompletedSuccessfully)
+    UseResult(task.Result);
+```
+
+Use `IsCompletedSuccessfully` whenever you want to peek without risk of throwing.
+
+Deep dive: [Task Lifecycle](../05-concurrency-and-parallelism/11-task-lifecycle.md)
+
+</details>
+
+---
+
+### 30. How do `await` and `.Wait()` / `.Result` differ in how they surface exceptions?
+
+<details>
+<summary>Reveal answer</summary>
+
+`await` rethrows the **original** exception unwrapped — `InvalidOperationException` is `InvalidOperationException`. Cancellation surfaces as `TaskCanceledException` (a subclass of `OperationCanceledException`).
+
+`.Wait()` and `.Result` always wrap in `AggregateException`. The official `Task.Wait` docs are explicit: *"`AggregateException` ... The `InnerExceptions` collection contains information about the exception or exceptions."* Even cancellation: a `Wait()` on a canceled task throws `AggregateException` wrapping `TaskCanceledException` — you can't `catch (OperationCanceledException)` directly.
+
+If you absolutely must block, `task.GetAwaiter().GetResult()` is the lesser evil: same blocking cost, but exceptions come through unwrapped (it's what `await` itself uses internally). Starvation and deadlock risks remain — async-all-the-way is still the right answer when possible.
+
+```csharp
+// await — natural exception type
+try { await DoAsync(); }
+catch (InvalidOperationException) { /* clean */ }
+
+// .Result — wraps everything
+try { var v = DoAsync().Result; }
+catch (AggregateException ae) { /* drill into ae.InnerException */ }
+
+// GetAwaiter().GetResult() — blocks but unwraps
+try { var v = DoAsync().GetAwaiter().GetResult(); }
+catch (InvalidOperationException) { /* unwrapped, like await */ }
+```
+
+Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md), [Task Lifecycle](../05-concurrency-and-parallelism/11-task-lifecycle.md)
+
+</details>
+
+---
+
+### 31. Three conditions must hold for a cancelled task to land in `Canceled` (not `Faulted`). What are they?
+
+<details>
+<summary>Reveal answer</summary>
+
+From the official Task Cancellation guide: *"When a task instance observes an `OperationCanceledException` thrown by the user code, it compares the exception's token to its associated token... If the tokens are same and the token's `IsCancellationRequested` property returns `true`, the task interprets this as acknowledging cancellation and transitions to the `Canceled` state."*
+
+Three conditions, all must hold:
+
+1. An `OperationCanceledException` is thrown from the task body.
+2. The exception's `CancellationToken` **equals** the token passed to the task-creating API (e.g., `Task.Run(..., ct)`).
+3. That token's `IsCancellationRequested` is `true`.
+
+Miss any of the three → task ends up `Faulted`.
+
+Canonical safe pattern:
+
+```csharp
+var task = Task.Run(() =>
+{
+    ct.ThrowIfCancellationRequested();   // throws OCE(ct) if signalled
+    DoSomeWork(ct);
+}, ct);   // ← same token to Task.Run
+```
+
+`ct.ThrowIfCancellationRequested()` constructs the OCE with the right token automatically. Throwing `new OperationCanceledException()` without a token, or passing a different token to `Task.Run`, lands in `Faulted`.
+
+> Returning normally from a delegate — even after polling `ct.IsCancellationRequested` — transitions to `RanToCompletion`, **not** `Canceled`. Only the throw-with-matching-token pattern produces `Canceled`.
+
+Deep dive: [Task Lifecycle](../05-concurrency-and-parallelism/11-task-lifecycle.md)
+
+</details>
+
+---
+
+### 32. When is `Task.FromResult` legitimate, and when is it the "fake-async" anti-pattern?
+
+<details>
+<summary>Reveal answer</summary>
+
+`Task.FromResult<T>(value)` returns a `Task<T>` already in `RanToCompletion`. It's a way to satisfy a `Task<T>`-returning signature with an instantly-known value.
+
+**Legitimate uses:**
+
+1. **Async interface, sync fast path** — cache hit returns `Task.FromResult(cached)`; cache miss does real async I/O.
+2. **Implementing `Task`-returning interfaces from sync code** — use `Task.CompletedTask` (the void equivalent).
+3. **Mocks / test stubs** that satisfy an async signature.
+
+**Anti-pattern (fake async):**
+
+```csharp
+public Task<int> SumAsync(int[] nums) => Task.FromResult(nums.Sum());
+```
+
+The signature claims "this might suspend; await me." It lies — `Sum()` is instant and synchronous. The caller pays state-machine + continuation costs and gains nothing. When this becomes a convention ("everything is async for uniformity"), real async I/O becomes indistinguishable from facade.
+
+For hot synchronous fast paths, prefer `ValueTask<T>` — a struct that wraps the synchronous value with no heap allocation.
+
+Note (.NET 6+): per the docs, *"for some `TResult` types and some result values, this method may return a cached singleton object rather than allocating a new object."* So `Task.FromResult(true)` and similar may be allocation-free. Doesn't change the semantic: don't fake async.
+
+Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md), [Async and Memory](../04-memory-and-performance/06-async-and-memory.md)
+
+</details>
+
+---
+
+### 33. When should code stay synchronous instead of going async?
+
+<details>
+<summary>Reveal answer</summary>
+
+The right question is *"what do I gain by freeing this thread?"* — not *"can this be async?"*. Async has costs (state machine allocation, continuation scheduling, uglier stack traces, `ExecutionContext` capture, viral propagation up the call stack). When the answer to that question is "nothing", async is overhead.
+
+Sync wins by default when:
+
+- **Pure CPU work** with no I/O — there's nothing to wait on.
+- **Single-shot CLI tools, scripts, migrations, startup code** — no other users to serve while you wait.
+- **Naturally synchronous library code** (parsers, validators, formatters) — `JsonSerializer.Deserialize(string)` is sync, and that's correct.
+- **Hot paths where state-machine cost outweighs the work** (consider `ValueTask` first, then sync if even that's too heavy).
+
+Async wins when **someone could use this thread while you wait**:
+
+- Web servers (always another request to serve).
+- UI apps with I/O (blocking the UI thread freezes the app).
+- Batch processes with many concurrent I/O operations.
+
+Heuristic: **sync by default if no I/O, or if single-shot. Async if there's I/O *and* concurrency (server, UI, parallel batch).**
+
+Deep dive: [Task, Async/Await](../05-concurrency-and-parallelism/03-task-async-await.md)
+
+</details>
+
+---
+
+### 34. A request reads from a database, runs a heavy transform, then writes to storage. How do you structure the `await`s?
 
 <details>
 <summary>Reveal answer</summary>

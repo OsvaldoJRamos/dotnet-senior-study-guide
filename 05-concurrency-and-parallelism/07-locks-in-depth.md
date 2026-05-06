@@ -360,4 +360,4 @@ The CLR memory model (ECMA-335 + .NET clarifications) allows the compiler, JIT, 
 
 ---
 
-[← Previous: SemaphoreSlim](06-semaphore-slim.md) | [Back to index](README.md)
+[← Previous: SemaphoreSlim](06-semaphore-slim.md) | [Back to index](README.md) | [Next: The Thread Pool →](08-thread-pool.md)
