@@ -49,7 +49,7 @@ git worktree add --detach ../tmp 1a2b3c4
 
 If `<commit-ish>` is a branch already checked out in another worktree, `add` refuses unless you pass `--force`:
 
-> "By default, `add` refuses to create a new worktree when _<commit-ish>_ is a branch name and is already checked out by another worktree." — `git-worktree` docs
+> "By default, `add` refuses to create a new worktree when _<commit-ish>_ is a branch name and is already checked out by another worktree, or if _<path>_ is already assigned to some worktree but is missing..." — `git-worktree` docs
 
 This is the **one-branch-per-worktree** rule and it's the most common surprise. You can't have two worktrees both checking out `main`. The reason: a branch is a single ref, and two trees pointing at it could diverge silently.
 
