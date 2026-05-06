@@ -29,7 +29,7 @@ CPU internals (fetch-decode-execute, pipeline, branch prediction), cores and thr
 Stack/Heap, Garbage Collector, memory optimization, memory leaks, structs vs classes.
 
 ### [05 - Concurrency and Parallelism](05-concurrency-and-parallelism/README.md)
-Parallel, Task, async/await, race conditions, deadlocks, SemaphoreSlim.
+Parallel, Task, async/await, race conditions, deadlocks, SemaphoreSlim, locks in depth, the thread pool (work stealing, hill climbing, starvation), Channels, concurrent collections, `TaskStatus` lifecycle.
 
 ### [06 - Algorithms and Data Structures](06-algorithms-and-data-structures/README.md)
 Big O, sorting, searching, recursion, trees, graphs, dynamic programming, greedy — all with C# examples and complexity analysis.

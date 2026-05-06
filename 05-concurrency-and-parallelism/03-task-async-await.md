@@ -80,6 +80,35 @@ The deadlock happens **only when a `SynchronizationContext` is captured** — i.
 
 **Mechanism:** inside `MyOperationAsync`, an `await` captures the current sync context. When the awaited operation completes, the continuation is posted back to that context to resume. But the caller is blocking that same context with `.Result` / `.Wait()` — so the continuation never runs, and the caller waits forever.
 
+Even outside the deadlock case (e.g., ASP.NET Core), `.Result`/`.Wait()` parks a pool thread doing nothing — the canonical thread pool starvation pattern. See [The Thread Pool](08-thread-pool.md).
+
+#### `.Wait()` / `.Result` wraps exceptions in `AggregateException`
+
+`await` rethrows the original exception unwrapped. The blocking calls don't:
+
+```csharp
+// await — catches InvalidOperationException directly
+try { await DoAsync(); }
+catch (InvalidOperationException) { /* clean */ }
+
+// .Result — catches AggregateException; the real one is in InnerException
+try { var v = DoAsync().Result; }
+catch (AggregateException ae) { /* drill into ae.InnerException */ }
+```
+
+The `Task.Wait` MS Learn docs are explicit: *"`AggregateException`: The task was canceled. The `InnerExceptions` collection contains a `TaskCanceledException` object. -or- An exception was thrown during the execution of the task. The `InnerExceptions` collection contains information about the exception or exceptions."* This includes cancellation — a `Wait()` on a canceled task throws `AggregateException` wrapping `TaskCanceledException`, not the OCE you'd catch with `await`.
+
+#### `GetAwaiter().GetResult()` — the lesser evil
+
+If you genuinely cannot make the entry point async (a synchronous interface you don't control, a `Main` before C# 7.1, an event handler signature), `task.GetAwaiter().GetResult()` is the *least bad* option. It still blocks the thread (so starvation and deadlock risks remain), but it **unwraps exceptions the same way `await` does** — `InvalidOperationException` is `InvalidOperationException`, not `AggregateException` wrapping it. This is what `await` itself uses internally, so behavior is consistent.
+
+```csharp
+// Forced sync entry point — last resort
+public string GetData() => GetDataAsync().GetAwaiter().GetResult();
+```
+
+Deeper coverage of state and exception unwrapping: [Task Lifecycle](11-task-lifecycle.md).
+
 ### async void — avoid it
 
 ```csharp
@@ -136,6 +165,73 @@ _ = Task.Run(async () =>
 ```
 
 Better: enqueue into a `Channel<T>` or a hosted `BackgroundService` that owns lifecycle and error handling.
+
+## `Task.FromResult` / `Task.CompletedTask` and "fake async"
+
+`Task.FromResult<T>(value)` returns a `Task<T>` that is **already in `RanToCompletion`** — per the MS Learn docs, it "creates a `Task<TResult>` object whose `Task<TResult>.Result` property is `result` and whose `Status` property is `RanToCompletion`." `Task.CompletedTask` is the equivalent for non-generic `Task`. Both are useful — and both are abused.
+
+### Legitimate uses
+
+**1. Async interface with a synchronous fast path.** When *some* implementations of an interface need `await` (DB hit) but others can answer instantly (cache hit), wrap the instant value:
+
+```csharp
+public Task<User> GetByIdAsync(int id)
+{
+    if (_cache.TryGetValue(id, out var user))
+        return Task.FromResult(user);   // hit: ready immediately, no allocation if cached singleton
+
+    return LoadFromDbAsync(id);          // miss: real async
+}
+```
+
+**2. Implementing a `Task`-returning interface from synchronous code.**
+
+```csharp
+public Task PublishAsync(Event evt)
+{
+    _localBus.Publish(evt);
+    return Task.CompletedTask;    // method signature requires Task; nothing to actually await
+}
+```
+
+**3. Mocks and test stubs** that need to satisfy an async signature without doing async work.
+
+> .NET 6+ note: per the docs, "for some `TResult` types and some result values, this method may return a cached singleton object rather than allocating a new object." `Task.FromResult(true)`, `Task.FromResult(0)`, etc. may be allocation-free.
+
+### The fake-async anti-pattern
+
+The misuse is wrapping work that **never had any async** in `Task.FromResult` just because something downstream takes `Task<T>`:
+
+```csharp
+// ANTI-PATTERN — synchronous work behind an async signature
+public Task<int> SumAsync(int[] nums) => Task.FromResult(nums.Sum());
+```
+
+The signature lies: it tells callers "this might suspend; await me." The caller pays state-machine + continuation costs and gains nothing because the work is instant and synchronous. When this becomes a convention ("everything is async for uniformity"), real async I/O becomes indistinguishable from facade.
+
+The other classic fake-async is **`Task.Run(() => Sync())`** hidden inside library methods — it doesn't free a thread, it just shifts the work to a different one. Rule: expose synchronous work as synchronous; expose genuine async (real I/O / `TaskCompletionSource`) as async. Let callers decide when to offload.
+
+### Hot-path alternative: `ValueTask<T>`
+
+`Task.FromResult` still allocates a `Task<T>` (when the cached singleton path doesn't apply). For a hot synchronous fast path, return `ValueTask<T>` instead — a struct that wraps either the synchronous value (no allocation) or a real `Task<T>`. See [Async and Memory](../04-memory-and-performance/06-async-and-memory.md) for the rules.
+
+## When synchronous beats async
+
+The reflex "make everything async" is wrong as often as it's right. Async has costs: state machine allocation, continuation scheduling, uglier stack traces, `ExecutionContext` capture, and the viral "async all the way up" effect. The right question isn't "*can* this be async?" — it's "**what do I gain by freeing this thread?**" If the answer is nothing, async is just overhead.
+
+Sync wins by default in these scenarios:
+
+| Scenario | Why sync is fine |
+|---|---|
+| Pure CPU work (parsing, hashing, math) with no I/O | No wait to free up a thread for. Wrapping in `Task` is overhead. |
+| Single-shot CLI tools, scripts, migrations | No "other users" to serve while you wait. The process has one job. |
+| Naturally synchronous library code (parsers, validators, formatters) | Forcing `Async` suffixes onto things that don't do I/O breaks the contract. `JsonSerializer.Deserialize` is sync — and that's correct. |
+| Hot paths where the state-machine cost > the work | Same reasoning as `ValueTask`, taken further. |
+| Initialization that runs once at startup | No one is waiting; simplicity beats scalability. |
+
+Async wins when **someone could be using this thread while you wait**: web servers (always another request), UI apps with I/O (blocking the UI thread freezes the app), batch processes with many concurrent I/O operations.
+
+> Heuristic: **sync by default if no I/O, or if the process is single-shot. Async if there's I/O *and* concurrency (server, UI, parallel batch).**
 
 ## Realistic hybrid example
 
