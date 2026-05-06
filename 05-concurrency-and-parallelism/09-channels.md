@@ -71,7 +71,7 @@ var channel = Channel.CreateBounded<Telemetry>(new BoundedChannelOptions(capacit
 
 These are **promises you make to the runtime**, not guards it enforces. When you set them, the implementation switches to specialized fast paths. From the official Stephen Toub article introducing channels:
 
-> "When `SingleReader` is true, the implementation not only avoids locks when reading, it also avoids interlocked operations when reading, significantly reducing the overheads involved in consuming from the channel."
+> "if the options passed to `CreateUnbounded` specifies `SingleReader` as `true`, it returns an implementation that not only avoids locks when reading, it also avoids interlocked operations when reading, significantly reducing the overheads involved in consuming from the channel."
 
 Set them whenever you can — most pipelines have one consumer and a small fixed set of producers. Lying about it (multiple readers despite `SingleReader = true`) is undefined behavior.
 
