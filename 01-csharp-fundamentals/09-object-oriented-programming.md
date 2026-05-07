@@ -193,7 +193,7 @@ public class C : B { public sealed override void DoWork() {} } // no further ove
 public class D : C { public new      void DoWork() {} }        // can only hide, not override
 ```
 
-`sealed override` lets the JIT devirtualize calls — measurable wins in hot paths.
+`sealed override` lets the JIT devirtualize calls — turn an indirect virtual dispatch into a direct call (which the JIT can then inline). This is the same optimization the [CA1852](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1852) analyzer pushes for at the class level.
 
 ---
 
@@ -385,16 +385,16 @@ When two interfaces declare the same method, or you want to hide an interface me
 public interface IReader { string Read(); }
 public interface IWriter { string Read(); }   // same name, same signature
 
-public class Stream : IReader, IWriter
+public class Pipe : IReader, IWriter
 {
     string IReader.Read() => "from reader";
     string IWriter.Read() => "from writer";
 }
 
-var s = new Stream();
-// s.Read();                   // ❌ ambiguous, not even available
-((IReader)s).Read();           // "from reader"
-((IWriter)s).Read();           // "from writer"
+var p = new Pipe();
+// p.Read();                   // ❌ not available — no public Read() member
+((IReader)p).Read();           // "from reader"
+((IWriter)p).Read();           // "from writer"
 ```
 
 ---
@@ -504,7 +504,7 @@ Or just use `record` and let the compiler do it.
 
 ### 10.5. `sealed` is a feature, not a smell
 
-Marking a class `sealed` allows the JIT to **devirtualize** calls (turn an indirect call into a direct one) — measurable in tight loops. It also closes a hole in the type system: callers can't subclass and break invariants. Default to `sealed`; remove it when there's a real extension point.
+Marking a class `sealed` lets the JIT **devirtualize** calls — turn an indirect virtual dispatch into a direct call, which then unlocks inlining. The official analyzer rule [CA1852 "Seal internal types"](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1852) is in the **Performance** category and exists for exactly this reason. It also closes a hole in the type system: callers can't subclass and break invariants you rely on. Default to `sealed`; remove it when there's a real, designed-for extension point.
 
 ### 10.6. `protected` can be wider than you think
 

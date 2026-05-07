@@ -747,7 +747,7 @@ Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-ori
 
 Two benefits:
 
-1. **Performance** — the JIT can **devirtualize** virtual calls when it knows there's no further override. This turns an indirect call (vtable lookup) into a direct call, and enables inlining. Measurable in tight loops.
+1. **Performance** — the JIT can **devirtualize** virtual calls when it knows there's no further override. This turns an indirect call (vtable lookup) into a direct call, which then unlocks inlining. The official analyzer rule [CA1852 "Seal internal types"](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1852) is in the **Performance** category for exactly this reason.
 2. **Design correctness** — closes a hole in the type system. Nobody can subclass your class and break invariants you rely on. Inheritance is a public extension point; if you didn't design for it, leaving the class open is risky.
 
 ```csharp
