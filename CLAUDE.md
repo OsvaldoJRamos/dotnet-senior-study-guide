@@ -29,7 +29,7 @@ When the user sends a link, do not just append it. Treat the link as a content t
 3. **If the topic does NOT exist in the repo**, add new content for it:
    - Follow the file format rules (heading, navigation links, code style, `<details>` blocks for self-assessment).
    - Apply the Source Verification rules — every claim must be backed by the user's link or another official source. The user's link counts as one source; cross-check against the primary docs in the source-verification table when relevant.
-   - Add or update self-assessment questions in `22-self-assessment/` for the new content.
+   - Add or update self-assessment questions in `24-self-assessment/` for the new content.
    - Update the section README and the root README if the new file changes the section's index.
 4. **If the topic already exists**, do a gap analysis:
    - Read the existing file(s) and compare with what the link covers.
@@ -69,7 +69,7 @@ XX-section-name/
 When adding a new section:
 1. Determine where it naturally fits in the basic-to-complex progression (see the "Current Sections" table below for the reference order).
 2. Renumber every downstream section (including `self-assessment/`) and update ALL cross-references.
-3. Update section README titles (`# XX - Section Name`), the root `README.md`, the CLAUDE.md "Current Sections" table, and any `../XX-section-name/` paths in other files (including `22-self-assessment/`).
+3. Update section README titles (`# XX - Section Name`), the root `README.md`, the CLAUDE.md "Current Sections" table, and any `../XX-section-name/` paths in other files (including `24-self-assessment/`).
 4. Verify with `grep` that no stale `XX-section-name` paths remain.
 
 Never insert a new section after self-assessment, and never add content files inside it that belong in a dedicated topic section.
@@ -194,7 +194,7 @@ Training-data cutoffs drift. Preview SDKs rename types between minor versions. B
 6. **Update navigation links** — add "Next" to the previous file, "Previous" to the new file
 7. **Update root README** — if the section description should change
 8. **Cross-reference** — if the topic is mentioned in other files, link to it
-9. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `22-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
+9. **Add self-assessment questions** — whenever you add or modify a topic, add related questions to the corresponding file in `24-self-assessment/`. Use the collapsible `<details>` format with hidden answers and deep dive links
 10. **Re-verify against official docs + community discussions** — see "Source Verification". Do this AFTER the content is written, before committing.
 
 ## When Modifying Content
@@ -206,7 +206,7 @@ Training-data cutoffs drift. Preview SDKs rename types between minor versions. B
 - Use tables for comparisons (X vs Y)
 - Use blockquotes (`>`) for tips and warnings
 - Keep files focused — one topic per file, not everything in one giant file
-- **Always add/update self-assessment questions** in `22-self-assessment/` when modifying topic content
+- **Always add/update self-assessment questions** in `24-self-assessment/` when modifying topic content
 
 ## Reviewing a PR (MANDATORY)
 
@@ -262,24 +262,26 @@ Anything that a reader could challenge with "where does it say that?":
 | # | Section | Directory |
 |---|---------|-----------|
 | 01 | C# Fundamentals | `01-csharp-fundamentals/` |
-| 02 | Collections and LINQ | `02-collections-and-linq/` |
-| 03 | Computer Architecture | `03-computer-architecture/` |
-| 04 | Memory and Performance | `04-memory-and-performance/` |
-| 05 | Concurrency and Parallelism | `05-concurrency-and-parallelism/` |
-| 06 | Algorithms and Data Structures | `06-algorithms-and-data-structures/` |
-| 07 | Architecture and Patterns | `07-architecture-and-patterns/` |
-| 08 | HTTP and Web | `08-http-and-web/` |
-| 09 | ASP.NET Core | `09-aspnet-core/` |
-| 10 | Data Access | `10-data-access/` |
-| 11 | Security | `11-security/` |
-| 12 | Testing | `12-testing/` |
-| 13 | DevOps | `13-devops/` |
-| 14 | Cloud | `14-cloud/` |
-| 15 | Observability | `15-observability/` |
-| 16 | Reliability and SRE | `16-reliability-and-sre/` |
-| 17 | Distributed Systems | `17-distributed-systems/` |
-| 18 | System Design | `18-system-design/` |
-| 19 | Frontend | `19-frontend/` |
-| 20 | AI | `20-ai/` |
-| 21 | Soft Skills | `21-soft-skills/` |
-| 22 | Self-Assessment | `22-self-assessment/` |
+| 02 | Exceptions | `02-exceptions/` |
+| 03 | Collections and LINQ | `03-collections-and-linq/` |
+| 04 | Computer Architecture | `04-computer-architecture/` |
+| 05 | Memory and Performance | `05-memory-and-performance/` |
+| 06 | Concurrency and Parallelism | `06-concurrency-and-parallelism/` |
+| 07 | Algorithms and Data Structures | `07-algorithms-and-data-structures/` |
+| 08 | Architecture and Patterns | `08-architecture-and-patterns/` |
+| 09 | HTTP and Web | `09-http-and-web/` |
+| 10 | ASP.NET Core | `10-aspnet-core/` |
+| 11 | Data Access | `11-data-access/` |
+| 12 | Security | `12-security/` |
+| 13 | Testing | `13-testing/` |
+| 14 | Git | `14-git/` |
+| 15 | DevOps | `15-devops/` |
+| 16 | Cloud | `16-cloud/` |
+| 17 | Observability | `17-observability/` |
+| 18 | Reliability and SRE | `18-reliability-and-sre/` |
+| 19 | Distributed Systems | `19-distributed-systems/` |
+| 20 | System Design | `20-system-design/` |
+| 21 | Frontend | `21-frontend/` |
+| 22 | AI | `22-ai/` |
+| 23 | Soft Skills | `23-soft-skills/` |
+| 24 | Self-Assessment | `24-self-assessment/` |
