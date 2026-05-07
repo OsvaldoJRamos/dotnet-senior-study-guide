@@ -177,4 +177,4 @@ Console.WriteLine(validator.Validate("ab"));      // False
 
 ---
 
-[← Previous: Generics](07-generics.md) | [Back to index](README.md)
+[← Previous: Generics](07-generics.md) | [Next: Object-Oriented Programming →](09-object-oriented-programming.md) | [Back to index](README.md)

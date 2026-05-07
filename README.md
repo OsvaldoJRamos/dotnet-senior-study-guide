@@ -17,7 +17,7 @@ Every topic includes **concise explanations**, **code examples**, and **practica
 ## Topics
 
 ### [01 - C# Fundamentals](01-csharp-fundamentals/README.md)
-.NET ecosystem, namespaces, CLR/IL, numeric types, modifiers, generics, delegates, and events.
+.NET ecosystem, namespaces, CLR/IL, numeric types, modifiers, generics, delegates, events, and object-oriented programming.
 
 ### [02 - Exceptions](02-exceptions/README.md)
 Exception hierarchy, try/catch/finally, custom exceptions, exception filters (`when`), `ExceptionDispatchInfo`, `AggregateException`, async exceptions, performance.
