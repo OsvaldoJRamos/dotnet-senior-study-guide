@@ -118,7 +118,7 @@ class Dog : Animal {
 sealed class Puppy : Dog { }                       // no further inheritance
 ```
 
-Deep dive: [Modifiers](../01-csharp-fundamentals/05-modifiers.md)
+Deep dive: [Modifiers](../01-csharp-fundamentals/05-modifiers.md), [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
 
 </details>
 
@@ -342,6 +342,8 @@ void Display(in DateTime date) => Console.WriteLine(date); // cannot modify date
 
 Use **interfaces** when unrelated types share a behavior (`ISerializable`, `IComparable`). Use **abstract classes** when types share an identity and common implementation (`Animal` -> `Dog`, `Cat`).
 
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
 </details>
 
 ---
@@ -491,4 +493,275 @@ Deep dive: [Memory Leaks](../05-memory-and-performance/04-memory-leak.md)
 
 ---
 
+### 20. What are the four pillars of OOP, and what does each one solve?
+
+<details>
+<summary>Reveal answer</summary>
+
+Microsoft's framing on MS Learn:
+
+| Pillar | What it does | C# constructs |
+|---|---|---|
+| **Abstraction** | Models the relevant attributes/interactions of entities; hides irrelevant detail | `interface`, `abstract class` |
+| **Encapsulation** | Hides internal state; access only through a public API that enforces invariants | Access modifiers, properties, `init`, `readonly` |
+| **Inheritance** | Builds new abstractions by reusing/extending existing ones | `class Derived : Base`, `: base(...)` |
+| **Polymorphism** | Same call site, different implementations chosen at runtime | `virtual`/`override`, `abstract`, interfaces |
+
+Senior framing in an interview: don't recite the list — say *what each pillar solves*. Encapsulation is about **invariants**; inheritance is about **specialization**; polymorphism is about **swapping behavior without `if/else`**; abstraction is about **decoupling consumers from concrete types**.
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 21. Why would you use an **abstract** base class instead of a regular (non-abstract) class?
+
+<details>
+<summary>Reveal answer</summary>
+
+Five concrete reasons:
+
+1. **Prevent instantiation** — `new Animal()` is meaningless; `abstract` makes that a compile-time error.
+2. **Force overrides** — an `abstract` member has no body, so a non-abstract derived class **must** implement it. A plain `virtual` lets the derived class silently inherit a (potentially wrong) default.
+3. **Share state and invariants** — an abstract class can hold instance fields and a constructor (interfaces can't). Perfect for `EntityBase { Id, CreatedAt, Touch() }`.
+4. **Template Method pattern** — base class owns the algorithm and exposes `protected abstract` extension points; subclasses fill in the steps.
+5. **Stronger intent** — the type signature tells the reader "this is meant to be extended, never used directly". A regular class with virtual members is a much weaker contract.
+
+When **not** to use abstract: if every behavior has a sensible default and consumers are meant to use the base type directly, keep it concrete. `abstract` is a constraint on the consumer; constraints have a cost.
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 22. What's the difference between **overriding** and **hiding** a method in C#?
+
+<details>
+<summary>Reveal answer</summary>
+
+`override` participates in **virtual dispatch** — the runtime type wins. `new` (the modifier, not the operator) **hides** the inherited member — the **declared** type wins.
+
+```csharp
+public class Base    { public virtual  void Run() => Console.WriteLine("Base"); }
+public class OverD : Base { public override void Run() => Console.WriteLine("Over"); }
+public class HideD : Base { public new      void Run() => Console.WriteLine("Hide"); }
+
+Base b1 = new OverD(); b1.Run(); // "Over"  — virtual dispatch picks OverD
+Base b2 = new HideD(); b2.Run(); // "Base"  — Base.Run, not HideD.Run
+
+OverD o = new(); o.Run();        // "Over"
+HideD h = new(); h.Run();        // "Hide"
+((Base)h).Run();                 // "Base"  — same instance, different declared type
+```
+
+If you find yourself writing `new` to hide a member, you almost certainly meant `override`. Use `new` only for **versioning** — when a base class adds a method that conflicts with an existing derived method.
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 23. Why do default interface methods (C# 8) exist? What problem do they solve?
+
+<details>
+<summary>Reveal answer</summary>
+
+They let you **add a new method to a published interface without breaking every implementer**. Before C# 8, adding a member to a shipped interface was a binary-breaking change.
+
+```csharp
+public interface ILogger
+{
+    void Log(LogLevel level, string message);
+    void Info(string message)  => Log(LogLevel.Info, message);    // default
+    void Error(string message) => Log(LogLevel.Error, message);   // default
+}
+```
+
+Important caveats:
+
+- The default is **only visible through the interface type**. `((ILogger)logger).Info(...)` works; `logger.Info(...)` on a concrete `ConsoleLogger` doesn't, unless `ConsoleLogger` re-declares `Info`.
+- Default members are **`private` by default** — the opposite of abstract members which are `public`.
+- They are **not** a replacement for abstract classes. No instance state, no constructors, no protected helpers shared with implementers.
+
+Use case: API evolution on a stable public interface (think `IEnumerable`, `ILogger`).
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 24. What are static abstract / static virtual interface members (C# 11)? When are they useful?
+
+<details>
+<summary>Reveal answer</summary>
+
+C# 11 lets an interface declare `static abstract` and `static virtual` members — including operators. This enables **generic math**: write a single generic algorithm that works for any numeric type, with no boxing.
+
+```csharp
+public static T Sum<T>(IEnumerable<T> values) where T : INumber<T>
+{
+    T total = T.Zero;                       // static abstract member
+    foreach (var v in values) total += v;   // operator+, also static abstract
+    return total;
+}
+
+Sum(new[] { 1, 2, 3 });          // works for int
+Sum(new[] { 1.1, 2.2, 3.3 });    // works for double
+Sum(new[] { 1m, 2m, 3m });       // works for decimal
+```
+
+Resolution is **at compile time** — the compiler picks the static member based on the type argument. There's no runtime dispatch for static virtual members. That's why they're almost always declared in **generic** interfaces with self-referencing constraints (`where T : INumber<T>`).
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 25. Why is calling a `virtual` method from a constructor dangerous?
+
+<details>
+<summary>Reveal answer</summary>
+
+A `virtual` call from the base constructor dispatches to the **most-derived override** — but the derived constructor body **hasn't run yet**, so anything assigned there is still at its default value.
+
+```csharp
+public class Base
+{
+    public Base() => Init();             // dispatches to Derived.Init mid-construction
+    public virtual void Init() { }
+}
+
+public class Derived : Base
+{
+    private readonly string _name;
+    public Derived(string name) => _name = name;     // runs AFTER base() returned
+    public override void Init() => Console.WriteLine(_name.Length);   // ❌ NRE — _name is still null
+}
+```
+
+Per MS Learn, `new Derived(...)` runs initialization in this order:
+
+1. All instance fields set to zero / `null`.
+2. **Derived** field initializers run.
+3. **Base** field initializers run.
+4. **Base** constructor body runs — virtual calls dispatch to `Derived` overrides here.
+5. **Derived** constructor body runs.
+
+So **field initializers** are safe by step 4, but **constructor parameters and constructor-body assignments** are not. The override sees a half-built object.
+
+Fix: don't call virtuals from constructors. If you need an extension point at construction time, use a separate `Initialize()` method called by the consumer, or use a factory method that constructs and configures in two steps.
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 26. Why prefer **composition** over inheritance in most cases?
+
+<details>
+<summary>Reveal answer</summary>
+
+Inheritance creates a **rigid coupling** to the entire base class hierarchy: protected members, lifecycle, virtual dispatch, all of it. Composition replaces a single dependency at a time.
+
+```csharp
+// Inheritance — coupled to the whole Notifier hierarchy
+public class EmailNotifier : Notifier { /* override SendAsync */ }
+
+// Composition — INotifier is the only thing OrderService depends on
+public class OrderService(INotifier notifier)
+{
+    public Task ConfirmAsync(Order o) => notifier.SendAsync($"order {o.Id} confirmed");
+}
+```
+
+Use inheritance when:
+
+- The relationship is genuinely **is-a**, not **uses-a**.
+- You're sharing **state** along with behavior.
+- The base is designed for extension (Template Method, abstract members).
+
+Use composition for **code reuse** alone. It's easier to test (mock one interface, not a hierarchy), easier to evolve, and avoids the fragile-base-class problem (changes in the base cascading into all derived classes).
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 27. Explain the **Liskov Substitution Principle (LSP)** with a concrete example.
+
+<details>
+<summary>Reveal answer</summary>
+
+> A subtype must be substitutable for its base type **without breaking the contract** the base type promised.
+
+The classic counter-example — `Square : Rectangle`:
+
+```csharp
+public class Rectangle
+{
+    public virtual int Width  { get; set; }
+    public virtual int Height { get; set; }
+}
+
+public class Square : Rectangle
+{
+    public override int Width  { set { base.Width = value; base.Height = value; } }
+    public override int Height { set { base.Width = value; base.Height = value; } }
+}
+
+void TestArea(Rectangle r)
+{
+    r.Width = 5;
+    r.Height = 4;
+    Debug.Assert(r.Width * r.Height == 20);   // ❌ fails for Square: 4 * 4 == 16
+}
+```
+
+`Square` looks like an `is-a` `Rectangle` mathematically, but the base contract says "setting Width does not affect Height". `Square` violates that contract, so callers that rely on the base type's behavior break.
+
+LSP smells in real code:
+
+- A derived class throws `NotSupportedException` for a method the base class promises to support.
+- A derived class strengthens preconditions ("`null` was OK for the base, but I throw on `null`").
+- A derived class weakens postconditions ("base guarantees a non-empty list, I might return empty").
+
+Fix the model, not the inheritance — sometimes the right answer is "neither one inherits from the other".
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 28. Why is `sealed` worth using by default? What does it buy you?
+
+<details>
+<summary>Reveal answer</summary>
+
+Two benefits:
+
+1. **Performance** — the JIT can **devirtualize** virtual calls when it knows there's no further override. This turns an indirect call (vtable lookup) into a direct call, and enables inlining. Measurable in tight loops.
+2. **Design correctness** — closes a hole in the type system. Nobody can subclass your class and break invariants you rely on. Inheritance is a public extension point; if you didn't design for it, leaving the class open is risky.
+
+```csharp
+public sealed class StripeProcessor : IPaymentProcessor { ... }    // no further inheritance
+public class A { public sealed override void Run() {} }            // stop the virtual chain at A
+```
+
+Default to `sealed`; remove it when there's a real, designed-for extension point. The exception is types in a public library where consumers reasonably expect to extend — even then, document the extension contract or prefer composition.
+
+Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
 [Back to index](README.md)
+

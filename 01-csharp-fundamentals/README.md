@@ -10,6 +10,7 @@
 6. [Equals vs ==](06-equals-vs-operator.md) - Value vs reference comparison, records
 7. [Generics](07-generics.md) - Constraints, covariance/contravariance
 8. [Delegates and Events](08-delegates-and-events.md) - Func, Action, events, observer pattern
+9. [Object-Oriented Programming](09-object-oriented-programming.md) - Pillars, inheritance, polymorphism, abstract classes vs interfaces
 
 ---
 
