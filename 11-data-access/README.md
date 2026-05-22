@@ -22,6 +22,7 @@
 - [SQL Performance Tuning (GeeksforGeeks)](https://www.geeksforgeeks.org/sql/sql-performance-tuning/) — overview of indexing, query rewriting, and execution-plan analysis.
 - [Transaction in DBMS (GeeksforGeeks)](https://www.geeksforgeeks.org/dbms/transaction-in-dbms/) — ACID, transaction states, schedules, recovery basics.
 - [Types of NoSQL Databases (AWS Whitepaper)](https://docs.aws.amazon.com/whitepapers/latest/choosing-an-aws-nosql-database/types-of-nosql-databases.html) — key-value, document, column-family, graph; trade-offs and AWS service mapping.
+- [SQL Queries on Clustered and Non-Clustered Indexes] (https://www.geeksforgeeks.org/sql/sql-queries-on-clustered-and-non-clustered-indexes/) - SQL Queries on Clustered and Non-Clustered Indexes
 
 ---
 
