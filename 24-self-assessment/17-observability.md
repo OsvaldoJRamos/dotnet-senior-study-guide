@@ -367,7 +367,7 @@ Deep dive: [Correlation IDs](../17-observability/06-correlation-ids.md)
 | (a) 404 from **your** API | `Information` (or `Debug`) | The caller's mistake, not your failure. OTel leaves span status **unset** for 4xx on server spans. |
 | (b) Retry attempt | `Warning` | Azure guidance: log transient faults *"as warning entries rather than as error entries so that monitoring systems don't detect them as application errors that might trigger false alerts."* |
 | (c) Retries exhausted, 500 | `Error` | *"a failure in the current operation or request"* |
-| (d) 400 **from** a dependency | `Error` (usually) | As the client, a 4xx usually means your bug. OTel sets client-span status to `Error` for 4xx. |
+| (d) 400 **from** a dependency | `Error` (usually) | As the client, a 4xx usually means your bug. OTel says client-span status SHOULD be `Error` for 4xx. |
 | (e) Handled conflict → 409 | `Information` / `Warning` | It was handled. `Error` is for what *"can't be handled"*. |
 
 Rule of thumb: `Error` means someone should look at it. Expected conditions logged as `Error` train people to ignore the level.
@@ -451,7 +451,7 @@ Counting log lines is a metric's job done badly. Log pipelines sample, filter, b
 The Google SRE Workbook: *"We still recommend metrics-based alerting in such cases: you can increment a counter metric when a particular event happens, and configure an alert based on that metric's value."*
 
 Emit **both**, each for its own job:
-- A **counter** (`payment_failures`, low-cardinality tags like `provider`). Alert on this.
+- A **counter** (`payments.failed`, low-cardinality tags like `provider`). Alert on this.
 - A **log** with the high-cardinality context (`OrderId`, exception) and a stable `EventId`. Investigate with this.
 
 *"We tend to use logs to find the root cause of an issue, as the information we need is often not available as a metric."*
@@ -467,13 +467,33 @@ Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practice
 <details>
 <summary>Reveal answer</summary>
 
-Logging is designed to be **lossy**: level filters, sampling, buffers where *"the oldest logs are dropped and never emitted"*, rotation, short retention. An audit trail can tolerate none of that. It needs completeness, long retention and tamper evidence.
+Logging pipelines are routinely configured to be **lossy**: level filters, sampling, buffers where *"the oldest logs are dropped and never emitted"*, rotation, short retention. An audit trail can tolerate none of that. It needs completeness, long retention and tamper evidence.
 
 OWASP keeps them apart: audit trails *"are usually collected for different purposes than security event logging, and this often means they should be kept separate"*. It also recommends tamper detection.
 
 Better: write an **audit record** to a durable store **in the same transaction** as the change (an `AuditEntries` table via an EF Core `SaveChanges` interceptor, or an outbox). Then the change and its audit entry commit or fail together. Keep the bank details themselves masked, both in the audit record and in any log.
 
 Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md#why-audit-is-not-a-log-at-information)
+
+</details>
+
+---
+
+### 22. The .NET 10 SDK flags `_logger.LogDebug("Cart {Cart}", JsonSerializer.Serialize(cart))` with CA1873. Why, and what are the fixes?
+
+<details>
+<summary>Reveal answer</summary>
+
+CA1873 is *"Avoid potentially expensive logging"* (enabled by default in .NET 10 as a suggestion). The docs: *"When logging methods are called, their arguments are evaluated regardless of whether the logging level is enabled."* So the cart is serialized on every call, even when `Debug` is filtered out in production.
+
+Fixes, from the rule page:
+- Guard the call with `logger.IsEnabled(LogLevel.Debug)`.
+- Use source-generated logging (`[LoggerMessage]`) and pass the object, not a precomputed string.
+- Don't compute expensive values in logging arguments unless needed.
+
+Don't wrap **every** log call in `IsEnabled`: for cheap arguments the logging API already short-circuits disabled levels. Guard only when computing an argument is expensive.
+
+Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md#performance-what-logging-costs)
 
 </details>
 

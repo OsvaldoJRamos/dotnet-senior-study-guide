@@ -38,7 +38,7 @@ The docs only say the SQL Server strategy is *"pre-configured with error numbers
 
 ### Azure SQL: retry is on by default with `UseAzureSql`
 
-From the SQL Server provider docs (EF Core 9+): *"When using UseAzureSql and UseAzureSynapse, connection resiliency is automatically set up with the appropriate settings specific for those databases. Otherwise, when using UseSqlServer, configure the provider with EnableRetryOnFailure."*
+From the SQL Server provider docs (EF Core 9+): *"When using UseAzureSql and UseAzureSynapse, connection resiliency is automatically set up with the appropriate settings specific for those databases. Otherwise, when using UseSqlServer, configure the provider with EnableRetryOnFailure as shown in the connection resiliency documentation."*
 
 ```csharp
 // EF Core 9+: retrying strategy configured automatically for Azure SQL
@@ -48,7 +48,7 @@ options.UseAzureSql(connectionString);
 options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure());
 ```
 
-> **History worth knowing:** EF Core 8 RC2 briefly enabled retry automatically when it *detected* Azure SQL from the connection string. It broke existing `BeginTransaction` code and caused memory build-up on streamed queries (dotnet/efcore #32165, #32052), so it was reverted before GA. EF 9's explicit `UseAzureSql` replaced it. The lesson: **turning on retry changes behavior**, which is the subject of the rest of this file.
+> **History worth knowing:** EF Core 8 RC2 briefly enabled retry automatically when it *detected* Azure SQL from the connection string. It broke existing `BeginTransaction` code and caused memory build-up on streamed queries (dotnet/efcore #32165, #32052), so it was reverted before GA. EF 9 later added an explicit opt-in, `UseAzureSql`, which configures the retrying strategy. The lesson: **turning on retry changes behavior**, which is the subject of the rest of this file.
 
 ### PostgreSQL (Npgsql)
 
@@ -112,9 +112,11 @@ await strategy.ExecuteAsync(async () =>
     await using var context = await contextFactory.CreateDbContextAsync();
     await using var transaction = await context.Database.BeginTransactionAsync();
 
+    var order = new Order { /* ... */ };       // build entities inside too, like the official sample
     context.Orders.Add(order);
     await context.SaveChangesAsync();
 
+    var payment = new Payment { OrderId = order.Id /* ... */ };
     context.Payments.Add(payment);
     await context.SaveChangesAsync();
 
@@ -122,12 +124,12 @@ await strategy.ExecuteAsync(async () =>
 });
 ```
 
-The docs: *"If a transient failure occurs, the execution strategy will invoke the delegate again."* The official sample creates the context **inside** the delegate. Reusing an outer context is risky. After the first `SaveChangesAsync` succeeds, the change tracker marks `order` as `Unchanged`. A retry after a rollback then would not re-insert it.
+The docs: *"If a transient failure occurs, the execution strategy will invoke the delegate again."* The official sample creates the context **and the entities** inside the delegate. Reusing an outer context is risky: after the first `SaveChangesAsync` succeeds, the change tracker marks `order` as `Unchanged`, so a retry after a rollback would not re-insert it. Reusing outer entity instances is risky too: EF writes the store-generated key back into `order`, so a retry would try to insert that key explicitly.
 
 Rules that follow:
 
 - **Everything the unit needs goes inside the delegate**, including `TransactionScope` (*"This approach can also be used with ambient transactions"*). A `TransactionScope` opened *outside* `ExecuteAsync` throws the same error. A maintainer explains: *"All transactions need to be scoped inside the retryable unit"* (dotnet/efcore #34825).
-- **Nested strategies are a no-op.** A strategy called inside an existing user transaction does nothing (#34214). Per the API docs, *"All nested calls will be handled by the outermost strategy."*
+- **Nested strategies are a no-op.** A strategy invoked *inside another strategy's delegate* just runs the operation once; only the outermost strategy retries (#34214). A strategy invoked inside a user transaction with *no* outer strategy still throws the error above. Per the API docs, *"All nested calls will be handled by the outermost strategy."*
 - **The exception is a coding bug, not a transient fault.** Don't catch it and retry. A maintainer: *"the exception does not indicate any database error, but rather a coding error"* (#29396).
 
 ## Commit failure: the idempotency problem
@@ -138,7 +140,7 @@ The docs list four options:
 
 | Option | Idea | Trade-off |
 |---|---|---|
-| **1. Do (almost) nothing** | *"Avoid using store-generated keys"*. Use client-generated GUIDs so a duplicate insert fails on the PK instead of creating a second row. | Simplest. Needs a unique key you control. |
+| **1. Do (almost) nothing** | *"avoid using store-generated keys"*. Use client-generated GUIDs so a duplicate insert fails on the PK instead of creating a second row. | Simplest. Needs a unique key you control. |
 | **2. Rebuild application state** | Discard the context, reload from the DB, tell the user. | Fine for interactive UIs. |
 | **3. Add state verification** | `ExecuteInTransactionAsync` with a `verifySucceeded` callback. | Precise. Needs a cheap "did it happen?" query. |
 | **4. Manually track the transaction** | Insert a row in a tracking table inside the transaction. On commit failure, check if it exists. | Generic. Extra table plus cleanup. |
@@ -163,7 +165,7 @@ db.ChangeTracker.AcceptAllChanges(); // only after the commit is confirmed
 
 ## Optimistic concurrency: lost updates are not transient
 
-A retrying strategy handles *infrastructure* failures. Two users saving the same row is a *business* conflict. It surfaces as `DbUpdateConcurrencyException`, which no execution strategy retries for you.
+A retrying strategy handles *infrastructure* failures. Two users saving the same row is a *business* conflict. It surfaces as `DbUpdateConcurrencyException`, which the built-in retrying strategies don't retry for you.
 
 ```csharp
 public class Product
@@ -204,7 +206,7 @@ catch (DbUpdateConcurrencyException ex)
 }
 ```
 
-In an API, the most common policy is none of the three. Return **409 Conflict** and let the client re-read. More on pessimistic vs optimistic locking in [Database Locks](07-database-locks.md).
+In an API, a common policy is none of the three: return **409 Conflict** and let the client re-read (the docs' first option: *"inform the user that the update failed due to conflicting changes"*). More on pessimistic vs optimistic locking in [Database Locks](07-database-locks.md).
 
 ### `ExecuteUpdate` / `ExecuteDelete` skip concurrency checks
 
@@ -256,7 +258,7 @@ builder.Services.AddHealthChecks()
 - **Large result sets you stream.** Retry forces buffering.
 - **Code that opens transactions outside a strategy.** It throws until you refactor every call site.
 - **Inserts with store-generated keys and no verification.** Commit failure plus retry gives duplicates.
-- **Retries at several layers.** EF retry 6×, wrapped in a Polly retry 3×, behind an HTTP client retry 3× = up to 54 database attempts for one user click. Pick one layer. See [Retries, Backoff and Jitter](../18-reliability-and-sre/01-retries-backoff-jitter.md).
+- **Retries at several layers.** EF's 6 retries (7 attempts), wrapped in a Polly retry 3× (4 attempts), behind an HTTP client retry 3× (4 attempts) = up to 7 × 4 × 4 = 112 database attempts for one user click. Pick one layer. See [Retries, Backoff and Jitter](../18-reliability-and-sre/01-retries-backoff-jitter.md).
 - **Long transactions.** The whole delegate re-runs. Keep units of work short.
 
 ---

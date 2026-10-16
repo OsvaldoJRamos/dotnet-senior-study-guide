@@ -66,7 +66,7 @@ The confusion comes from the 12-factor app, which defines config as *"everything
 | Impact if leaked | Mostly harmless | Grants access, so it's a breach |
 | Source of truth | Repo (`appsettings.json`), env, config service | A secret manager (Key Vault, Secrets Manager, Vault), **never** the repo |
 | Rotation | On deploy | On a schedule and on incident, ideally without a redeploy |
-| Access audit | Not needed | Every read logged by the vault |
+| Access audit | Not needed | Reads can be audited by the vault (AWS CloudTrail records Secrets Manager calls; Key Vault logs once you enable logging) |
 
 ### Three ways to deliver a secret to the app
 
@@ -74,7 +74,7 @@ The confusion comes from the 12-factor app, which defines config as *"everything
 |---|---|---|---|
 | **Environment variable** | Orchestrator injects it at start: K8s `secretKeyRef`, ECS `secrets`/`valueFrom`, App Service settings | **Needs a restart.** K8s: *"a Secret update will not be seen by the container unless it is restarted."* ECS: *"the container will not receive the updated value automatically."* | Every process in the container, child processes, `/proc/<pid>/environ`, logs, crash dumps |
 | **Mounted file** | K8s Secret volume; Docker/Compose secrets at `/run/secrets/<name>` | K8s volumes update *"using an eventually-consistent approach"* (not with `subPath` mounts) | File permissions; only code that opens the file |
-| **Fetch from the vault at runtime** | `AddAzureKeyVault`, AWS SDK, Vault client, authenticated by **workload identity** | Poll or refresh in-process, no restart | Process memory only; reads are audited |
+| **Fetch from the vault at runtime** | `AddAzureKeyVault`, AWS SDK, Vault client, authenticated by **workload identity** | Poll or refresh in-process, no restart | Process memory (still visible in memory dumps); reads can be audited |
 
 Docker made the file-based design choice explicitly for Swarm: *"Docker secrets do not set environment variables directly. This was a conscious decision, because environment variables can unintentionally be leaked between containers."*
 
@@ -94,8 +94,9 @@ Docker made the file-based design choice explicitly for Swarm: *"Docker secrets 
 // Package: Microsoft.Extensions.Configuration.KeyPerFile
 builder.Configuration.AddKeyPerFile("/run/secrets", optional: true, reloadOnChange: true);
 
-// Straight from Key Vault, authenticated with a managed identity — no secret to bootstrap.
-// Package: Azure.Extensions.AspNetCore.Configuration.Secrets
+// Straight from Key Vault, no secret to bootstrap. DefaultAzureCredential uses the managed identity in Azure;
+// for production, Microsoft recommends a specific credential such as ManagedIdentityCredential.
+// Packages: Azure.Extensions.AspNetCore.Configuration.Secrets, Azure.Identity
 builder.Configuration.AddAzureKeyVault(
     new Uri("https://my-vault.vault.azure.net/"),
     new DefaultAzureCredential(),
@@ -115,7 +116,7 @@ Both end up in `IConfiguration`, so application code doesn't change. Note the Ke
 1. **No secret at all:** workload identity (Managed Identity, IAM role) to reach the database, storage or queue.
 2. **Fetch from the vault at runtime**, authenticated by workload identity.
 3. **Orchestrator-mounted file** sourced from the vault.
-4. **Orchestrator-injected env var** sourced from the vault (ECS `valueFrom`, App Service Key Vault reference). Acceptable, but rotation needs a restart.
+4. **Orchestrator-injected env var** sourced from the vault (ECS `valueFrom`, App Service Key Vault reference). Acceptable, but the process only sees a rotated value after a restart (ECS: launch a new task; App Service: automatic refetch within 24 hours or on any config change).
 5. **Never:** a secret value typed into `docker-compose.yml`, a K8s manifest, a Dockerfile `ENV`/`ARG`, or a committed pipeline file.
 
 > **Interview answer:** "An environment variable is a way to deliver a value; a secret is a kind of value. You can deliver a secret through an env var, and many platforms do, but env vars are plain text, inherited by child processes, readable through `/proc`, and easy to leak into logs and images, and rotation needs a restart. So I keep secrets in a vault, prefer workload identity so there's no secret at all, and if I need delivery, I mount a file or fetch at runtime. I use env vars for non-secret config."

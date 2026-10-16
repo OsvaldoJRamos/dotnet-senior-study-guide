@@ -18,8 +18,8 @@ await Task.WhenAll(tasks);
 ### Practical example with I/O:
 
 ```csharp
-var cepTaskList = ceps.Select(cep => new ViaCepService().GetCepAsync(cep));
-var cepList = await Task.WhenAll(cepTaskList);
+var addressTasks = postalCodes.Select(code => new PostalCodeService().GetAddressAsync(code));
+var addresses = await Task.WhenAll(addressTasks);
 ```
 
 ## Why `await` frees a thread for I/O but not pure CPU
@@ -40,16 +40,16 @@ These are **three different layers**, not three alternatives to the same thing:
 
 - **Thread** is an execution resource. *"A thread is the basic unit to which an operating system allocates processor time."* In practice, a started `Thread` runs on its own dedicated OS thread.
 - **Task** is a **promise** of a result. It *"Represents an asynchronous operation."* It may or may not involve a thread. `Task.Run` queues work to the thread pool. A task returned by an I/O method, or built with `TaskCompletionSource`, occupies **no** thread while it is pending.
-- **async/await** is a **compiler feature**: *"the compiler transforms your program into a state machine"*. It lets code wait for a task without blocking, and it *"don't cause extra threads to be created."*
+- **async/await** is a **compiler feature**: *"the compiler transforms your program into a state machine"*. It lets code wait for a task without blocking, and *"The `async` and `await` keywords don't cause extra threads to be created."*
 
 | | `Thread` | `Task` | `async` / `await` |
 |---|---|---|---|
 | What it is | An OS-backed execution unit | An object representing an operation that completes later | Syntax compiled into a state machine |
 | Uses a thread? | Always its own, dedicated one | `Task.Run`: a pool thread. Pending I/O: none. | Only while running code between `await`s |
-| Cost | A dedicated stack (default 1.5 MB on Windows/macOS, 8 MB on Linux) plus OS scheduling | A small object; pool threads are reused | A state machine object |
+| Cost | A dedicated stack (default 1.5 MB on Windows/macOS, 8 MB on Linux) plus OS scheduling | A small object; pool threads are reused | A compiler-generated state machine (a struct in release builds, heap-allocated only if the method actually suspends) |
 | Returns a value | No. *"Neither ThreadStart nor ParameterizedThreadStart delegate has a return value"* | `Task<TResult>` | `await` unwraps the result |
 | Unhandled exception | *"generally terminate the process"* | Stored in the task. `Wait()`/`.Result` wrap it in `AggregateException`. | `await` rethrows the original exception |
-| Cancellation | Cooperative only: share a flag or token yourself | Integrated with `CancellationToken` | Pass the `CancellationToken` through |
+| Cancellation | Cooperative: share a flag or token yourself (`Thread.Abort` throws `PlatformNotSupportedException` on .NET Core and .NET 5+; `Thread.Interrupt` only wakes a thread blocked in a managed wait) | Integrated with `CancellationToken` | Pass the `CancellationToken` through |
 | Composition | `Join()` | `WhenAll`, `WhenAny`, continuations | Plain sequential-looking code |
 | Keeps the process alive | Yes. New threads are **foreground** by default. | No. Pool threads are background threads. | No |
 
@@ -69,7 +69,7 @@ A middle ground is `Task.Factory.StartNew(..., TaskCreationOptions.LongRunning)`
 
 ### Blocking turns async back into threads
 
-*"**Do not** block asynchronous execution by calling Task.Wait or Task<TResult>.Result."* Each blocked call holds a pool thread hostage. Under load that is the classic cause of [thread pool starvation](08-thread-pool.md#thread-pool-starvation--the-classic-bug). With a `SynchronizationContext` that allows only one thread at a time (UI apps, classic ASP.NET), it can also [deadlock](05-deadlocks.md). ASP.NET Core has no `SynchronizationContext`, so there the failure mode is starvation rather than deadlock.
+*"**Do not** block asynchronous execution by calling `Task.Wait` or `Task<TResult>.Result`."* Each blocked call holds a pool thread hostage. Under load that is the classic cause of [thread pool starvation](08-thread-pool.md#thread-pool-starvation--the-classic-bug). With a `SynchronizationContext` that allows only one thread at a time (UI apps, classic ASP.NET), it can also [deadlock](05-deadlocks.md). ASP.NET Core request handling (controllers, minimal APIs, middleware) has no `SynchronizationContext`, so there the failure mode is starvation rather than deadlock. Blazor components are the exception: Blazor installs its own `SynchronizationContext`.
 
 ## 4. PLINQ (Parallel LINQ)
 

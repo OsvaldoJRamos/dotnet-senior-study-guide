@@ -426,9 +426,9 @@ They are on different axes. A **secret** is a *classification of data* (it grant
 
 Preference order:
 1. **Workload identity**, so there's no secret at all.
-2. **Fetch from the vault at runtime** (`AddAzureKeyVault` + `DefaultAzureCredential`).
-3. **Mounted file** from the orchestrator (`/run/secrets`, K8s volume, read with `AddKeyPerFile`). K8s updates mounted volumes without a restart (not for `subPath` mounts, and the app must re-read the file, e.g. `reloadOnChange: true`).
-4. **Env var injected from a vault**: acceptable, but rotation needs a restart.
+2. **Fetch from the vault at runtime** (`AddAzureKeyVault` + a managed-identity credential, e.g. `ManagedIdentityCredential` in production or `DefaultAzureCredential` across dev and Azure).
+3. **Mounted file** from the orchestrator (`/run/secrets`, K8s volume, read with `AddKeyPerFile`). K8s updates mounted volumes without a restart (not for `subPath` mounts), but the app must re-read the file. `reloadOnChange: true` relies on file watching, which can miss changes on mounted volumes, so verify it or enable polling (`DOTNET_USE_POLLING_FILE_WATCHER=true`).
+4. **Env var injected from a vault**: acceptable, but the process only sees a rotated value after a restart (ECS: new task; App Service: automatic refetch within 24 h).
 5. **Never** a secret value hard-coded in compose files, manifests, Dockerfiles or pipeline YAML.
 
 Use env vars freely for **non-secret config** (URLs, flags, log levels). That's the 12-factor use case.

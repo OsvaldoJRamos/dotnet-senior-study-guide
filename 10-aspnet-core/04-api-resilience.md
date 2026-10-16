@@ -37,11 +37,11 @@ That one call chains **five strategies, outermost to innermost**:
 | 4 | Circuit breaker | Opens at a 10% failure ratio, min throughput 100, 30 s sampling, 5 s break |
 | 5 | Attempt timeout | 10 s per attempt |
 
-Retry and circuit breaker react to **HTTP 500+, 408, 429**, `HttpRequestException` and `TimeoutRejectedException`. Per the source code, retry also honors the `Retry-After` header by default.
+Retry and circuit breaker react to **HTTP 500+, 408, 429**, `HttpRequestException` and `TimeoutRejectedException`. Retry also honors the `Retry-After` header by default (`HttpRetryStrategyOptions.ShouldRetryAfterHeader` *"Defaults to `true`."*).
 
 > When a timeout strategy fires, *"Polly throws a `TimeoutRejectedException` … not the standard TimeoutException"*. Catch the right type.
 
-> **`HttpClient.Timeout` (100 s default) used to override the total timeout.** Since `Microsoft.Extensions.Http.Resilience` 8.10.0 the standard handler sets `HttpClient.Timeout` to infinite *"to allow the timeout strategies to control the timeout"* (dotnet/extensions #4770). On older versions, a lower `HttpClient.Timeout` silently wins.
+> **`HttpClient.Timeout` (100 s default) used to override the total timeout.** Since `Microsoft.Extensions.Http.Resilience` 8.10.0 the standard resilience and hedging handlers set `HttpClient.Timeout` to infinite *"to allow the timeout strategies to control the timeout"* (source comment from dotnet/extensions PR #5363, which fixed issue #4770). On older versions, a lower `HttpClient.Timeout` silently wins.
 
 ### Customizing the standard handler
 
@@ -89,9 +89,9 @@ builder.Services.AddHttpClient<SearchClient>()
 
 `RemoveAllResilienceHandlers` shipped in `Microsoft.Extensions.Http.Resilience` 9.2.0 and is still marked experimental (`EXTEXP0001`).
 
-### Hedging: for tail latency, not for failures
+### Hedging: for tail latency
 
-*"Hedging retries slow requests in parallel."* If the first attempt hasn't answered after a delay, a second one is sent and the first response wins.
+*"Hedging retries slow requests in parallel."* If the first attempt fails or hasn't answered after a delay (2 s by default), another one is sent, and the fastest successful response wins.
 
 ```csharp
 builder.Services.AddHttpClient<CatalogClient>()
@@ -128,7 +128,7 @@ The final pipeline name combines the client name and `"inventory"`.
 
 ### Non-HTTP calls: `AddResiliencePipeline`
 
-The same Polly v8 pipelines work for anything that isn't `HttpClient`: SDK calls, gRPC, message brokers. Register them in DI:
+The same Polly v8 pipelines work for anything that isn't `HttpClient`: SDK calls, message brokers, storage clients. (gRPC clients registered with `AddGrpcClient` are `HttpClient`-based and can use `AddStandardResilienceHandler` directly, with `Grpc.Net.ClientFactory` 2.64.0 or later.) Register them in DI:
 
 ```csharp
 // dotnet add package Microsoft.Extensions.Resilience
@@ -136,7 +136,8 @@ builder.Services.AddResiliencePipeline("storage-upload", pipeline =>
 {
     pipeline.AddRetry(new RetryStrategyOptions
     {
-        // AddTimeout below throws TimeoutRejectedException — handle it, or timed-out attempts are never retried
+        // A custom ShouldHandle replaces the default (all exceptions except OperationCanceledException).
+        // AddTimeout below throws TimeoutRejectedException, not TimeoutException, so list it explicitly.
         ShouldHandle = new PredicateBuilder().Handle<TimeoutRejectedException>().Handle<TimeoutException>(),
         MaxRetryAttempts = 3,
         BackoffType = DelayBackoffType.Exponential,
@@ -174,7 +175,7 @@ var pipeline = new ResiliencePipelineBuilder<IReadOnlyList<Product>>()
 
 ### Migrating from Polly v7
 
-Most blog posts and Stack Overflow answers still show v7. Map them like this:
+Many older blog posts and Stack Overflow answers show v7. Map them like this:
 
 | Polly v7 | Polly v8 | Note |
 |---|---|---|
@@ -273,7 +274,7 @@ Gotchas:
 
 ### Load shedding with a concurrency limiter
 
-Under overload, **fast rejection beats slow death**. If the app can comfortably process 200 concurrent requests, the 201st should be rejected immediately, not left in a 30-second wait that times out anyway:
+Under overload, **fast rejection beats slow death**. If the app can comfortably process 200 concurrent requests, keep at most a short queue and reject everything beyond it immediately, instead of leaving requests in a 30-second wait that times out anyway:
 
 ```csharp
 builder.Services.AddRateLimiter(options =>
@@ -339,7 +340,7 @@ deploy: readiness fails → drain → ShutdownTimeout → exit
 
 ## When NOT to add more resilience
 
-- **Retrying inside an API that callers already retry.** 3 caller retries × 3 internal retries = 9 calls to the dependency. Retry at one layer. See [Retries, Backoff and Jitter](../18-reliability-and-sre/01-retries-backoff-jitter.md).
+- **Retrying inside an API that callers already retry.** 3 retries at each layer means 4 attempts × 4 attempts = 16 calls to the dependency. Retry at one layer. See [Retries, Backoff and Jitter](../18-reliability-and-sre/01-retries-backoff-jitter.md).
 - **Retrying non-idempotent calls.** Disable retries for unsafe methods, or add idempotency keys first.
 - **Stacking resilience handlers** on one client.
 - **Long timeouts "to be safe".** A 100 s timeout on an endpoint with a 2 s SLO is a resource leak, not resilience.

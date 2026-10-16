@@ -138,7 +138,7 @@ ref readonly LargeStruct slot = ref Get(5);
 
 ## `ref struct`
 
-A `ref struct` is a struct that **cannot escape the stack**. `Span<T>` is the canonical example. The runtime enforces:
+A `ref struct` is a struct that **cannot escape the stack**. `Span<T>` is the canonical example. The compiler enforces:
 
 - Cannot be a field of a regular class (only of another `ref struct`)
 - Cannot cross `await` or `yield`
@@ -174,8 +174,6 @@ A classic interview trap. `string` *behaves* like a value: it is immutable, and 
 | Typical examples | `int`, `DateTime`, `Guid`, small value objects | `Span<T>`, `ReadOnlySpan<T>` | Text |
 
 ```csharp
-public struct Point { public int X; public int Y; }
-
 var a = new Point { X = 1, Y = 2 };
 var b = a;            // copies the value
 b.X = 10;             // a.X is still 1
@@ -185,6 +183,8 @@ string s2 = s1;       // copies the reference
 s2 += "-42";          // creates a NEW string; s1 is still "order"
 
 ReadOnlySpan<char> prefix = "order-42".AsSpan(0, 5); // a view over the string, no allocation
+
+public struct Point { public int X; public int Y; } // type declarations go after top-level statements
 ```
 
 Gotchas worth saying out loud in an interview:
