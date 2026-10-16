@@ -47,7 +47,7 @@ HTTP semantics, MIME types, REST API design, web security.
 DI, lifetimes, OAuth, resilience, middleware, caching, Minimal APIs, SignalR.
 
 ### [11 - Data Access](11-data-access/README.md)
-ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization, sharding, replication, CDC, data modeling.
+ORM vs Micro ORM vs ADO.NET, Entity Framework, databases, query optimization, sharding, replication, CDC, data modeling, database and EF Core resilience.
 
 ### [12 - Security](12-security/README.md)
 OWASP Top 10, authentication (Cookies/JWT/OIDC), authorization (RBAC/ABAC/policy), secrets management, threat modeling, supply chain, cryptography.

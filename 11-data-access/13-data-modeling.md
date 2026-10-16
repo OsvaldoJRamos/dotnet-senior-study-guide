@@ -254,4 +254,4 @@ Single-table is the default; multiple tables are a conscious exception.
 
 ---
 
-[← Previous: Change Data Capture](12-change-data-capture.md) | [Back to index](README.md)
+[← Previous: Change Data Capture](12-change-data-capture.md) | [Next: Database Resilience →](14-database-resilience.md) | [Back to index](README.md)

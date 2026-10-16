@@ -111,6 +111,8 @@ Effect: during a healthy period, retries are free; during an outage they self-th
 
 > **When NOT to retry at all:** write operations without idempotency keys, calls inside a transaction where the outer system is already retrying, or when the response carries definitive failure semantics (`422 Unprocessable Entity`). Adding retries "just in case" is how data duplication bugs are born.
 
+> For database-specific retry (transient error codes, retrying whole transactions, EF Core execution strategies), see [Database Resilience](../11-data-access/14-database-resilience.md) and [EF Core Resilience](../11-data-access/15-ef-core-resilience.md).
+
 ---
 
 [Next: Circuit Breaker →](02-circuit-breaker.md) | [Back to index](README.md)
