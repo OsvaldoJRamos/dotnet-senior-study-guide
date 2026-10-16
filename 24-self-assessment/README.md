@@ -13,7 +13,7 @@
 9. [HTTP and Web](09-http-and-web.md) - HTTP semantics, REST, CORS, JWT, HTTPS/TLS, caching, HTTP/2 and HTTP/3
 10. [ASP.NET Core](10-aspnet-core.md) - DI, Middleware, Minimal APIs, Caching, SignalR, OAuth, Resilience
 11. [Data Access](11-data-access.md) - EF Core, Dapper, SQL optimization, NoSQL, transactions, sharding, replication, CDC, data modeling
-12. [Security](12-security.md) - OWASP, authN/authZ, secrets management (env var vs secret), threat modeling, supply chain, cryptography
+12. [Security](12-security.md) - OWASP, authN/authZ, secrets management, threat modeling, supply chain, cryptography
 13. [Testing](13-testing.md) - Testing pyramid, mocking, AAA pattern, load vs stress vs soak, data-driven testing
 14. [Git](14-git.md) - Object model, branching strategies, rebase vs merge, worktree, stash/cherry-pick/reflog, hooks, recovery
 15. [DevOps](15-devops.md) - Docker, Kubernetes, Terraform, CI/CD, GitOps, blue/green vs canary, Git workflow
