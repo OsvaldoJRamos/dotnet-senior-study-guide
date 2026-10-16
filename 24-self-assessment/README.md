@@ -11,8 +11,8 @@
 7. [Algorithms and Data Structures](07-algorithms-and-data-structures.md) - Big O, data structures, sorting, search, BFS/DFS, DP
 8. [Architecture and Patterns](08-architecture-and-patterns.md) - SOLID, Clean Architecture, CQRS, DDD, design patterns
 9. [HTTP and Web](09-http-and-web.md) - HTTP semantics, REST, CORS, JWT, HTTPS/TLS, caching, HTTP/2 and HTTP/3
-10. [ASP.NET Core](10-aspnet-core.md) - DI, Middleware, Minimal APIs, Caching, SignalR, OAuth, Resilience
-11. [Data Access](11-data-access.md) - EF Core, Dapper, SQL optimization, NoSQL, transactions, sharding, replication, CDC, data modeling
+10. [ASP.NET Core](10-aspnet-core.md) - DI, Middleware, Minimal APIs, Caching, SignalR, OAuth, outbound/inbound resilience (standard handler, hedging, request timeouts, rate limiting, health checks, graceful shutdown)
+11. [Data Access](11-data-access.md) - EF Core, Dapper, SQL optimization, NoSQL, transactions, sharding, replication, CDC, data modeling, database and EF Core resilience
 12. [Security](12-security.md) - OWASP, authN/authZ, secrets management, threat modeling, supply chain, cryptography
 13. [Testing](13-testing.md) - Testing pyramid, mocking, AAA pattern, load vs stress vs soak, data-driven testing
 14. [Git](14-git.md) - Object model, branching strategies, rebase vs merge, worktree, stash/cherry-pick/reflog, hooks, recovery

@@ -15,6 +15,8 @@
 11. [Replication and Read Replicas](11-replication-and-read-replicas.md) - Sync vs async, replication lag, read-your-writes, failover; SQL Server AGs, PostgreSQL streaming, MySQL Group Replication
 12. [Change Data Capture](12-change-data-capture.md) - Debezium, Kafka Connect, log-based vs trigger-based, SQL Server CDC, PostgreSQL logical decoding, use cases
 13. [Data Modeling](13-data-modeling.md) - Normalization (1NF-BCNF), denormalization trade-offs, document embed vs reference, Cassandra partition keys, DynamoDB single-table design
+14. [Database Resilience](14-database-resilience.md) - Transient vs non-transient errors, pool exhaustion, timeouts, SqlClient retry logic, Npgsql multi-host failover, Polly around Dapper, idempotent writes
+15. [EF Core Resilience](15-ef-core-resilience.md) - Execution strategies (`EnableRetryOnFailure`), transactions with retry, commit failure, concurrency conflicts, command timeout, health checks
 
 ## Useful Links
 

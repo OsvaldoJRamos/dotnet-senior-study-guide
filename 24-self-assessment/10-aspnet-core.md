@@ -349,17 +349,24 @@ Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
 <details>
 <summary>Reveal answer</summary>
 
-Health checks expose HTTP endpoints (e.g., `/healthz`) that report the app's status. You register checks for dependencies (database, Redis, external APIs) and map them:
+Health checks expose HTTP endpoints that report the app's status. You register checks, tag them, and map **separate** endpoints for liveness and readiness:
 
 ```csharp
 builder.Services.AddHealthChecks()
-    .AddSqlServer(connectionString)
-    .AddRedis(redisConnection);
+    .AddDbContextCheck<AppDbContext>(tags: ["ready"]);
 
-app.MapHealthChecks("/healthz");
+app.MapHealthChecks("/healthz/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/healthz/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 ```
 
-Container orchestrators (Kubernetes, Docker) poll these endpoints for **liveness** (is the app alive?) and **readiness** (can it handle traffic?) probes. A failing liveness probe triggers a restart; a failing readiness probe removes the pod from the load balancer.
+Container orchestrators (Kubernetes, Docker) poll these endpoints. A failing **liveness** probe triggers a restart. A failing **readiness** probe removes the pod from the load balancer.
+
+**Key rule:** dependencies (database, Redis, external APIs) go in **readiness only**. If the database check is in liveness, a database blip restarts every pod at once, and restarting doesn't fix the database. By default `Healthy`/`Degraded` return 200 and `Unhealthy` returns 503.
+
+Checks such as `.AddSqlServer()` / `.AddRedis()` come from the community `AspNetCore.Diagnostics.HealthChecks` packages, which Microsoft doesn't maintain. `AddDbContextCheck` is Microsoft's EF Core check.
 
 Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
 
@@ -422,6 +429,129 @@ Three usage patterns:
 - **Named clients**: `factory.CreateClient("github")` with a preconfigured base address + headers.
 - **Typed clients**: `builder.Services.AddHttpClient<IGitHubApi, GitHubApi>()` — DI injects `GitHubApi` directly.
 - **Polly handlers**: add `.AddStandardResilienceHandler()` (Microsoft.Extensions.Http.Resilience) for retries, circuit breaker, and timeouts.
+
+Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
+
+</details>
+
+---
+
+### 21. What does `AddStandardResilienceHandler()` configure, in which order, and what is the dangerous default for `POST`?
+
+<details>
+<summary>Reveal answer</summary>
+
+Five strategies, from **outermost to innermost**:
+
+| # | Strategy | Default |
+|---|---|---|
+| 1 | Rate limiter | 1,000 permits, queue 0 |
+| 2 | Total request timeout | 30 s |
+| 3 | Retry | 3 retries, exponential, jitter, 2 s base delay |
+| 4 | Circuit breaker | 10% failure ratio, min throughput 100, 30 s sampling, 5 s break |
+| 5 | Attempt timeout | 10 s |
+
+Retry and circuit breaker handle HTTP 500+, 408, 429, `HttpRequestException` and `TimeoutRejectedException`.
+
+**The trap:** *"By default, the standard resilience handler is configured to make retries for all HTTP methods"*, including `POST`. A retried payment after a timeout can charge twice. Fix with `options.Retry.DisableForUnsafeHttpMethods()` (POST, PATCH, PUT, DELETE, CONNECT), or make the call idempotent with an idempotency key.
+
+Also: add **one** handler per client. Stacking handlers multiplies retries.
+
+Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
+
+</details>
+
+---
+
+### 22. What is hedging, and when would you pick `AddStandardHedgingHandler` over retry?
+
+<details>
+<summary>Reveal answer</summary>
+
+*"Hedging retries slow requests in parallel."* If the first attempt hasn't answered after a delay, another attempt is sent, and the first response wins. Retry only fires **after a failure**. Hedging fires on **slowness**.
+
+- **Use it for:** latency-sensitive, **idempotent reads**, ideally across multiple replicas/regions, to cut tail latency (p99).
+- **Don't use it for:** writes. Hedging sends duplicate requests by design.
+- The standard hedging handler uses per-endpoint circuit breakers keyed by URL authority (scheme + host + port). Polly's `MaxHedgedAttempts` defaults to 1 extra attempt (max 10).
+
+Polly's own advice: *"If low latency is not a critical requirement, you may find the retry strategy more appropriate."*
+
+Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
+
+</details>
+
+---
+
+### 23. You add `UseRequestTimeouts()` with a 10-second default policy. What actually happens when a request exceeds 10 seconds?
+
+<details>
+<summary>Reveal answer</summary>
+
+The middleware (.NET 8+) **cancels `HttpContext.RequestAborted`**. It does not kill the request: *"`Abort()` isn't automatically called on the request"*. So:
+
+- If your handler passes the `CancellationToken` to EF Core / `HttpClient`, the work stops and an `OperationCanceledException` propagates.
+- If the handler doesn't produce a response, the middleware returns **504** (configurable via `TimeoutStatusCode` / `WriteTimeoutResponse`).
+- If the handler **ignores the token**, the work keeps running. The timeout is cooperative.
+
+Other gotchas: `UseRequestTimeouts` must come after `UseRouting`; adding the middleware alone doesn't trigger timeouts without a policy; and *"When an app is running in debug mode, the timeout middleware doesn't trigger."*
+
+Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
+
+</details>
+
+---
+
+### 24. The rate limiting middleware rejects requests with which status code by default? How should you choose the partition key?
+
+<details>
+<summary>Reveal answer</summary>
+
+`RejectionStatusCode` **defaults to 503 Service Unavailable**. For per-client throttling, set it to **429 Too Many Requests**. 503 tells clients and load balancers the server itself is down. A status code set in `OnRejected` wins over the default; also set `Retry-After` there when the lease exposes it.
+
+Partition key:
+- **Prefer an authenticated client/tenant ID.**
+- **Client IP is weak.** The docs warn it makes the app *"vulnerable to Denial of Service attacks that use IP Source Address Spoofing"*. Behind a proxy, every request looks like the proxy's IP unless Forwarded Headers middleware is configured with trusted proxies.
+- **Never partition on unbounded raw input** (arbitrary header values). Each value creates a limiter, which exhausts memory.
+
+The middleware is not a DDoS defense. That belongs at the edge (WAF, gateway, CDN).
+
+Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
+
+</details>
+
+---
+
+### 25. What happens to in-flight requests when a pod receives SIGTERM during a deploy?
+
+<details>
+<summary>Reveal answer</summary>
+
+The host triggers `IHostApplicationLifetime.ApplicationStopping` and the server stops accepting new connections. For HTTP/2 and HTTP/3, Kestrel sends `GOAWAY` first. Existing requests continue *"for as long as the shutdown timeout allows"*. When `HostOptions.ShutdownTimeout` expires, *"the pending connections and requests are aborted forcefully."*
+
+- Default `ShutdownTimeout`: **30 seconds** (it was 5 s in .NET 5 and earlier).
+- Keep it **below the orchestrator's grace period**, so draining finishes before the process is killed.
+- `BackgroundService`s must observe `stoppingToken`, or they get cut mid-work.
+
+Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
+
+</details>
+
+---
+
+### 26. You're migrating Polly v7 code to v8. What behaviors don't carry over 1:1?
+
+<details>
+<summary>Reveal answer</summary>
+
+| v7 | v8 |
+|---|---|
+| `CircuitBreakerAsync(5, 30s)`: opens after N **consecutive** failures | `AddCircuitBreaker(...)` uses a **failure ratio** over a sampling window. *"Polly V8 does not support the standard ("classic") circuit breaker with consecutive failure counting."* |
+| `TimeoutAsync(..., TimeoutStrategy.Pessimistic)` | Not supported. v8 timeouts are cooperative only: your delegate **must** honor the `CancellationToken`. |
+| `BulkheadAsync` | `AddConcurrencyLimiter` (package `Polly.RateLimiting`) |
+| `Policy.WrapAsync` | Chain `Add*` calls on `ResiliencePipelineBuilder`. The first added is the outermost. |
+| `PolicyRegistry` | `ResiliencePipelineRegistry<TKey>` / `ResiliencePipelineProvider<TKey>` |
+
+For `HttpClient`, don't port v7 code to `Microsoft.Extensions.Http.Polly`, which is deprecated. Use `Microsoft.Extensions.Http.Resilience` (`AddStandardResilienceHandler` / `AddResilienceHandler`). For non-HTTP code, use `AddResiliencePipeline` from `Microsoft.Extensions.Resilience`.
 
 Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
 

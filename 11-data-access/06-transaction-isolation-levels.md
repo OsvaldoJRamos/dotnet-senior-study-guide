@@ -172,7 +172,7 @@ Mitigations:
 - Access tables/rows in the **same order** across transactions.
 - Keep transactions **short**.
 - Lower isolation where safe, or use snapshot isolation to remove read/write conflicts.
-- Add retry logic for transient deadlock errors.
+- Add retry logic for transient deadlock errors — retry the **whole transaction**, see [Database Resilience](14-database-resilience.md) and [EF Core Resilience](15-ef-core-resilience.md).
 
 ---
 

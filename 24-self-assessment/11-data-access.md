@@ -864,3 +864,150 @@ Deep dive: [Data Modeling](../11-data-access/13-data-modeling.md)
 </details>
 
 ---
+
+### 39. Which database errors should you retry, and why is a command timeout NOT safe to retry blindly?
+
+<details>
+<summary>Reveal answer</summary>
+
+Retry only **transient** faults:
+
+| Retry | Don't retry |
+|---|---|
+| Deadlock victim (SQL Server `1205`, PostgreSQL `40P01`) | Constraint violations, syntax errors, permission denied |
+| Serialization failure (PostgreSQL `40001`) | Business validation failures |
+| Azure SQL failover/unavailable (`40197`, `40613`, `4060`, ...) | Pool exhaustion (it's your app, not the DB) |
+| Throttling (`40501`, PostgreSQL `53300`), with longer backoff | |
+
+A **command timeout** (`SqlException.Number == -2`) is ambiguous. The client gave up, but the server may have **committed** the write. Retrying an `INSERT` can duplicate data. The SqlClient docs confirm that -2 *"isn't in the built-in transient error list"*, and EF Core's SQL Server strategy deliberately doesn't retry it either.
+
+Careful with Npgsql: `NpgsqlException.IsTransient` **is** true for timeouts. A retry layer keyed on `IsTransient` will retry them, so make those commands idempotent.
+
+Always retry the **whole transaction**, never one statement inside it.
+
+Deep dive: [Database Resilience](../11-data-access/14-database-resilience.md)
+
+</details>
+
+---
+
+### 40. Your API starts throwing "Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool." What's going on and how do you fix it?
+
+<details>
+<summary>Reveal answer</summary>
+
+It's an `InvalidOperationException` from **connection pool exhaustion**: all pooled connections (default `Max Pool Size` = 100) are in use, and the wait exceeded `Connect Timeout` (default 15 s). The database is usually fine.
+
+Typical causes, per the SqlClient docs: *"a connection leak, slow queries, blocked transactions, too much concurrency, pool fragmentation, or a database capacity limit."*
+
+Fix in this order:
+1. **Leaks.** Every connection/reader must be disposed on every path (`await using`).
+2. **Slow queries / long transactions** that hold connections.
+3. **Concurrency.** Limit concurrent DB work (bulkhead) instead of letting every request grab a connection.
+4. Only then consider `Max Pool Size`. Raising it moves the queue into the database. Also check pods × pool size against the server's connection limit.
+
+Retrying the open immediately rarely helps. During the pool's blocking period a retry *"receives the cached exception."*
+
+Deep dive: [Database Resilience](../11-data-access/14-database-resilience.md)
+
+</details>
+
+---
+
+### 41. What are the gotchas of `Microsoft.Data.SqlClient`'s configurable retry logic?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **Off by default.** The default provider is `CreateNoneRetryProvider`.
+- **The connection's provider doesn't flow to commands.** Set `RetryLogicProvider` on each `SqlCommand` too.
+- **`NumberOfTries` counts the first attempt** (range 1–60). `MaxTimeInterval` caps **each** delay, not the total.
+- **`TransientErrors` replaces the baseline list**, it doesn't append to it.
+- **Commands inside a `SqlTransaction` / `TransactionScope` are skipped.** Retry the whole transaction yourself. (A bug, dotnet/SqlClient #4309, could retry outside the transaction after a deadlock. Check your version.)
+- **Idempotency is your job.** Use `AuthorizedSqlCondition` to retry only safe statements, e.g. `SELECT`s.
+- **Stale blog posts** mention an `EnableRetryLogic` AppContext switch. It was a 3.0-preview requirement and was removed in 4.0.
+- `ConnectRetryCount` (idle connection resiliency) is a **separate** mechanism. Combined with command retry it can multiply attempts.
+
+Deep dive: [Database Resilience](../11-data-access/14-database-resilience.md)
+
+</details>
+
+---
+
+### 42. You enable `EnableRetryOnFailure()` and existing code calling `BeginTransactionAsync()` starts throwing. Why, and what's the fix?
+
+<details>
+<summary>Reveal answer</summary>
+
+The exception: *"The configured execution strategy 'SqlServerRetryingExecutionStrategy' does not support user-initiated transactions. Use the execution strategy returned by 'DbContext.Database.CreateExecutionStrategy()' to execute all the operations in the transaction as a retriable unit."*
+
+EF can retry a single `SaveChanges`, but it can't replay **your** sequence of operations. Wrap the whole unit of work in the strategy:
+
+```csharp
+var strategy = db.Database.CreateExecutionStrategy();
+await strategy.ExecuteAsync(async () =>
+{
+    await using var context = await contextFactory.CreateDbContextAsync();
+    await using var transaction = await context.Database.BeginTransactionAsync();
+    // ... several SaveChangesAsync calls ...
+    await transaction.CommitAsync();
+});
+```
+
+- The delegate **re-runs from the top** on a transient failure. Create the context inside it, as the official sample does.
+- `TransactionScope` must also be inside the delegate.
+- Defaults: 6 retries, 30 s max delay. `UseAzureSql()` (EF Core 9+) enables a retrying strategy automatically; `UseSqlServer()` doesn't.
+
+Deep dive: [EF Core Resilience](../11-data-access/15-ef-core-resilience.md)
+
+</details>
+
+---
+
+### 43. The connection drops while EF Core is committing a transaction. Is it safe to retry?
+
+<details>
+<summary>Reveal answer</summary>
+
+Not blindly. The docs: *"the resulting state of the transaction is unknown"*. A retry could insert the row a second time, especially with store-generated keys.
+
+The four documented options:
+
+1. **Do (almost) nothing.** Avoid store-generated keys and use client-generated GUIDs, so a duplicate insert fails on the PK.
+2. **Rebuild application state.** Discard the context, reload, inform the user.
+3. **State verification** with `ExecuteInTransactionAsync`:
+
+```csharp
+await strategy.ExecuteInTransactionAsync(
+    db,
+    operation: (context, ct) => context.SaveChangesAsync(acceptAllChangesOnSuccess: false, ct),
+    verifySucceeded: (context, ct) => context.Orders.AsNoTracking().AnyAsync(o => o.Id == order.Id, ct));
+db.ChangeTracker.AcceptAllChanges();
+```
+
+4. **Manual tracking table.** Write a marker row in the same transaction and check it on failure.
+
+`acceptAllChangesOnSuccess: false` keeps entities in the `Added` state so the operation can be retried.
+
+Deep dive: [EF Core Resilience](../11-data-access/15-ef-core-resilience.md)
+
+</details>
+
+---
+
+### 44. Name three side effects or limits of EF Core's retrying execution strategy that people don't expect.
+
+<details>
+<summary>Reveal answer</summary>
+
+1. **Buffering.** *"Enabling retry on failure causes EF to internally buffer the resultset"*. Streaming large queries (`AsAsyncEnumerable`) no longer streams, and `ToList()` loads the data into memory twice.
+2. **No retry for command timeouts.** SqlClient error -2 is excluded, because the operation may have completed.
+3. **No retry for business conflicts.** `DbUpdateConcurrencyException` (optimistic concurrency) is not transient. Handle it by reloading, merging, or returning 409. Also, `ExecuteUpdate`/`ExecuteDelete` *"cannot automatically apply concurrency control"*. Put the token in the `Where` and check the affected row count.
+
+Bonus: stacking retries. EF's 6 retries inside a Polly retry inside a caller's HTTP retry multiply into dozens of DB attempts for one click. Pick one layer.
+
+Deep dive: [EF Core Resilience](../11-data-access/15-ef-core-resilience.md)
+
+</details>
+
+---

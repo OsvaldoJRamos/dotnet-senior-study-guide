@@ -138,7 +138,7 @@ and has been chosen as the deadlock victim. Rerun the transaction.
 - **Use RCSI / Snapshot** to remove read/write conflicts.
 - **Cover your predicates with indexes** — a scan locks far more rows than a seek.
 - **Set `DEADLOCK_PRIORITY`** on background jobs you'd rather sacrifice.
-- **Retry with backoff** on 1205 — deadlocks are transient; your retry policy should catch them.
+- **Retry with backoff** on 1205 — deadlocks are transient; your retry policy should catch them (see [Database Resilience](14-database-resilience.md)).
 
 PostgreSQL behaves the same: auto-detects deadlocks and aborts one transaction with `SQLSTATE 40P01`.
 
