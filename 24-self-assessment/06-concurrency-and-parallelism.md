@@ -12,10 +12,10 @@
 | Aspect | `Thread` | `Task` |
 |--------|----------|--------|
 | Abstraction level | OS-level thread | Higher-level (work item on thread pool) |
-| Creation cost | Expensive (~1MB stack per thread) | Cheap (reuses thread pool threads) |
+| Creation cost | Expensive (dedicated OS thread; default stack 1.5 MB on Windows/macOS, 8 MB on Linux) | Cheap (reuses thread pool threads) |
 | Return value | None | `Task<T>` can return a result |
-| Exception handling | Crashes the thread unless caught | Propagated via `await` or `.Exception` |
-| Cancellation | Manual (`Abort` — deprecated) | `CancellationToken` |
+| Exception handling | Unhandled exceptions *"generally terminate the process"* | Stored in the task; rethrown by `await` (wrapped in `AggregateException` by `Wait()`/`.Result`) |
+| Cancellation | Cooperative only, wired up yourself | Integrated with `CancellationToken` |
 | Continuation | Manual | `await`, `ContinueWith` |
 
 **Rule**: use `Task` and `async/await` for almost everything. Use raw `Thread` only for long-running background work where you need full control.
@@ -910,6 +910,28 @@ Three `await`s, three distinct reasons to suspend:
 If `HeavyTransform` were cheap, you'd drop `Task.Run` entirely — the thread switch would cost more than the work.
 
 Deep dive: [Task, Async/Await](../06-concurrency-and-parallelism/03-task-async-await.md)
+
+</details>
+
+---
+
+### 35. Does `async`/`await` create threads? When would you still create a `Thread` yourself?
+
+<details>
+<summary>Reveal answer</summary>
+
+**No.** *"The `async` and `await` keywords don't cause extra threads to be created. Async methods don't require multithreading because an async method doesn't run on its own thread."* The compiler turns the method into a state machine. While an awaited I/O operation is pending, **no thread is used**. When the operation completes, the continuation runs, typically on a pool thread, or back on the captured context (e.g. the UI thread).
+
+Three different layers:
+- **Thread**: an OS-backed execution resource with its own stack.
+- **Task**: a promise of a result. `Task.Run` uses a pool thread; an I/O task uses none while pending.
+- **async/await**: syntax for waiting on tasks without blocking.
+
+Create a dedicated `Thread` only for the cases the docs list: you need a **foreground** thread, a specific **priority**, an **STA** apartment (pool threads are MTA), **long blocking** work, or a **stable thread identity**. `TaskCreationOptions.LongRunning` is the middle ground: officially a hint, and in practice the default scheduler gives it a dedicated thread.
+
+Trap: blocking with `.Result`/`.Wait()` turns async code back into blocked threads, which causes thread pool starvation and, with a UI or classic ASP.NET `SynchronizationContext`, deadlocks.
+
+Deep dive: [Task, async/await and PLINQ](../06-concurrency-and-parallelism/03-task-async-await.md#thread-vs-task-vs-asyncawait)
 
 </details>
 

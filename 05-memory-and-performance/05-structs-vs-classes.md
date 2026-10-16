@@ -154,6 +154,47 @@ C# 13 relaxed several of these restrictions:
 
 These features unlock APIs that previously needed parallel `Span<T>` and array overloads.
 
+## struct vs ref struct vs string
+
+A classic interview trap. `string` *behaves* like a value: it is immutable, and `==` compares content. But it is a **reference type**. `ref struct` is a struct with extra compiler-enforced rules that keep it off the heap.
+
+| | `struct` | `ref struct` | `string` |
+|---|---|---|---|
+| Kind | Value type | Value type, **stack-only** | Reference type: `public sealed class String` |
+| A variable holds | The data itself | The data itself | A **reference** to an object on the heap |
+| Assignment / passing an argument | Copies the whole value | Copies the whole value | Copies the reference (cheap) |
+| Where the data lives | On the stack, or **inline** in the containing object/array | Stack only. It *"can't escape to the managed heap"* | Managed heap |
+| Mutability | Mutable, unless `readonly struct` | Mutable, unless `readonly ref struct`. Careful: `Span<T>` is a `readonly ref struct` whose **elements** are still writable; `ReadOnlySpan<T>` is fully read-only. | **Immutable** |
+| Can be `null` | No (only `Nullable<T>` / `T?`) | No | Yes |
+| `==` | Not available unless overloaded (`record struct` generates it) | Not available unless overloaded | Compares **values** (case-sensitive ordinal) |
+| Boxing to `object` / interface | Yes, allocates on the heap | **Forbidden** | N/A, it's already an object |
+| Field of a class / array element | Yes | **No** | Yes |
+| Captured by a lambda | Yes | **No** | Yes |
+| Used across `await` / `yield return` | Yes | **No** (C# 13+: allowed in async/iterator methods, but not across `await` / `yield return`) | Yes |
+| Typical examples | `int`, `DateTime`, `Guid`, small value objects | `Span<T>`, `ReadOnlySpan<T>` | Text |
+
+```csharp
+public struct Point { public int X; public int Y; }
+
+var a = new Point { X = 1, Y = 2 };
+var b = a;            // copies the value
+b.X = 10;             // a.X is still 1
+
+string s1 = "order";
+string s2 = s1;       // copies the reference
+s2 += "-42";          // creates a NEW string; s1 is still "order"
+
+ReadOnlySpan<char> prefix = "order-42".AsSpan(0, 5); // a view over the string, no allocation
+```
+
+Gotchas worth saying out loud in an interview:
+
+- **"string is a value type because `==` compares content."** Wrong. The C# docs: *"Although `string` is a reference type, the equality operators `==` and `!=` compare the values of `string` objects, not references."* The reference type simply overloads equality.
+- **Immutability means hidden allocations.** *"Methods that appear to modify a String object actually return a new String object that contains the modification."* In loops, use `StringBuilder`. To slice without copying, use `ReadOnlySpan<char>` via `AsSpan()` (see [Modern String APIs](11-modern-string-apis.md)).
+- **Interning is not a guarantee.** The `String.Intern` docs: *"automatic interning of string literals isn't guaranteed—depending on how the assembly was compiled and executed, some literals might not be added to the pool."* Never rely on two equal strings being the same reference.
+- **Default struct equality is slow.** `ValueType.Equals` *"calls Object.Equals(Object) on each field"*, and for non-blittable structs *"uses the System.Reflection library to compare the contents of all fields"* (CA1815). Override `Equals`/`GetHashCode` and implement `IEquatable<T>`, or use a `record struct`.
+- **Why `ref struct` exists.** A `Span<T>` can point at stack memory (`stackalloc`) or into the middle of an array. If it could be boxed, stored in a field, or kept alive across an `await`, it could outlive the memory it points to. The restrictions make that impossible at compile time. Side effect: on `Span<T>`, `Equals(object)` and `GetHashCode` throw `NotSupportedException`.
+
 ## Choosing struct vs class — the heuristic
 
 Microsoft's guidance: choose `struct` only when **all** the following hold:

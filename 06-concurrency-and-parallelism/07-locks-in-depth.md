@@ -96,7 +96,7 @@ These are **shared references** that anyone else can also lock on — causing lo
 |---|---|
 | `this` | Callers can write `lock (myInstance) { ... }` from outside and serialize against your internal lock. |
 | `typeof(MyClass)` | The `Type` object is process-wide and can be obtained by any code via `typeof` or reflection. Locking on it creates hidden cross-assembly contention. |
-| String literals | Strings are **interned**. `lock ("key")` in two unrelated libraries locks on the same reference. |
+| String literals | Literals are typically **interned** (not guaranteed, per the `String.Intern` docs). `lock ("key")` in two unrelated libraries can lock on the same reference, and whether it does is out of your control. |
 
 Concrete risk: a library locks on `this`, and a caller wraps the library in another `lock (libraryInstance)` for their own reasons — any method the library calls back into the caller (event, virtual, delegate) can deadlock.
 
