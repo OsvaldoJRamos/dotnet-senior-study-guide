@@ -18,7 +18,7 @@
 14. [Git](14-git.md) - Object model, branching strategies, rebase vs merge, worktree, stash/cherry-pick/reflog, hooks, recovery
 15. [DevOps](15-devops.md) - Docker, Kubernetes, Terraform, CI/CD, GitOps, blue/green vs canary, Git workflow
 16. [Cloud](16-cloud.md) - EC2, ALB/NLB, S3, IAM, VPC, SQS/SNS, Terraform, Docker, Azure
-17. [Observability](17-observability.md) - Three pillars, structured logging, metrics, distributed tracing, correlation, SLI/SLO/SLA, alerting
+17. [Observability](17-observability.md) - Three pillars, structured logging, logging best practices (levels, anti-patterns, log vs metric vs audit), metrics, distributed tracing, correlation, SLI/SLO/SLA, alerting
 18. [Reliability and SRE](18-reliability-and-sre.md) - Retries, circuit breaker, bulkhead, timeouts, chaos, incident response, postmortems, error budgets
 19. [Distributed Systems](19-distributed-systems.md) - CAP, consistency models, idempotency, outbox, saga, consensus, clocks
 20. [System Design](20-system-design.md) - Interview framework, capacity, scaling, load balancing, caching, rate limiting, case studies

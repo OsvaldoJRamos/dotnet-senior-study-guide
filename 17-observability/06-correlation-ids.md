@@ -168,4 +168,4 @@ Activity.ForceDefaultIdFormat = true; // override the parent's format
 
 ---
 
-[← Previous: Distributed Tracing](04-distributed-tracing.md) | [Next: SLI, SLO, SLA →](06-sli-slo-sla.md) | [Back to index](README.md)
+[← Previous: Distributed Tracing](05-distributed-tracing.md) | [Next: SLI, SLO, SLA →](07-sli-slo-sla.md) | [Back to index](README.md)

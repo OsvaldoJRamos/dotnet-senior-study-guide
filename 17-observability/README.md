@@ -6,11 +6,12 @@ Observability is the ability to answer arbitrary questions about a running syste
 
 1. [The Three Pillars](01-three-pillars.md) - Logs, metrics, traces — what each is good for, cardinality trade-offs, when to reach for which
 2. [Structured Logging](02-structured-logging.md) - `Microsoft.Extensions.Logging`, Serilog, JSON logs, log levels, scopes, sampling, PII redaction
-3. [Metrics](03-metrics.md) - `System.Diagnostics.Metrics` (Meter, Counter, Histogram, ObservableGauge), Prometheus exposition, RED and USE methods
-4. [Distributed Tracing](04-distributed-tracing.md) - OpenTelemetry concepts (span, trace, context propagation), OTel .NET SDK, exporters (OTLP, Jaeger, Zipkin)
-5. [Correlation IDs](05-correlation-ids.md) - `Activity` API in .NET, W3C `traceparent` / `tracestate`, propagation through async / messaging / HTTP, baggage
-6. [SLI, SLO, SLA](06-sli-slo-sla.md) - Definitions, error budgets, burn-rate math, examples (latency SLI, availability SLI), Google SRE model
-7. [Alerting and Dashboards](07-alerting-and-dashboards.md) - Symptom-based vs cause-based alerts, multi-window multi-burn-rate, dashboard design principles
+3. [Logging Best Practices](03-logging-best-practices.md) - Choosing levels by scenario, filter rules, log-and-throw and other anti-patterns, `IExceptionHandler` logging (.NET 10 change), event IDs, cost (sampling, buffering, HTTP logging), log vs metric vs trace vs audit
+4. [Metrics](04-metrics.md) - `System.Diagnostics.Metrics` (Meter, Counter, Histogram, ObservableGauge), Prometheus exposition, RED and USE methods
+5. [Distributed Tracing](05-distributed-tracing.md) - OpenTelemetry concepts (span, trace, context propagation), OTel .NET SDK, exporters (OTLP, Jaeger, Zipkin)
+6. [Correlation IDs](06-correlation-ids.md) - `Activity` API in .NET, W3C `traceparent` / `tracestate`, propagation through async / messaging / HTTP, baggage
+7. [SLI, SLO, SLA](07-sli-slo-sla.md) - Definitions, error budgets, burn-rate math, examples (latency SLI, availability SLI), Google SRE model
+8. [Alerting and Dashboards](08-alerting-and-dashboards.md) - Symptom-based vs cause-based alerts, multi-window multi-burn-rate, dashboard design principles
 
 ## Useful Links
 

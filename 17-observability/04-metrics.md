@@ -169,4 +169,4 @@ Modern stack: instrument with `System.Diagnostics.Metrics` → export over **OTL
 
 ---
 
-[← Previous: Structured Logging](02-structured-logging.md) | [Next: Distributed Tracing →](04-distributed-tracing.md) | [Back to index](README.md)
+[← Previous: Logging Best Practices](03-logging-best-practices.md) | [Next: Distributed Tracing →](05-distributed-tracing.md) | [Back to index](README.md)

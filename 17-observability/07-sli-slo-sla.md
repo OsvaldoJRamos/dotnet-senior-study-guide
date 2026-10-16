@@ -115,4 +115,4 @@ More on these in the next file.
 
 ---
 
-[← Previous: Correlation IDs](05-correlation-ids.md) | [Next: Alerting and Dashboards →](07-alerting-and-dashboards.md) | [Back to index](README.md)
+[← Previous: Correlation IDs](06-correlation-ids.md) | [Next: Alerting and Dashboards →](08-alerting-and-dashboards.md) | [Back to index](README.md)

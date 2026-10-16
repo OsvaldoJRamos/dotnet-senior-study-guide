@@ -122,7 +122,7 @@ Rules from the docs:
 - Record durations as **seconds as `double`**, not milliseconds as `int`.
 - `Add`/`Record` are allocation-free for up to 3 tags; use `TagList` beyond that.
 
-Deep dive: [Metrics](../17-observability/03-metrics.md)
+Deep dive: [Metrics](../17-observability/04-metrics.md)
 
 </details>
 
@@ -141,7 +141,7 @@ Three overlapping frameworks for *"what should I actually measure?"*
 
 Golden Signals ≈ RED + Saturation. Use them together: RED on every user-facing endpoint, USE on every bottleneck resource. The SRE book is explicit about measuring successful-request latency separately from failed-request latency — "a fast 500 is still a failure."
 
-Deep dive: [Metrics](../17-observability/03-metrics.md) and [Alerting and Dashboards](../17-observability/07-alerting-and-dashboards.md)
+Deep dive: [Metrics](../17-observability/04-metrics.md) and [Alerting and Dashboards](../17-observability/08-alerting-and-dashboards.md)
 
 </details>
 
@@ -165,7 +165,7 @@ Companion header `tracestate` carries vendor-specific state (up to 32 key=value 
 
 Interview gotcha: the `sampled` flag is a **hint**, not a contract. The receiver is free to decide independently. OpenTelemetry's `ParentBasedSampler` is the one that honors it.
 
-Deep dive: [Distributed Tracing](../17-observability/04-distributed-tracing.md)
+Deep dive: [Distributed Tracing](../17-observability/05-distributed-tracing.md)
 
 </details>
 
@@ -186,7 +186,7 @@ Consequences:
 
 Consequence for design: `StartActivity` returns `null` when no listener is subscribed. Always null-check (`activity?.SetTag(...)`) to stay allocation-free on the no-tracing path.
 
-Deep dive: [Distributed Tracing](../17-observability/04-distributed-tracing.md) and [Correlation IDs](../17-observability/05-correlation-ids.md)
+Deep dive: [Distributed Tracing](../17-observability/05-distributed-tracing.md) and [Correlation IDs](../17-observability/06-correlation-ids.md)
 
 </details>
 
@@ -216,7 +216,7 @@ using var activity = Source.StartActivity("order.consume", ActivityKind.Consumer
 
 In practice, the messaging library or its OTel contrib instrumentation (MassTransit, `OpenTelemetry.Instrumentation.ConfluentKafka`, AWS SDK instrumentation) handles this for you — you rarely hand-write it. Use `ActivityKind.Producer` on publish and `ActivityKind.Consumer` on receive so the trace viewer renders queue hops correctly.
 
-Deep dive: [Correlation IDs](../17-observability/05-correlation-ids.md)
+Deep dive: [Correlation IDs](../17-observability/06-correlation-ids.md)
 
 </details>
 
@@ -239,7 +239,7 @@ Derived concept: **error budget** — the fraction (`1 − SLO`) you are *allowe
 
 Practical rule: internal SLO should be **tighter** than published SLA so normal-sized incidents don't trigger customer-facing penalties.
 
-Deep dive: [SLI, SLO, SLA](../17-observability/06-sli-slo-sla.md)
+Deep dive: [SLI, SLO, SLA](../17-observability/07-sli-slo-sla.md)
 
 </details>
 
@@ -266,7 +266,7 @@ The Google SRE Workbook (*Alerting on SLOs*, Table 5-8) recommends **multi-windo
 
 Both windows must exceed the threshold. The long window filters noise; the short window (1/12 of the long by default) ensures alerts **reset within minutes of recovery**, not hours — the single biggest cause of on-call fatigue.
 
-Deep dive: [SLI, SLO, SLA](../17-observability/06-sli-slo-sla.md) and [Alerting and Dashboards](../17-observability/07-alerting-and-dashboards.md)
+Deep dive: [SLI, SLO, SLA](../17-observability/07-sli-slo-sla.md) and [Alerting and Dashboards](../17-observability/08-alerting-and-dashboards.md)
 
 </details>
 
@@ -290,7 +290,7 @@ Rules of thumb for page quality:
 - Every page is **urgent** (not urgent = ticket).
 - Every alert has a **runbook** link in the annotation. An alert with no runbook is a bug.
 
-Deep dive: [Alerting and Dashboards](../17-observability/07-alerting-and-dashboards.md)
+Deep dive: [Alerting and Dashboards](../17-observability/08-alerting-and-dashboards.md)
 
 </details>
 
@@ -331,7 +331,7 @@ Deep dive: [Three Pillars](../17-observability/01-three-pillars.md)
 
 Hierarchy: SLI ⊆ SLO ⊆ SLA. You measure (SLI), commit internally (SLO), promise externally (SLA).
 
-Deep dive: [SLI / SLO / SLA](../17-observability/06-sli-slo-sla.md)
+Deep dive: [SLI / SLO / SLA](../17-observability/07-sli-slo-sla.md)
 
 </details>
 
@@ -351,7 +351,129 @@ Where it comes from (in order of preference):
 
 OpenTelemetry's `Activity` / `ActivitySource` in .NET handle this automatically — the SDK reads and writes `traceparent`. Log `Activity.Current?.TraceId` with every entry (via `ILogger` scopes or a structured logging field).
 
-Deep dive: [Correlation IDs](../17-observability/05-correlation-ids.md)
+Deep dive: [Correlation IDs](../17-observability/06-correlation-ids.md)
+
+</details>
+
+---
+
+### 16. Pick the log level: (a) your API returns 404 for an unknown order, (b) a transient DB error triggers retry 1 of 3, (c) all 3 retries fail and the request returns 500, (d) your call to the payment provider returns 400, (e) a concurrency conflict is handled with a 409.
+
+<details>
+<summary>Reveal answer</summary>
+
+| Case | Level | Why |
+|---|---|---|
+| (a) 404 from **your** API | `Information` (or `Debug`) | The caller's mistake, not your failure. OTel leaves span status **unset** for 4xx on server spans. |
+| (b) Retry attempt | `Warning` | Azure guidance: log transient faults *"as warning entries rather than as error entries so that monitoring systems don't detect them as application errors that might trigger false alerts."* |
+| (c) Retries exhausted, 500 | `Error` | *"a failure in the current operation or request"* |
+| (d) 400 **from** a dependency | `Error` (usually) | As the client, a 4xx usually means your bug. OTel sets client-span status to `Error` for 4xx. |
+| (e) Handled conflict → 409 | `Information` / `Warning` | It was handled. `Error` is for what *"can't be handled"*. |
+
+Rule of thumb: `Error` means someone should look at it. Expected conditions logged as `Error` train people to ignore the level.
+
+Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md)
+
+</details>
+
+---
+
+### 17. What's wrong with catching an exception, logging it with `LogError`, and rethrowing it? What should you do instead?
+
+<details>
+<summary>Reveal answer</summary>
+
+**Log-and-throw** logs the same exception at every layer that does it, plus once more at the global handler. One incident becomes five stack traces, error counts inflate, and alerts misfire. Sonar rule S2139: *"Exceptions should be either logged or rethrown but not both."*
+
+Instead, do **one** of:
+- **Handle it:** log (often `Warning`) and recover (fallback, queue for retry, return a result).
+- **Can't handle it:** rethrow **without logging**. Wrap it to add context: `throw new PaymentFailedException($"Payment failed for order {orderId}", ex);`
+
+Unhandled exceptions are then logged **once**, at the boundary (`UseExceptionHandler` / `IExceptionHandler`). Always pass the exception as the `exception` argument (`LogError(ex, "...")`), never formatted into the message.
+
+Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md#anti-patterns)
+
+</details>
+
+---
+
+### 18. Your `IExceptionHandler` returns `true` and doesn't log anything. What happens to the exception's log entry on .NET 8 vs .NET 10?
+
+<details>
+<summary>Reveal answer</summary>
+
+- **.NET 8 / 9:** the exception handler middleware still logs it (`Error`, event `UnhandledException`, category `Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware`). If your handler **also** logs, the exception appears **twice**.
+- **.NET 10+:** *"if IExceptionHandler.TryHandleAsync returns `true`, then exception diagnostics are no longer recorded by default."* With a non-logging handler, **the exception is not logged at all**. The `error.type` tag on the `http.server.request.duration` metric is suppressed as well.
+
+Fix: log inside `TryHandleAsync` (the single log entry), or restore the old behavior with `ExceptionHandlerOptions.SuppressDiagnosticsCallback = context => false`. This is an upgrade trap worth checking when moving to .NET 10.
+
+Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md#log-once-at-the-boundary)
+
+</details>
+
+---
+
+### 19. Given this configuration, which `Information` logs from category `MyCompany.Payments.Gateway` reach the console provider?
+
+```json
+{
+  "Logging": {
+    "LogLevel": { "Default": "Information", "MyCompany.Payments": "Debug" },
+    "Console": { "LogLevel": { "Default": "Warning" } }
+  }
+}
+```
+
+<details>
+<summary>Reveal answer</summary>
+
+**None.** The console only shows `Warning` and above.
+
+Rule selection: first, *"Select all rules that match the provider or its alias"*. The `Console` section matches, so only its rules are candidates. Then the longest matching category prefix wins, and if several match, the last one is taken. The console's only rule is `Default: Warning`. *"Settings in `Logging.{ProviderName}.LogLevel` override settings in `Logging.LogLevel`."*
+
+Other providers (no provider-specific section) use the general rules: `MyCompany.Payments.Gateway` matches the longer prefix `MyCompany.Payments` → `Debug`.
+
+Also: with nothing configured the default is `Information`, and the docs recommend setting levels in configuration rather than code. With Serilog, configure levels in Serilog (`MinimumLevel.Override`), not in both systems.
+
+Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md#configuring-levels-how-filter-rules-are-chosen)
+
+</details>
+
+---
+
+### 20. Your team alerts on "more than 50 `PaymentFailed` log lines in 5 minutes". What's wrong with that, and what would you do instead?
+
+<details>
+<summary>Reveal answer</summary>
+
+Counting log lines is a metric's job done badly. Log pipelines sample, filter, buffer and drop entries, add ingestion lag, and are expensive to query. A changed message template silently breaks the alert.
+
+The Google SRE Workbook: *"We still recommend metrics-based alerting in such cases: you can increment a counter metric when a particular event happens, and configure an alert based on that metric's value."*
+
+Emit **both**, each for its own job:
+- A **counter** (`payment_failures`, low-cardinality tags like `provider`). Alert on this.
+- A **log** with the high-cardinality context (`OrderId`, exception) and a stable `EventId`. Investigate with this.
+
+*"We tend to use logs to find the root cause of an issue, as the information we need is often not available as a metric."*
+
+Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md#when-a-log-should-be-a-metric)
+
+</details>
+
+---
+
+### 21. Compliance asks for "a log of every change to customer bank details". Why shouldn't that go through `ILogger`?
+
+<details>
+<summary>Reveal answer</summary>
+
+Logging is designed to be **lossy**: level filters, sampling, buffers where *"the oldest logs are dropped and never emitted"*, rotation, short retention. An audit trail can tolerate none of that. It needs completeness, long retention and tamper evidence.
+
+OWASP keeps them apart: audit trails *"are usually collected for different purposes than security event logging, and this often means they should be kept separate"*. It also recommends tamper detection.
+
+Better: write an **audit record** to a durable store **in the same transaction** as the change (an `AuditEntries` table via an EF Core `SaveChanges` interceptor, or an outbox). Then the change and its audit entry commit or fail together. Keep the bank details themselves masked, both in the audit record and in any log.
+
+Deep dive: [Logging Best Practices](../17-observability/03-logging-best-practices.md#why-audit-is-not-a-log-at-information)
 
 </details>
 
