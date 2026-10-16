@@ -14,7 +14,7 @@
 | Allocation | Automatic (push/pop) | Manual (`new`) — managed by GC |
 | Speed | Very fast (pointer increment) | Slower (fragmentation, GC) |
 | Lifetime | Scoped to method call | Until no references remain |
-| Size | Small (default ~1MB per thread) | Large (limited by RAM) |
+| Size | Small (default 1.5 MB per thread on Windows/macOS, 8 MB on Linux) | Large (limited by RAM) |
 | What lives here | Value types (locals), return addresses | Reference types, boxed values |
 
 **Important nuance**: value types declared as fields of a class live on the heap (inside the class object). "Value types live on the stack" is a simplification.
@@ -164,23 +164,25 @@ Deep dive: [Memory Optimization](../05-memory-and-performance/03-memory-optimiza
 <details>
 <summary>Reveal answer</summary>
 
-String interning is a process where the runtime maintains a **pool of unique strings**. All string **literals** in your code are automatically interned — if two literals have the same content, they share the same object in memory.
+String interning is a process where *"The common language runtime maintains a table, called the intern pool, that holds a single reference for each unique string value."* String **literals** are typically interned, so two identical literals often share one object. But the docs are explicit that this is **not guaranteed**: *"automatic interning of string literals isn't guaranteed—depending on how the assembly was compiled and executed, some literals might not be added to the pool."* By default the C# compiler emits `CompilationRelaxations` with `NoStringInterning`.
 
 ```csharp
 string a = "hello";
 string b = "hello";
-Console.WriteLine(ReferenceEquals(a, b)); // True — same interned object
+Console.WriteLine(ReferenceEquals(a, b)); // Typically True — but don't rely on it
 
 string c = new string("hello".ToCharArray());
 Console.WriteLine(ReferenceEquals(a, c)); // False — different object
 
 string d = string.Intern(c);
-Console.WriteLine(ReferenceEquals(a, d)); // True — now interned
+Console.WriteLine(ReferenceEquals(d, string.Intern(a))); // True — both explicitly interned
 ```
 
 **Benefits**: reduces memory when the same string values appear many times.
 
-**Risks**: interned strings live **forever** (they are rooted by the intern table). Do not intern user-generated or dynamic strings — this is a memory leak.
+**Risks**: interned strings are *"not likely to be released until the common language runtime (CLR) terminates."* Do not intern user-generated or dynamic strings, because that is effectively a memory leak. Never write logic that depends on two strings being the same reference: compare with `==` / `string.Equals`.
+
+Deep dive: [Structs vs Classes](../05-memory-and-performance/05-structs-vs-classes.md#struct-vs-ref-struct-vs-string)
 
 </details>
 
@@ -652,6 +654,34 @@ The bytes live in the assembly's `.data` section — no allocation at the call s
 In C# 10+, `$"..."` interpolation also got dramatically faster via `DefaultInterpolatedStringHandler` — value types are no longer boxed into `object[]` for `string.Format`. You don't write the handler directly; the compiler emits it for you.
 
 Deep dive: [Modern String APIs](../05-memory-and-performance/11-modern-string-apis.md)
+
+</details>
+
+---
+
+### 26. Compare `struct`, `ref struct`, and `string`. Is `string` a value type?
+
+<details>
+<summary>Reveal answer</summary>
+
+**No.** `string` is a reference type (`public sealed class String`) that *looks* like a value because it is immutable and its `==` compares content: *"Although `string` is a reference type, the equality operators `==` and `!=` compare the values of `string` objects, not references."*
+
+| | `struct` | `ref struct` | `string` |
+|---|---|---|---|
+| Kind | Value type | Value type, stack-only | Reference type |
+| Assignment copies | The whole value | The whole value | The reference |
+| Lives | Stack or inline in its container | Stack only, *"can't escape to the managed heap"* | Heap |
+| Mutable | Yes, unless `readonly` | Yes, unless `readonly` | No, every "change" returns a new string |
+| `null` | Only via `Nullable<T>` | No | Yes |
+| Boxing / class field / array element / lambda capture | Allowed | **Forbidden** | Allowed |
+| Across `await` / `yield return` | Allowed | Forbidden (C# 13+ allows them in async/iterator methods, but not across those points) | Allowed |
+
+Follow-ups interviewers like:
+- **Why does `ref struct` exist?** So `Span<T>` can safely point at stack memory or into arrays without ever outliving that memory.
+- **Default struct equality?** `ValueType.Equals` compares field by field, using reflection for non-blittable structs (CA1815). Override `Equals` + `IEquatable<T>`, or use `record struct`, which also generates `==`.
+- **Are string literals always interned?** Not guaranteed, per the `String.Intern` docs. Never rely on reference equality for strings.
+
+Deep dive: [Structs vs Classes](../05-memory-and-performance/05-structs-vs-classes.md#struct-vs-ref-struct-vs-string)
 
 </details>
 

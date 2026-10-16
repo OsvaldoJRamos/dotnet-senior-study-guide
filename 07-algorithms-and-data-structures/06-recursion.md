@@ -185,7 +185,7 @@ int FibonacciIterative(int n)
 | Readability | Often cleaner for trees, graphs, divide-and-conquer | Better for simple loops |
 | Space | O(n) stack frames (risk of overflow) | O(1) typically |
 | Performance | Function call overhead | Faster (no call overhead) |
-| Stack overflow risk | Yes — default stack ~1MB in .NET | No |
+| Stack overflow risk | Yes — default .NET stack is 1.5 MB on Windows/macOS, 8 MB on Linux | No |
 | Natural fit | Trees, graphs, backtracking, divide-and-conquer | Linear traversal, accumulation |
 
 > **Practical tip:** Use recursion when the problem is naturally recursive (trees, divide-and-conquer). Use iteration for simple linear problems. If recursion depth could be large (>1000), consider converting to iterative with an explicit stack.

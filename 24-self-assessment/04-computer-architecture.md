@@ -139,7 +139,7 @@ Deep dive: [Cores and Threads](../04-computer-architecture/02-cores-and-threads.
 
 | | `new Thread(...)` | `ThreadPool` / `Task.Run` |
 |---|---|---|
-| Creation cost | Expensive (allocates a new OS thread, ~1 MB stack) | Cheap (reuses a pool thread) |
+| Creation cost | Expensive (allocates a new OS thread; default stack 1.5 MB on Windows/macOS, 8 MB on Linux) | Cheap (reuses a pool thread) |
 | Lifetime | Dies when the delegate returns | Returned to the pool for reuse |
 | Best for | Long-running, dedicated work with custom priority or stack size | Short-lived CPU or I/O work |
 

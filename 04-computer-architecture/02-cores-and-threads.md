@@ -90,7 +90,7 @@ Two practical consequences:
 | | `new Thread(...)` | `ThreadPool` / `Task.Run` |
 |---|---|---|
 | Creation cost | Expensive (allocates a new OS thread) | Cheap (reuses pool threads) |
-| Default stack size | 1 MB on Windows | 1 MB on Windows |
+| Default stack size | 1.5 MB on Windows/macOS, 8 MB on Linux (.NET runtime config docs) | Same |
 | Lifetime | Dies when the delegate returns | Returned to the pool for reuse |
 | Best for | Long-running, dedicated work (e.g., a custom scheduler) | Short-lived CPU or I/O work |
 

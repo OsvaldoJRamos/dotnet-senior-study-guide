@@ -45,11 +45,80 @@ Environment variables are the lowest common denominator — supported by every C
 
 Known pitfalls the docs flag:
 
-- *"Environment variables are generally stored in plain, unencrypted text. If the machine or process is compromised, environment variables can be accessed by untrusted parties."*
-- The `:` separator for hierarchical keys isn't supported by Bash. Use `__` (double underscore); .NET's configuration rewrites `__` to `:`. Example: `ConnectionStrings__Default` → `ConnectionStrings:Default`.
-- Environment variables **override** all previously loaded configuration sources, which is useful for prod overrides but can mask misconfiguration silently.
+- *"Environment variables are commonly stored as plain, unencrypted text. If the machine or process is compromised, environment variables are accessible to untrusted parties."*
+- The `:` separator for hierarchical keys isn't supported by Bash. Use `__` (double underscore): *"All platforms support the double underscore (`__`) syntax and automatically replace it with a colon (`:`)."* Example: `ConnectionStrings__Default` → `ConnectionStrings:Default`.
+- In the default ASP.NET Core setup, *"key values read from the environment override values read from `appsettings.json`, `appsettings.{ENVIRONMENT}.json`, and user secrets"* (only command-line arguments rank higher). That is useful for prod overrides, but it can mask misconfiguration silently.
 
-Fine for non-secret config and for small deployments. For real secrets, treat env vars as a **transport** — let the orchestrator inject values from a real secret manager, don't hard-code them in `docker-compose.yml`.
+Fine for non-secret config and for small deployments. For real secrets, treat env vars as a **transport**: let the orchestrator inject values from a real secret manager. Don't hard-code them in `docker-compose.yml`. The next section expands on this.
+
+## Environment variable vs secret
+
+They are on **different axes**, which is why people conflate them:
+
+- A **secret** is a *classification of data*: anything that grants access (passwords, API keys, private keys, tokens, connection strings with credentials).
+- An **environment variable** is a *delivery mechanism*: one of several ways a value reaches the process.
+
+The confusion comes from the 12-factor app, which defines config as *"everything that is likely to vary between deploys"*, explicitly including *"Credentials to external services"*, and says *"The twelve-factor app stores config in environment variables."* That was good advice against committing config files. It is weaker advice for secrets.
+
+| | Config (non-secret) | Secret |
+|---|---|---|
+| Examples | Feature flags, URLs, timeouts, log levels | Passwords, API keys, signing keys, connection strings with credentials |
+| Impact if leaked | Mostly harmless | Grants access, so it's a breach |
+| Source of truth | Repo (`appsettings.json`), env, config service | A secret manager (Key Vault, Secrets Manager, Vault), **never** the repo |
+| Rotation | On deploy | On a schedule and on incident, ideally without a redeploy |
+| Access audit | Not needed | Every read logged by the vault |
+
+### Three ways to deliver a secret to the app
+
+| Mechanism | How | Rotation | Leak surface |
+|---|---|---|---|
+| **Environment variable** | Orchestrator injects it at start: K8s `secretKeyRef`, ECS `secrets`/`valueFrom`, App Service settings | **Needs a restart.** K8s: *"a Secret update will not be seen by the container unless it is restarted."* ECS: *"the container will not receive the updated value automatically."* | Every process in the container, child processes, `/proc/<pid>/environ`, logs, crash dumps |
+| **Mounted file** | K8s Secret volume; Docker/Compose secrets at `/run/secrets/<name>` | K8s volumes update *"using an eventually-consistent approach"* (not with `subPath` mounts) | File permissions; only code that opens the file |
+| **Fetch from the vault at runtime** | `AddAzureKeyVault`, AWS SDK, Vault client, authenticated by **workload identity** | Poll or refresh in-process, no restart | Process memory only; reads are audited |
+
+Docker made the file-based design choice explicitly for Swarm: *"Docker secrets do not set environment variables directly. This was a conscious decision, because environment variables can unintentionally be leaked between containers."*
+
+### Why environment variables leak
+
+- **Inheritance.** *"When a child process is created via fork(2), it inherits a copy of its parent's environment."* Every tool you shell out to gets your database password.
+- **`/proc/<pid>/environ`** exposes *"the initial environment that was set when the currently executing program was started"* to anyone who passes the kernel's ptrace access check.
+- **Logs and dumps.** OWASP: *"environment variables are generally accessible to all processes and may be included in logs or system dumps. Using environment variables is therefore not recommended unless the other methods are not possible."* Docker Compose's docs add that they *"can also be printed in logs when debugging errors without your knowledge."*
+- **Baked into images.** *"Build arguments and environment variables are inappropriate for passing secrets to your build, because they persist in the final image."* `ENV` values are visible with `docker inspect`.
+- **Kubernetes Secrets aren't encrypted by default.** They are *"stored unencrypted in the API server's underlying data store (etcd)"*, and *"Base64 encoding is not an encryption method."*
+
+### .NET: reading secrets from files or the vault
+
+```csharp
+// Mounted files (K8s Secret volume, /run/secrets): file name = key, file content = value.
+// A file named ConnectionStrings__Default becomes ConnectionStrings:Default.
+// Package: Microsoft.Extensions.Configuration.KeyPerFile
+builder.Configuration.AddKeyPerFile("/run/secrets", optional: true, reloadOnChange: true);
+
+// Straight from Key Vault, authenticated with a managed identity — no secret to bootstrap.
+// Package: Azure.Extensions.AspNetCore.Configuration.Secrets
+builder.Configuration.AddAzureKeyVault(
+    new Uri("https://my-vault.vault.azure.net/"),
+    new DefaultAzureCredential(),
+    new AzureKeyVaultConfigurationOptions { ReloadInterval = TimeSpan.FromMinutes(5) });
+```
+
+Both end up in `IConfiguration`, so application code doesn't change. Note the Key Vault provider's defaults: *"By default, the configuration provider caches secrets for the application lifetime"*, and `ReloadInterval` defaults to `null`, meaning no reload.
+
+### Platform shortcuts
+
+- **Azure App Service:** *"app settings are variables passed as environment variables to the application code"* and are *"encrypted at rest"*. Changing them *"triggers an app restart."* Key Vault references (`@Microsoft.KeyVault(SecretUri=...)`) keep the secret in Key Vault with *"No code changes"*. App Service *"refetches them every 24 hours."*
+- **AWS Lambda:** env vars are encrypted at rest with KMS, but AWS still *"recommend[s] that you use AWS Secrets Manager instead of environment variables to store database credentials."*
+- **AWS ECS:** `secrets` + `valueFrom` pulls from Secrets Manager / SSM into an env var at container start. It is convenient, but *"Applications that run on the container and container logs and debugging tools have access to the environment variables."*
+
+### Preference order
+
+1. **No secret at all:** workload identity (Managed Identity, IAM role) to reach the database, storage or queue.
+2. **Fetch from the vault at runtime**, authenticated by workload identity.
+3. **Orchestrator-mounted file** sourced from the vault.
+4. **Orchestrator-injected env var** sourced from the vault (ECS `valueFrom`, App Service Key Vault reference). Acceptable, but rotation needs a restart.
+5. **Never:** a secret value typed into `docker-compose.yml`, a K8s manifest, a Dockerfile `ENV`/`ARG`, or a committed pipeline file.
+
+> **Interview answer:** "An environment variable is a way to deliver a value; a secret is a kind of value. You can deliver a secret through an env var, and many platforms do, but env vars are plain text, inherited by child processes, readable through `/proc`, and easy to leak into logs and images, and rotation needs a restart. So I keep secrets in a vault, prefer workload identity so there's no secret at all, and if I need delivery, I mount a file or fetch at runtime. I use env vars for non-secret config."
 
 ## Azure Key Vault
 

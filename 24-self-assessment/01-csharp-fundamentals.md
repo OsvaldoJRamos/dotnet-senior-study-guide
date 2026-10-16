@@ -220,7 +220,7 @@ Records give you `Equals`, `GetHashCode`, `ToString`, and `with` expressions for
 
 Strings are **immutable** — every modification creates a new `string` object. This enables:
 - **Thread safety** — no locks needed for shared strings
-- **String interning** — the runtime can reuse identical literals
+- **String interning** — the runtime can share one instance for identical values (literals are typically interned, though the docs say this isn't guaranteed)
 - **Security** — a string passed to a method cannot be tampered with
 
 Use **`StringBuilder`** when concatenating in a loop or building strings dynamically:
@@ -758,6 +758,33 @@ public class A { public sealed override void Run() {} }            // stop the v
 Default to `sealed`; remove it when there's a real, designed-for extension point. The exception is types in a public library where consumers reasonably expect to extend — even then, document the extension contract or prefer composition.
 
 Deep dive: [Object-Oriented Programming](../01-csharp-fundamentals/09-object-oriented-programming.md)
+
+</details>
+
+---
+
+### 29. What is the difference between .NET Framework and .NET (Core)? When would you still use .NET Framework?
+
+<details>
+<summary>Reveal answer</summary>
+
+| | .NET Framework | .NET (formerly .NET Core) |
+|---|---|---|
+| Platforms | Windows only | Windows, Linux, macOS |
+| Install | Windows component; one 4.x per machine, in-place updates | Side-by-side runtimes; framework-dependent or self-contained |
+| Support | 4.7+ follows the Windows OS lifecycle (4.6.2 ends Jan 2027) | LTS 3 years / STS 2 years, new major version every November |
+| Evolution | Fixes only; 4.8.1 is the latest version | Active development (.NET 10 is the current LTS) |
+| Web | ASP.NET (incl. Web Forms) | ASP.NET Core (3.0+ only runs on .NET) |
+
+**Naming:** .NET 5 skipped "4" to avoid confusion with .NET Framework 4.x, and dropped "Core" because it became *"the main implementation of .NET going forward."*
+
+**Not available on .NET:** multiple AppDomains, Remoting, CAS, COM+ (EnterpriseServices), Workflow Foundation and Web Forms. WCF server is available through **CoreWCF** (officially supported by Microsoft since 2022).
+
+**Sharing code** between both: target `netstandard2.0` (.NET Framework doesn't support 2.1), usually multi-targeted with the latest .NET.
+
+**When to stay on .NET Framework:** Microsoft says the reasons are *"specific and limited"*: the app already works on it, it depends on packages or technologies with no .NET equivalent, or it targets a platform .NET doesn't support. New code goes on .NET.
+
+Deep dive: [.NET Ecosystem](../01-csharp-fundamentals/01-dotnet-ecosystem.md#net-framework-vs-net-formerly-net-core)
 
 </details>
 

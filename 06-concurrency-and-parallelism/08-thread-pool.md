@@ -4,7 +4,7 @@
 
 ## Why a pool at all
 
-Creating an OS thread is expensive: a reserved stack (the .NET default is 1 MB per the `Thread` constructor docs), a scheduler entry, a syscall. For tasks that finish in microseconds, the creation cost dwarfs the work. Running thousands of OS threads in parallel makes it worse — context switching destroys throughput.
+Creating an OS thread is expensive: a reserved stack (*"The default stack size for .NET apps is 1.5 MB on Windows and macOS, and 8 MB on Linux"*, per the .NET runtime configuration docs), a scheduler entry, a syscall. For tasks that finish in microseconds, the creation cost dwarfs the work. Running thousands of OS threads in parallel makes it worse — context switching destroys throughput.
 
 The .NET thread pool solves both: a managed pool of pre-created, reusable threads that wait for work. From the official remarks:
 

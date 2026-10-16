@@ -2,7 +2,7 @@
 
 ## Contents
 
-1. [C# Fundamentals](01-csharp-fundamentals.md) - Value/reference types, generics, delegates, async internals
+1. [C# Fundamentals](01-csharp-fundamentals.md) - Value/reference types, generics, delegates, async internals, .NET Framework vs .NET
 2. [Exceptions](02-exceptions.md) - Hierarchy, try/catch/finally, custom exceptions, exception filters, ExceptionDispatchInfo, AggregateException, async exceptions, performance
 3. [Collections and LINQ](03-collections-and-linq.md) - IEnumerable vs IQueryable, deferred execution, performance
 4. [Computer Architecture](04-computer-architecture.md) - CPU internals, pipelining, branch prediction, cores vs threads, SMT, memory hierarchy, cache lines, false sharing

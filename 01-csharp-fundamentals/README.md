@@ -2,7 +2,7 @@
 
 ## Content
 
-1. [.NET Ecosystem](01-dotnet-ecosystem.md) - C#, .NET, ASP.NET Core and how they relate
+1. [.NET Ecosystem](01-dotnet-ecosystem.md) - C#, .NET, ASP.NET Core and how they relate; .NET Framework vs .NET (Core), .NET Standard, migration
 2. [Namespace](02-namespace.md) - Logical code organization
 3. [CLR and IL](03-clr-and-il.md) - Common Language Runtime and Intermediate Language
 4. [Numeric Types](04-numeric-types.md) - Float vs Double vs Decimal

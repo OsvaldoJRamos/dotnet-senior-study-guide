@@ -413,4 +413,30 @@ Deep dive: [Network and Perimeter Security](../12-security/08-network-perimeter-
 
 ---
 
+### 19. What is the difference between an environment variable and a secret? Is it OK to pass a secret through an environment variable?
+
+<details>
+<summary>Reveal answer</summary>
+
+They are on different axes. A **secret** is a *classification of data* (it grants access). An **environment variable** is a *delivery mechanism*. You can deliver a secret through an env var, and many platforms do (ECS `valueFrom`, App Service settings, K8s `secretKeyRef`), but it is the weakest delivery option:
+
+- **Plain text and widely visible.** Inherited by child processes, readable via `/proc/<pid>/environ`, and OWASP warns env vars *"may be included in logs or system dumps."*
+- **Baked into images** if set with Dockerfile `ENV`/`ARG`: they *"persist in the final image."*
+- **No rotation without restart.** K8s: *"a Secret update will not be seen by the container unless it is restarted."*
+
+Preference order:
+1. **Workload identity**, so there's no secret at all.
+2. **Fetch from the vault at runtime** (`AddAzureKeyVault` + `DefaultAzureCredential`).
+3. **Mounted file** from the orchestrator (`/run/secrets`, K8s volume, read with `AddKeyPerFile`). K8s updates mounted volumes without a restart (not for `subPath` mounts, and the app must re-read the file, e.g. `reloadOnChange: true`).
+4. **Env var injected from a vault**: acceptable, but rotation needs a restart.
+5. **Never** a secret value hard-coded in compose files, manifests, Dockerfiles or pipeline YAML.
+
+Use env vars freely for **non-secret config** (URLs, flags, log levels). That's the 12-factor use case.
+
+Deep dive: [Secrets Management](../12-security/04-secrets-management.md#environment-variable-vs-secret)
+
+</details>
+
+---
+
 [Back to index](README.md)
