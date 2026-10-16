@@ -906,7 +906,7 @@ Fix in this order:
 3. **Concurrency.** Limit concurrent DB work (bulkhead) instead of letting every request grab a connection.
 4. Only then consider `Max Pool Size`. Raising it moves the queue into the database. Also check pods × pool size against the server's connection limit.
 
-Retrying the open immediately rarely helps. During the pool's blocking period a retry *"receives the cached exception."*
+Retrying the open immediately rarely helps: every retry joins the same queue for an exhausted pool and can wait up to `Connect Timeout` again, which adds pressure instead of relieving it. (Don't confuse this with the pool's **blocking period**, which follows an *authentication* failure, not exhaustion.)
 
 Deep dive: [Database Resilience](../11-data-access/14-database-resilience.md)
 
@@ -925,8 +925,8 @@ Deep dive: [Database Resilience](../11-data-access/14-database-resilience.md)
 - **`TransientErrors` replaces the baseline list**, it doesn't append to it.
 - **Commands inside a `SqlTransaction` / `TransactionScope` are skipped.** Retry the whole transaction yourself. (A bug, dotnet/SqlClient #4309, could retry outside the transaction after a deadlock. Check your version.)
 - **Idempotency is your job.** Use `AuthorizedSqlCondition` to retry only safe statements, e.g. `SELECT`s.
-- **Stale blog posts** mention an `EnableRetryLogic` AppContext switch. It was a 3.0-preview requirement and was removed in 4.0.
-- `ConnectRetryCount` (idle connection resiliency) is a **separate** mechanism. Combined with command retry it can multiply attempts.
+- **Stale blog posts** mention an `EnableRetryLogic` AppContext switch. It was required in 3.x, while the feature was still in preview, and was removed in 4.0.
+- `ConnectRetryCount` (idle connection resiliency, plus initial-`Open` retries per the Azure SQL docs) is a **separate** mechanism with its own transient list. Combined with configurable retry logic or your own retry it can multiply attempts.
 
 Deep dive: [Database Resilience](../11-data-access/14-database-resilience.md)
 
@@ -954,7 +954,7 @@ await strategy.ExecuteAsync(async () =>
 });
 ```
 
-- The delegate **re-runs from the top** on a transient failure. Create the context inside it, as the official sample does.
+- The delegate **re-runs from the top** on a transient failure. Create the context **and the entities** inside it, as the official sample does. An outer entity already carries the store-generated key from the failed attempt.
 - `TransactionScope` must also be inside the delegate.
 - Defaults: 6 retries, 30 s max delay. `UseAzureSql()` (EF Core 9+) enables a retrying strategy automatically; `UseSqlServer()` doesn't.
 

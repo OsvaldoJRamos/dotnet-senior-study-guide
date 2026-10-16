@@ -27,7 +27,7 @@ The ASP.NET Core docs add a cost warning that includes `Information`: *"Logging 
 | Scenario | Level | Why |
 |---|---|---|
 | Request handled, job finished, order placed | `Information` | Normal flow |
-| Client sent invalid input: 400 / 404 / 422 from **your** API | `Information` (or `Debug`) | The caller's mistake, not your failure. OpenTelemetry agrees: *"For HTTP status codes in the 4xx range span status MUST be left unset in case of `SpanKind.SERVER`"* |
+| Client sent invalid input: 400 / 404 / 422 from **your** API | `Information` (or `Debug`) | The caller's mistake, not your failure. OpenTelemetry applies the same logic to span status (it says nothing about log levels): *"For HTTP status codes in the 4xx range span status MUST be left unset in case of `SpanKind.SERVER`"* |
 | Authentication / authorization failure | `Warning` | Security-relevant. OWASP lists *"Authentication successes and failures"* and *"Authorization (access control) failures"* as events to log. A spike signals an attack. |
 | Transient fault, retry attempt N | `Warning` | Azure guidance: *"Log transient faults as warning entries rather than as error entries so that monitoring systems don't detect them as application errors that might trigger false alerts."* |
 | Retries exhausted, request failed | `Error` | *"a failure in the current operation or request"* |
@@ -123,8 +123,10 @@ The single log entry for unhandled exceptions is written at the boundary (below)
 ### 2. Exception details in the message
 
 ```csharp
-// Wrong — stack trace lost, message unique per exception (breaks grouping)
+// Wrong — stack trace lost, and the template changes per exception (breaks grouping)
 _logger.LogError("Failed: " + ex.Message);
+
+// Wrong — details survive only as text: no exception object, so OTel's dedicated exception attributes aren't populated
 _logger.LogError("Failed: {Error}", ex.ToString());
 
 // Right — exception is its own field; the template stays constant
@@ -228,6 +230,7 @@ Analyzers that enforce the rules:
 | CA2254 | Template should be a static expression | As suggestion |
 | CA1848 | Use the LoggerMessage delegates | No: turn it on for hot paths |
 | CA1727 | Use PascalCase for named placeholders | No |
+| CA1873 | Avoid potentially expensive logging | As suggestion |
 
 ## Controlling volume and cost
 

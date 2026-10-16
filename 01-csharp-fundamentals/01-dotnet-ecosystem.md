@@ -57,7 +57,7 @@ A **modern, cross-platform web framework**, part of .NET.
 | Milestone | What happened |
 |---|---|
 | .NET Framework 1.0 – 4.8.1 | The original Windows platform. *".NET Framework 4.8.1 is the latest version of .NET Framework and will continue to be distributed with future releases of Windows."* |
-| June 2016: .NET Core 1.0 | A from-scratch, cross-platform rewrite, *"available on Windows, OS X and Linux"* |
+| June 2016: .NET Core 1.0 | A modular, open-source, cross-platform fork of .NET Framework (not a from-scratch rewrite), *"available on Windows, OS X and Linux"* |
 | .NET 5 | *"This release was named .NET 5 instead of .NET Core 4 for two reasons: Version numbers 4.x were skipped to avoid confusion with .NET Framework 4.x. 'Core' was dropped from the name to emphasize that this is the main implementation of .NET going forward."* |
 | Every November since | A new major version. *"Even numbered releases are LTS releases that get free support and patches for three years. Odd numbered releases are STS releases that get free support and patches for two years."* (STS was 18 months before .NET 9.) |
 
@@ -89,11 +89,11 @@ From Microsoft's porting docs. This is the list that decides how hard a migratio
 | **ASP.NET Web Forms** | *"only available in .NET Framework"* | Blazor or Razor Pages |
 | **WCF server** | Not in the box | **CoreWCF**: *"As of April 2022, CoreWCF is officially supported by Microsoft."* |
 
-> **Hidden landmine:** delegate `BeginInvoke()` / `EndInvoke()` relied on Remoting. On .NET they *"will throw PlatformNotSupportedException"*. Replace them with `Task.Run`.
+> **Hidden landmine:** delegate `BeginInvoke()` / `EndInvoke()` relied on Remoting. On .NET they *"will throw PlatformNotSupportedException"*. Call a `Task`-based async API if one exists; otherwise wrap the synchronous call in `Task.Run` and `await` it instead of calling `EndInvoke`.
 
 ### .NET Standard: the bridge between them
 
-*".NET Standard is a formal specification of .NET APIs that are available on multiple .NET implementations."* It still matters for one reason: **sharing a library with .NET Framework consumers**.
+*".NET Standard is a formal specification of .NET APIs that are available on multiple .NET implementations."* Today it matters mainly for one reason: **sharing a library with .NET Framework consumers**.
 
 - *"if you want to share code between .NET Framework and any other .NET implementation... your library should target .NET Standard 2.0."*
 - *".NET Framework doesn't support .NET Standard 2.1"*, and *"There will be no new .NET Standard versions after 2.1."*
@@ -114,11 +114,11 @@ Microsoft's server guidance: *"The latest .NET version (currently .NET 10) is th
 - It uses technologies from the table above that have no replacement you can adopt yet.
 - It runs on a platform that doesn't support .NET.
 
-Migration tooling changes fast. **.NET Upgrade Assistant is officially deprecated** in favor of a GitHub Copilot upgrade agent in Visual Studio. Its product name has changed more than once, so check the current docs. The older `try-convert` tool is archived. A common incremental path for web apps:
+Migration tooling changes fast. **.NET Upgrade Assistant is officially deprecated** in favor of the GitHub Copilot modernization agent ("GitHub Copilot app modernization"), included with Visual Studio 2026 and Visual Studio 2022 17.14.16 or later. Its product name has changed more than once, so check the current docs. The older `try-convert` tool is archived. Microsoft's incremental path for web apps is the **Strangler Fig** pattern:
 
-1. Move shared code to `netstandard2.0` or multi-target.
-2. Migrate leaf services first.
-3. Run old and new side by side behind a proxy.
+1. Put a new ASP.NET Core app in front of the old one as a proxy (YARP). Unmigrated routes are still forwarded to the .NET Framework app.
+2. Upgrade the supporting libraries those routes need to `netstandard2.0` (or multi-target), leaf dependencies first.
+3. Move routes to ASP.NET Core one at a time until the old app can be retired.
 
 > **Interview answer in 30 seconds:** ".NET Framework is Windows-only, installed as part of Windows, and only gets fixes. 4.8.1 is the latest version, and Microsoft said 4.8 would be the last major one. .NET (Core) is cross-platform, open source, deploys side-by-side or self-contained, ships every November, and is faster. New code goes on .NET. Existing Framework apps stay there unless they need what's new, and the hard parts of migrating are AppDomains, Remoting, WCF server and Web Forms."
 

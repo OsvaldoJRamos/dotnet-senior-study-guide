@@ -124,7 +124,7 @@ High-volume services cannot log every request at `Information`. Options:
 
 > **Do not** throttle error logs. Warnings and infos, yes.
 
-> .NET also ships in-process **log sampling** and **log buffering** (`Microsoft.Extensions.Telemetry`). See [Logging Best Practices](03-logging-best-practices.md#controlling-volume-and-cost).
+> .NET also ships in-process **log sampling** and **log buffering** (`Microsoft.Extensions.Telemetry`; per-request buffering in `Microsoft.AspNetCore.Diagnostics.Middleware`). See [Logging Best Practices](03-logging-best-practices.md#controlling-volume-and-cost).
 
 ## PII redaction
 

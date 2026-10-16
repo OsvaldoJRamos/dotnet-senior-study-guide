@@ -15,7 +15,7 @@
 | Creation cost | Expensive (dedicated OS thread; default stack 1.5 MB on Windows/macOS, 8 MB on Linux) | Cheap (reuses thread pool threads) |
 | Return value | None | `Task<T>` can return a result |
 | Exception handling | Unhandled exceptions *"generally terminate the process"* | Stored in the task; rethrown by `await` (wrapped in `AggregateException` by `Wait()`/`.Result`) |
-| Cancellation | Cooperative only, wired up yourself | Integrated with `CancellationToken` |
+| Cancellation | Cooperative, wired up yourself (`Thread.Abort` is unsupported on .NET Core and .NET 5+) | Integrated with `CancellationToken` |
 | Continuation | Manual | `await`, `ContinueWith` |
 
 **Rule**: use `Task` and `async/await` for almost everything. Use raw `Thread` only for long-running background work where you need full control.

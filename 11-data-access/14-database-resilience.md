@@ -26,8 +26,8 @@ Not every database exception deserves a retry. The Azure Architecture Center is 
 | Command timeout | `SqlCommand.CommandTimeout` = **30 s** (`0` = no limit) | `Command Timeout` = **30 s** (`0` = infinite) |
 | Max pool size | `Max Pool Size` = **100** | `Maximum Pool Size` = **100** |
 | Min pool size | `Min Pool Size` = **0** | `Minimum Pool Size` = **0** |
-| Idle connection pruning | — | `Connection Idle Lifetime` = 300 s |
-| Max connection age | — | `Connection Lifetime` = 3600 s (since Npgsql 9.0; disabled before) |
+| Idle connection pruning | Periodic cleanup removes unused connections above `Min Pool Size` after ~4–8 min. Since SqlClient 7.1, `Connection Idle Timeout` = 300 s (enforced only when the `UseLegacyIdleTimeoutBehavior` AppContext switch is `false`) | `Connection Idle Lifetime` = 300 s |
+| Max connection age | `Load Balance Timeout` (alias `Connection Lifetime`) = 0, disabled; age is checked when a connection returns to the pool | `Connection Lifetime` = 3600 s (since Npgsql 9.0; disabled before) |
 
 Apply the [cascading timeout rule](../18-reliability-and-sre/04-timeouts.md). A 30 s command timeout behind an API with a 10 s request deadline means the database keeps working after the user is gone.
 
@@ -37,10 +37,11 @@ The classic database outage is usually not "the database is down". More often th
 
 > *"Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool. This may have occurred because all pooled connections were in use and max pool size was reached."*
 
-The SqlClient docs list the usual suspects: *"a connection leak, slow queries, blocked transactions, too much concurrency, pool fragmentation, or a database capacity limit."* Their checklist starts with *"Every connection and reader is disposed on every path."*
+The SqlClient docs list the usual suspects: *"a connection leak, slow queries, blocked transactions, too much concurrency, pool fragmentation, or a database capacity limit."* Before you raise `Max Pool Size`, their first check is *"Every connection and reader is disposed on every path."*
 
 ```csharp
-// Leak: if QueryAsync throws, the connection never returns to the pool
+// Leak: the connection is never disposed, so it never returns to the pool
+// (and a later Dispose() would be skipped if QueryAsync throws)
 var connection = new SqlConnection(connectionString);
 await connection.OpenAsync();
 var orders = await connection.QueryAsync<Order>(sql);
@@ -55,11 +56,11 @@ var orders = await connection.QueryAsync<Order>(sql);
 
 > **Don't fix exhaustion by raising `Max Pool Size`.** If queries are slow, more connections just move the queue into the database. Fix the slow query or the leak. Also check the math: pod count × max pool size must stay below the server's connection limit.
 
-> **Blocking period gotcha:** *"A retry provider that opens the same pool during a blocking period receives the cached exception."* Retrying `Open` immediately after a failure may not reach the server at all.
+> **Blocking period gotcha:** after an authentication timeout or other authentication failure, the pool can enter a blocking period (5 s, doubling up to 1 min) in which matching opens rethrow the original exception. *"A retry provider that opens the same pool during a blocking period receives the cached exception."* With the default `Pool Blocking Period=Auto` this applies to ordinary SQL Server endpoints, not to recognized Azure SQL endpoints.
 
 ## SQL Server: idle connection resiliency
 
-`ConnectRetryCount` / `ConnectRetryInterval` are connection-string keywords that re-establish a **broken idle connection** transparently.
+`ConnectRetryCount` / `ConnectRetryInterval` are connection-string keywords that re-establish a **broken idle connection** transparently. Per the Azure SQL docs they also drive retries of the initial `Open` ("open connection resiliency"), using SqlClient's own internal transient list.
 
 - `ConnectRetryCount`: 0–255. *"Since version 5.x the default value for non Azure endpoints is 1. For Azure SQL endpoints, the default is 2. For Azure SQL serverless or on demand endpoints, the default is 5."* (The Azure SQL troubleshooting page still says the default is 1. Trust the SqlClient reference.)
 - `ConnectRetryInterval`: 1–60 s, default 10.
@@ -97,13 +98,13 @@ Facts that trip people up:
 - **Off by default.** *"The default is SqlConfigurableRetryFactory.CreateNoneRetryProvider, which doesn't retry."* Also: *"assigning a provider to a connection doesn't apply it to commands created from that connection."*
 - **`TransientErrors` replaces, it doesn't append.** When `null`, the providers use 20 baseline numbers: 233, 997, 1204, 1205, 1222, 4060, 4221, 10060, 10928, 10929, 40143, 40197, 40501, 40540, 40613, 42108, 42109, 49918, 49919, 49920. The baseline is exposed as `SqlConfigurableRetryFactory.BaselineTransientErrors` since SqlClient 7.0.
 - **Jitter is built in.** *"The fixed, incremental, and exponential providers add random jitter to each interval."*
-- **Transactions are skipped.** *"The built-in providers skip retry when a command runs inside an ambient TransactionScope or has a SqlTransaction attached."* The guidance is to *"roll back and retry the entire transaction as one unit."* A bug could still retry a command outside its transaction after a deadlock (dotnet/SqlClient #4309, fix merged September 2026). Check your version's release notes before relying on this.
+- **Transactions are skipped.** *"The built-in providers skip retry when a command runs inside an ambient TransactionScope or has a SqlTransaction attached."* The guidance is to *"roll back and retry the entire transaction as one unit."* A bug could still retry a command outside its transaction after a deadlock (dotnet/SqlClient #4309, fix merged September 2026 in the 8.0.0-preview1 milestone, so 7.x releases don't have it). Check your version's release notes before relying on this.
 - **Idempotency is on you.** *"Restrict command retries to idempotent operations."* `AuthorizedSqlCondition` is the hook. When it returns `false`, the command runs once without retry.
-- **Old blog posts are stale.** The `Switch.Microsoft.Data.SqlClient.EnableRetryLogic` AppContext switch was a 3.0 preview requirement and was removed in 4.0.
+- **Old blog posts are stale.** The `Switch.Microsoft.Data.SqlClient.EnableRetryLogic` AppContext switch was required in 3.x, while the feature itself was still in preview, and was removed in 4.0 (4.0.0-preview2, PR #1254).
 
 ## Azure SQL specifics
 
-The Azure SQL docs list these as transient: **926, 4060, 4221, 615, 40197, 40501, 40613, 49918, 49919, 49920**. Errors 40540 and 40143 are *"Subcodes embedded in a 40197 failover message"*. Treat them like 40197.
+The Azure SQL docs list these as transient: **926, 4060, 4221, 615, 40197, 40501, 40613, 49918, 49919, 49920**. Error 40197 embeds a subcode (e.g. 40020, 40143, 40166, 40540). The SqlClient docs call these *"Subcodes embedded in a 40197 failover message"* that some paths surface as the top-level error number. Treat them like 40197.
 
 Retry guidance from the same docs:
 
@@ -123,7 +124,7 @@ What Npgsql gives you is classification. `NpgsqlException.IsTransient` indicates
 | `53300` | too_many_connections |
 | `55P03` | lock_not_available |
 | `57P01` / `57P02` / `57P03` | admin_shutdown / crash_shutdown / cannot_connect_now |
-| `08xxx` | connection exceptions (e.g. `08006` connection_failure) |
+| `08000` / `08001` / `08003` / `08004` / `08006` / `08007` | connection exceptions (e.g. `08006` connection_failure); **not** `08P01` protocol_violation |
 
 > **Contrast with SqlClient:** Npgsql treats an inner `TimeoutException` as transient. If your retry layer keys off `IsTransient`, it **will** retry timed-out commands. Make sure those commands are idempotent.
 
@@ -149,7 +150,7 @@ Other values: `Any`, `Standby`, `PreferPrimary`, `ReadWrite`, `ReadOnly`. Gotcha
 
 ### PgBouncer
 
-When an external pooler like PgBouncer sits in front, the Npgsql docs say *"you'll want to turn off Npgsql's internal connection pool by specifying `Pooling=false`"*. If you keep Npgsql pooling with PgBouncer in transaction mode, set `No Reset On Close=true`. An Npgsql maintainer notes that errors like *`prepared statement "_auto0" does not exist`* can happen when a pooler doesn't track prepared statements (npgsql #6178).
+When an external pooler like PgBouncer sits in front, the Npgsql docs say *"you'll want to turn off Npgsql's internal connection pool by specifying `Pooling=false`"*. If you keep Npgsql pooling with PgBouncer in transaction mode, set `No Reset On Close=true`. In npgsql #6178 (*`prepared statement "_auto0" does not exist`*), an Npgsql team member suggested a pooler that doesn't track prepared statements as one possible cause. The issue was closed without a confirmed root cause.
 
 ## Writing your own retry: Polly v8 around ADO.NET or Dapper
 
@@ -204,7 +205,7 @@ A .NET app can have **five** stacked retry layers against the same database:
 
 | Layer | Scope |
 |---|---|
-| `ConnectRetryCount` (SqlClient) | Reconnecting a broken idle connection |
+| `ConnectRetryCount` (SqlClient) | Reconnecting a broken idle connection (and, per the Azure SQL docs, retrying the initial `Open`) |
 | SqlClient configurable retry logic | `Open` and single commands |
 | EF Core execution strategy | `SaveChanges` / a unit of work |
 | Your Polly pipeline | Any delegate |
@@ -219,7 +220,7 @@ Logging guidance from the same page: *"Log transient faults as warning entries r
 | Keyword | What it does | What it does NOT do |
 |---|---|---|
 | `MultiSubnetFailover=True` | *"attempts connections in parallel and uses the first successful connection"* across the listener's IPs | *"doesn't shorten the server's failover or database recovery time"*. Incompatible with `Failover Partner`. |
-| `ApplicationIntent=ReadOnly` | *"request a read workload on an AG database"*. With read-only routing configured on the server, lands on a secondary. | Doesn't work without the listener + server-side routing |
+| `ApplicationIntent=ReadOnly` | *"request a read workload on an AG database"*. With read-only routing configured on the server, lands on a secondary. | Doesn't route to a secondary without the listener + server-side read-only routing, and doesn't make the database read-only |
 
 None of these *"make an in-flight transaction survive a broken connection"*. You still need the retry logic above. See [Replication and Read Replicas](11-replication-and-read-replicas.md).
 

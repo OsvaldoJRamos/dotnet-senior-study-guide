@@ -362,7 +362,7 @@ app.MapHealthChecks("/healthz/ready", new HealthCheckOptions
 });
 ```
 
-Container orchestrators (Kubernetes, Docker) poll these endpoints. A failing **liveness** probe triggers a restart. A failing **readiness** probe removes the pod from the load balancer.
+Orchestrators such as Kubernetes poll these endpoints. A failing **liveness** probe makes the kubelet restart the container. A failing **readiness** probe removes the pod from the Service's endpoints (the load balancer).
 
 **Key rule:** dependencies (database, Redis, external APIs) go in **readiness only**. If the database check is in liveness, a database blip restarts every pod at once, and restarting doesn't fix the database. By default `Healthy`/`Degraded` return 200 and `Unhealthy` returns 503.
 
@@ -468,7 +468,7 @@ Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
 <details>
 <summary>Reveal answer</summary>
 
-*"Hedging retries slow requests in parallel."* If the first attempt hasn't answered after a delay, another attempt is sent, and the first response wins. Retry only fires **after a failure**. Hedging fires on **slowness**.
+*"Hedging retries slow requests in parallel."* If the first attempt fails or hasn't answered after a delay (2 s by default), another attempt is sent, and the fastest successful response wins. Retry only fires **after a failure**. Hedging also fires on **slowness**, without waiting for the first attempt to finish.
 
 - **Use it for:** latency-sensitive, **idempotent reads**, ideally across multiple replicas/regions, to cut tail latency (p99).
 - **Don't use it for:** writes. Hedging sends duplicate requests by design.
@@ -506,7 +506,7 @@ Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
 <details>
 <summary>Reveal answer</summary>
 
-`RejectionStatusCode` **defaults to 503 Service Unavailable**. For per-client throttling, set it to **429 Too Many Requests**. 503 tells clients and load balancers the server itself is down. A status code set in `OnRejected` wins over the default; also set `Retry-After` there when the lease exposes it.
+`RejectionStatusCode` **defaults to 503 Service Unavailable**. For per-client throttling, set it to **429 Too Many Requests**. 503 tells clients and load balancers the server itself is temporarily unavailable (overload or maintenance). A status code set in `OnRejected` wins over the default; also set `Retry-After` there when the lease exposes it.
 
 Partition key:
 - **Prefer an authenticated client/tenant ID.**
@@ -551,7 +551,7 @@ Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
 | `Policy.WrapAsync` | Chain `Add*` calls on `ResiliencePipelineBuilder`. The first added is the outermost. |
 | `PolicyRegistry` | `ResiliencePipelineRegistry<TKey>` / `ResiliencePipelineProvider<TKey>` |
 
-For `HttpClient`, don't port v7 code to `Microsoft.Extensions.Http.Polly`, which is deprecated. Use `Microsoft.Extensions.Http.Resilience` (`AddStandardResilienceHandler` / `AddResilienceHandler`). For non-HTTP code, use `AddResiliencePipeline` from `Microsoft.Extensions.Resilience`.
+For `HttpClient`, don't port v7 code to `Microsoft.Extensions.Http.Polly`, which is deprecated. Use `Microsoft.Extensions.Http.Resilience` (`AddStandardResilienceHandler` / `AddResilienceHandler`). For non-HTTP code, use `AddResiliencePipeline` (defined in `Polly.Extensions`, which `Microsoft.Extensions.Resilience` references).
 
 Deep dive: [API Resilience](../10-aspnet-core/04-api-resilience.md)
 
