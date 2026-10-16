@@ -153,4 +153,4 @@ Not pages (dashboard only):
 
 ---
 
-[← Previous: SLI, SLO, SLA](06-sli-slo-sla.md) | [Back to index](README.md)
+[← Previous: SLI, SLO, SLA](07-sli-slo-sla.md) | [Back to index](README.md)

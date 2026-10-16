@@ -65,7 +65,7 @@ CI/CD, FaaS, Docker, Kubernetes, Terraform, Azure Pipelines.
 AWS (IAM, VPC, SQS, S3), Azure (App Service, AKS, Service Bus, Key Vault).
 
 ### [17 - Observability](17-observability/README.md)
-Three pillars (logs/metrics/traces), structured logging, .NET Metrics API, OpenTelemetry, correlation IDs, SLI/SLO/SLA, alerting.
+Three pillars (logs/metrics/traces), structured logging, logging best practices, .NET Metrics API, OpenTelemetry, correlation IDs, SLI/SLO/SLA, alerting.
 
 ### [18 - Reliability and SRE](18-reliability-and-sre/README.md)
 Retries/backoff/jitter, circuit breaker, bulkhead, timeouts, chaos engineering, incident response, postmortems, error budgets.

@@ -45,6 +45,8 @@ _logger.LogInformation("Order {OrderId} placed by user {UserId}", orderId, userI
 
 This is the "metrics → traces → logs" drill-down pattern. It minimizes cost: metrics are cheap to keep at high resolution forever; traces and logs can be sampled or kept for a shorter retention.
 
+> Audit trails are a fourth kind of record that should **not** go through the logging pipeline. See [Logging Best Practices](03-logging-best-practices.md#log-vs-metric-vs-trace-vs-audit-record).
+
 ## What each is NOT for
 
 | Anti-use | Why it breaks |

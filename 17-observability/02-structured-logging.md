@@ -124,6 +124,8 @@ High-volume services cannot log every request at `Information`. Options:
 
 > **Do not** throttle error logs. Warnings and infos, yes.
 
+> .NET also ships in-process **log sampling** and **log buffering** (`Microsoft.Extensions.Telemetry`). See [Logging Best Practices](03-logging-best-practices.md#controlling-volume-and-cost).
+
 ## PII redaction
 
 A senior failure mode: a "structured log" serializes a full `Customer` object, which contains email, DOB, address. GDPR/CCPA exposure.
@@ -157,4 +159,4 @@ Three layers:
 
 ---
 
-[← Previous: The Three Pillars](01-three-pillars.md) | [Next: Metrics →](03-metrics.md) | [Back to index](README.md)
+[← Previous: The Three Pillars](01-three-pillars.md) | [Next: Logging Best Practices →](03-logging-best-practices.md) | [Back to index](README.md)

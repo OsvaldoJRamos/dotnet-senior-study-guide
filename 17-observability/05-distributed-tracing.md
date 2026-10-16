@@ -163,4 +163,4 @@ The W3C spec is explicit: the `sampled` flag in `traceparent` is a **hint**, not
 
 ---
 
-[← Previous: Metrics](03-metrics.md) | [Next: Correlation IDs →](05-correlation-ids.md) | [Back to index](README.md)
+[← Previous: Metrics](04-metrics.md) | [Next: Correlation IDs →](06-correlation-ids.md) | [Back to index](README.md)
